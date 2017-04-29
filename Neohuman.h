@@ -46,7 +46,8 @@ public:
 
   bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
 
+
   template <typename T>
-  T randele(std::vector <T>);
+  T randele(std::vector <T>&);
 
 };

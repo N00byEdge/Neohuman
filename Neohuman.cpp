@@ -54,7 +54,7 @@ int Neohuman::randint(int min, int max) {
 }
 
 template <typename T>
-T Neohuman::randele(std::vector <T> v) {
+T Neohuman::randele(std::vector <T> &v) {
 	return v[randint(0, v.size())];
 }
 
