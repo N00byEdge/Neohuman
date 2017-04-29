@@ -256,12 +256,12 @@ void Neohuman::onFrame() {
 		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 20 == 0) {
 			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking);
 			if (enemyUnit) {
-				u->attack(enemyUnit);
+				u->attack(enemyUnit->getPosition());
 				continue;
 			}
 			enemyUnit = u->getClosestUnit(IsEnemy);
 			if (enemyUnit) {
-				u->attack(enemyUnit);
+				u->attack(enemyUnit->getPosition());
 				continue;
 			}
 			auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
