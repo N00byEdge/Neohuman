@@ -349,6 +349,12 @@ void Neohuman::onUnitCreate(Unit unit) {
 }
 
 void Neohuman::onUnitDestroy(Unit unit) {
+	try {
+		if (unit->getType().isMineralField())			BWEMMap.OnMineralDestroyed(unit);
+		else if (unit->getType().isSpecialBuilding())	BWEMMap.OnStaticBuildingDestroyed(unit);
+	} catch (const std::exception & e) {
+		Broodwar << "EXCEPTION: " << e.what() << std::endl;
+	}
 }
 
 void Neohuman::onUnitMorph(Unit unit) {
