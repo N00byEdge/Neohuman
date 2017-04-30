@@ -22,9 +22,10 @@ namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
 	_buildingQueue.push_back(Triple<int, UnitType, TilePosition>{u->getID(), building, at});
+	return Broodwar->canBuildHere(at, building);
 }
 
-std::pair <int, int> Neohuman::getQueuedResources() {
+std::pair <int, int> Neohuman::getQueuedResources() const {
 	std::pair <int, int> resources;
 	for (auto &o : _buildingQueue)
 		resources.first  += o.second.mineralPrice(),
