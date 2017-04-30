@@ -1,8 +1,14 @@
 #include "Neohuman.h"
 #include <iostream>
 
+#include "BWEM/bwem.h"
+
 using namespace BWAPI;
 using namespace Filter;
+
+using namespace BWEM;
+using namespace BWEM::BWAPI_ext;
+using namespace BWEM::utils;
 
 #define MIN(a, b) (((a) < (b) ? (a) : (b)))
 #define MAX(a, b) (((a) < (b) ? (b) : (a)))
@@ -11,6 +17,8 @@ using namespace Filter;
 #define WORKERAGGRORADIUS 200
 
 #define SHOWTHINGS
+
+namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
 	_buildingQueue.push_back(Triple<int, UnitType, TilePosition>{u->getID(), building, at});
@@ -36,6 +44,9 @@ void Neohuman::onStart() {
 			//this->onUnitComplete(u);
 		}
 	}
+
+	BWEMMap.Initialize();
+	BWEMMap.EnableAutomaticPathAnalysis();
 
 }
 
@@ -72,6 +83,13 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", _nBarracks);
 
 #endif
+
+	try {
+		//BWEM::utils::gridMapExample(BWEMMap);
+		//BWEM::utils::drawMap(BWEMMap);
+	} catch (const std::exception & e) {
+		Broodwar << "EXCEPTION: " << e.what() << std::endl;
+	}
 
 	// Return if the game is a replay or is paused
 	if (Broodwar->isReplay() || Broodwar->isPaused() || !Broodwar->self())
