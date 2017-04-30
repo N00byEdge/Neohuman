@@ -24,6 +24,21 @@ bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
 	_buildingQueue.push_back(Triple<int, UnitType, TilePosition>{u->getID(), building, at});
 }
 
+std::pair <int, int> Neohuman::getQueuedResources() {
+	std::pair <int, int> resources;
+	for (auto &o : _buildingQueue)
+		resources.first  += o.second.mineralPrice(),
+		resources.second += o.second.gasPrice();
+	return resources;
+}
+
+std::pair <int, int> Neohuman::getSpendableResources() {
+	std::pair <int, int> result = { Broodwar->self()->minerals(), Broodwar->self()->gas() };
+	auto queued = this->getQueuedResources();
+	result.first -= queued.first, result.second -= queued.second;
+	return result;
+}
+
 void Neohuman::onStart() {
 	Broodwar << "The map is totally not " << Broodwar->mapName() << "!" << std::endl;
 
@@ -254,6 +269,8 @@ void Neohuman::onFrame() {
 			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
 			if (u->isIdle()) {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
+				if (nWorkers >= 70)
+					continue;
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
 				if (workers.size() < mineralFields.size() * 2 && availableMinerals >= 50) {
 					if (u->train(u->getType().getRace().getWorker())) {
