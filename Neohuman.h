@@ -45,9 +45,9 @@ public:
   int randint(int, int);
 
   bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
-  std::pair <int, int> getQueuedResources();
+  std::pair <int, int> getQueuedResources() const;
 
-  std::pair <int, int> getSpendableResources();
+  std::pair <int, int> getSpendableResources() const;
 
   template <typename T>
   T randele(std::vector <T>&);

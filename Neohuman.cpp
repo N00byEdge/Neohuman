@@ -32,7 +32,7 @@ std::pair <int, int> Neohuman::getQueuedResources() {
 	return resources;
 }
 
-std::pair <int, int> Neohuman::getSpendableResources() {
+std::pair <int, int> Neohuman::getSpendableResources() const {
 	std::pair <int, int> result = { Broodwar->self()->minerals(), Broodwar->self()->gas() };
 	auto queued = this->getQueuedResources();
 	result.first -= queued.first, result.second -= queued.second;
