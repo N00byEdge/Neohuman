@@ -173,6 +173,13 @@ void Neohuman::onFrame() {
 		availableMinerals -= 150;
 	}
 
+	int nWorkers = 0;
+	for (auto &u : Broodwar->getAllUnits()) {
+		if (u->getType() == u->getType().getRace().getWorker() && u->getPlayer() == Broodwar->self()) {
+			++nWorkers;
+		}
+	}
+
 	// Check if supply should be increased
 	if (_wantedExtraSupply > 0 && availableMinerals >= 100 && Broodwar->self()->supplyTotal() < 400) {
 		// Find unit to build our supply!
