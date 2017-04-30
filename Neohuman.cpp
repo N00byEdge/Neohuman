@@ -55,9 +55,6 @@ void Neohuman::onStart() {
 	if (!Broodwar->isReplay()) {
 		if (Broodwar->enemy())
 			Broodwar << "The matchup is me (" << Broodwar->self()->getRace() << ") vs " << Broodwar->enemy()->getRace() << std::endl;
-		for (auto u: Broodwar->self()->getUnits()) {
-			//this->onUnitComplete(u);
-		}
 	}
 
 	BWEMMap.Initialize();
