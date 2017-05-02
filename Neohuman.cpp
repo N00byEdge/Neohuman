@@ -277,7 +277,7 @@ void Neohuman::onFrame() {
 	if (getSpendableResources().first >= 150 && countUnit(UnitTypes::Terran_Barracks)*4 < countUnit(UnitTypes::Terran_SCV)) {
 		// Build barracks!
 		for (auto &u : Broodwar->self()->getUnits()) {
-			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals()) {
+			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
 				auto buildingType = UnitTypes::Terran_Barracks;
 				auto buildingPos = Broodwar->getBuildLocation(buildingType, u->getTilePosition());
 
