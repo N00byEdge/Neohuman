@@ -121,7 +121,7 @@ void Neohuman::onStart() {
 
 	for (auto &a : BWEMMap.Areas())
 		for (auto &b : a.Bases())
-			_allBases.push_back(b);
+			_allBases.push_back(&b);
 }
 
 void Neohuman::onEnd(bool didWin) {

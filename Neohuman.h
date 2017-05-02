@@ -38,7 +38,7 @@ public:
   bool _isBuildingBarracks = false;
   int _nBarracks = 0;
 
-  std::vector <BWEM::Base> _allBases;
+  std::vector <const BWEM::Base*> _allBases;
 
   std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 
