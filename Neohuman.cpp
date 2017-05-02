@@ -19,8 +19,11 @@ namespace { auto & BWEMMap = Map::Instance(); }
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
 	if (isWorkerBuilding(u))
 		return false;
-	_buildingQueue.push_back({Triple<int, UnitType, TilePosition>{u->getID(), building, at}, false});
-	return u->build(building, at);
+	if (u->build(building, at)) {
+		_buildingQueue.push_back({ Triple<int, UnitType, TilePosition>{u->getID(), building, at}, false });
+		return true;
+	}
+	return false;
 }
 
 std::pair <int, int> Neohuman::getQueuedResources() const {
