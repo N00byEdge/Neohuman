@@ -161,13 +161,6 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(0, constructingLine, "%c%u buildings in queue", Text::White, _buildingQueue.size());
 	constructingLine += 12;
 
-	for (auto &u : Broodwar->self()->getUnits()) {
-		if (u->exists() && u->isBeingConstructed()) {
-			Broodwar->drawTextScreen(0, constructingLine, "%s", u->getType().c_str());
-			constructingLine += 12;
-		}
-	}
-
 	for (auto &o : _buildingQueue) {
 		Broodwar->drawTextScreen(0, constructingLine, "%c%s", o.second ? Text::Blue : Text::Orange, o.first.second.c_str());
 		Broodwar->drawBoxMap(Position(o.first.third), Position((Position)o.first.third + (Position)o.first.second.tileSize()), o.second ? Colors::Blue : Colors::Orange, false);
