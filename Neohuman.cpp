@@ -290,8 +290,7 @@ void Neohuman::onFrame() {
 	/*if (!_isExpanding && availableMinerals >= 400){
 		// Expand!
 		for (auto &u : Broodwar->self()->getUnits()) {
-			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals()) {
-				// Builder found!
+			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
 				auto buildingType = u->getType().getRace().getCenter();
 				auto buildPos = Broodwar->getBuildLocation(buildingType, u->getTilePosition());
 
