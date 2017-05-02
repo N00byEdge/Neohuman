@@ -144,6 +144,7 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(200, 12, "Average FPS: %f", Broodwar->getAverageFPS());
 	Broodwar->drawTextScreen(200, 24, "I want %d more supply (%d coming up)", _wantedExtraSupply, getQueuedSupply());
 	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", _nBarracks);
+	Broodwar->drawTextScreen(200, 48, "I have %d APM!", Broodwar->getAPM());
 
 #endif
 
