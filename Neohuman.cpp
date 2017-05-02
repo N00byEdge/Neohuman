@@ -309,11 +309,10 @@ void Neohuman::onFrame() {
 				}
 			}
 		} else if (u->getType() == UnitTypes::Terran_Barracks) {
-			if (u->isIdle() && availableMinerals >= 50)
-				if (!u->train(UnitTypes::Terran_Marine))
-					availableMinerals -= 50;
 		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 20 == 0) {
 			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking);
+			if (u->isIdle() && getSpendableResources().first >= 50)
+				u->train(UnitTypes::Terran_Marine);
 			if (enemyUnit) {
 				u->attack(enemyUnit->getPosition());
 				continue;
