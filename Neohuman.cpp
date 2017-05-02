@@ -19,15 +19,15 @@ using namespace BWEM::utils;
 namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
-	_buildingQueue.push_back(Triple<int, UnitType, TilePosition>{u->getID(), building, at});
-	return Broodwar->canBuildHere(at, building);
+	_buildingQueue.push_back({Triple<int, UnitType, TilePosition>{u->getID(), building, at}, false});
+	return u->build(building, at);
 }
 
 std::pair <int, int> Neohuman::getQueuedResources() const {
 	std::pair <int, int> resources;
 	for (auto &o : _buildingQueue)
-		resources.first  += o.second.mineralPrice(),
-		resources.second += o.second.gasPrice();
+		resources.first  += o.first.second.mineralPrice(),
+		resources.second += o.first.second.gasPrice();
 	return resources;
 }
 
@@ -36,6 +36,58 @@ std::pair <int, int> Neohuman::getSpendableResources() const {
 	auto queued = this->getQueuedResources();
 	result.first -= queued.first, result.second -= queued.second;
 	return result;
+}
+
+int Neohuman::getQueuedSupply() const {
+	int sum = 0;
+	for (auto &u : Broodwar->getAllUnits()) {
+		if (u->isBeingConstructed()) {
+			if (u->getType() == UnitTypes::Terran_Supply_Depot)
+				sum += 8;
+			else if (u->getType() == UnitTypes::Terran_Command_Center)
+				sum += 10;
+		}
+	}
+	return sum;
+}
+
+void Neohuman::manageBuildingQueue() {
+	for (unsigned i = 0; i < _buildingQueue.size(); ++i) {
+		// Work on halted queue progress, SCV died
+		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->exists() && !_buildingQueue[i].second) {
+			// Replace placing scv
+			auto pos = Position(_buildingQueue[i].first.third);
+			_buildingQueue[i].first.first = Broodwar->getClosestUnit(pos, IsOwned && IsGatheringMinerals && !IsCarryingMinerals)->getID();
+			Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].second, _buildingQueue[i].first.third);
+		}
+		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->isConstructing() && !_buildingQueue[i].second) {
+			// Replace building scv
+			auto pos = Position(_buildingQueue[i].first.third);
+			_buildingQueue[i].first.first = Broodwar->getClosestUnit(pos, IsOwned && IsGatheringMinerals && !IsCarryingMinerals)->getID();
+			Broodwar->getUnit(_buildingQueue[i].first.first)->rightClick(Broodwar->getClosestUnit(pos, IsOwned && IsBeingConstructed));
+		}
+
+		// Building was placed, update status
+		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::PlaceBuilding && Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() == Orders::ConstructingBuilding)
+			_buildingQueue[i].second = true;
+
+		// Building was placed and finished
+		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->isConstructing() && _buildingQueue[i].second && Broodwar->getClosestUnit(Position(_buildingQueue[i].first.third), (IsBuilding))->getTilePosition() == _buildingQueue[i].first.third)
+			_buildingQueue.erase(_buildingQueue.begin() + i--);
+
+		// Building was not placed, retry placing:
+		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::PlaceBuilding && Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::ConstructingBuilding) {
+			// Let's see if the location is buildable
+			if (Broodwar->canBuildHere(_buildingQueue[i].first.third, _buildingQueue[i].first.second)) {
+				// Let's just keep replacing there, and hope for the best.
+				Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
+			} else {
+				// Let's find a new location for this building
+				_buildingQueue[i].first.third = Broodwar->getBuildLocation(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
+				Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
+			}
+		}
+	}
 }
 
 void Neohuman::onStart() {
@@ -90,7 +142,7 @@ void Neohuman::onFrame() {
 	// Display the game frame rate as text in the upper left area of the screen
 	Broodwar->drawTextScreen(200, 0,  "FPS: %d", Broodwar->getFPS());
 	Broodwar->drawTextScreen(200, 12, "Average FPS: %f", Broodwar->getAverageFPS());
-	Broodwar->drawTextScreen(200, 24, "I want %d more supply (%d queued, %d in production)", _wantedExtraSupply, _queuedSupply, _supplyBeingMade);
+	Broodwar->drawTextScreen(200, 24, "I want %d more supply (%d coming up)", _wantedExtraSupply, getQueuedSupply());
 	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", _nBarracks);
 
 #endif
@@ -106,11 +158,20 @@ void Neohuman::onFrame() {
 	if (Broodwar->isReplay() || Broodwar->isPaused() || !Broodwar->self())
 		return;
 
+	Broodwar->drawTextScreen(0, constructingLine, "%c%u buildings in queue", Text::White, _buildingQueue.size());
+	constructingLine += 12;
+
 	for (auto &u : Broodwar->self()->getUnits()) {
 		if (u->exists() && u->isBeingConstructed()) {
 			Broodwar->drawTextScreen(0, constructingLine, "%s", u->getType().c_str());
 			constructingLine += 12;
 		}
+	}
+
+	for (auto &o : _buildingQueue) {
+		Broodwar->drawTextScreen(0, constructingLine, "%c%s", o.second ? Text::Blue : Text::Orange, o.first.second.c_str());
+		Broodwar->drawBoxMap(Position(o.first.third), Position((Position)o.first.third + (Position)o.first.second.tileSize()), o.second ? Colors::Blue : Colors::Orange, false);
+		constructingLine += 12;
 	}
 
 #ifdef SHOWTHINGS
@@ -133,43 +194,16 @@ void Neohuman::onFrame() {
 	// Latency frames are the number of frames before commands are processed.
 	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames() != 0)
 		return;
-	
-	_supplyBeingMade = 0;
-	for (auto &u : Broodwar->self()->getUnits()) {
-		if (u->isConstructing() && u->getType().getRace().getSupplyProvider() == u->getType())
-			_supplyBeingMade += 8;
-	}
 
-	availableMinerals -= 100*_queuedSupply/8;
-
-	if (Broodwar->elapsedTime() - _timeLastQueuedSupply > 5) {
-		_queuedSupply = 0;
-		_timeLastQueuedSupply = Broodwar->elapsedTime();
-	}
+	manageBuildingQueue();
 
 	_nSupplyOverhead = 2 + MAX((Broodwar->self()->supplyUsed() - 10) / 8, 0);
-	_wantedExtraSupply = (Broodwar->self()->supplyUsed() - (Broodwar->self()->supplyTotal() + _supplyBeingMade + _queuedSupply)) / 2 + _nSupplyOverhead;
+	_wantedExtraSupply = (Broodwar->self()->supplyUsed() - (Broodwar->self()->supplyTotal() + getQueuedSupply())) / 2 + _nSupplyOverhead;
 
 	_nBarracks = 0;
 	for (auto &u : Broodwar->self()->getUnits()) {
-		// If a cc is under construction
-		if (u->isConstructing() && u->getType() == u->getType().getRace().getCenter() && _isExpanding)
-			availableMinerals += 400;
-		// If a barracks is under construction
-		if (u->isConstructing() && u->getType() == UnitTypes::Terran_Barracks && _isBuildingBarracks)
-			availableMinerals += 150;
-
-		if (u->getType() == UnitTypes::Terran_Barracks) {
+		if (u->getType() == UnitTypes::Terran_Barracks)
 			++_nBarracks;
-		}
-	}
-
-	if (_isExpanding) {
-		availableMinerals -= 400;
-	}
-
-	if (_isBuildingBarracks) {
-		availableMinerals -= 150;
 	}
 
 	int nWorkers = 0;
@@ -180,7 +214,7 @@ void Neohuman::onFrame() {
 	}
 
 	// Check if supply should be increased
-	if (_wantedExtraSupply > 0 && availableMinerals >= 100 && Broodwar->self()->supplyTotal() < 400) {
+	if (_wantedExtraSupply > 0 && getSpendableResources().first >= 100 && Broodwar->self()->supplyTotal() < 400) {
 		// Find unit to build our supply!
 		for (auto &unit : Broodwar->self()->getUnits()) {
 			if (unit->exists() && unit->isGatheringMinerals() && unit->isMoving() && !unit->isCarryingMinerals()) {
@@ -188,25 +222,21 @@ void Neohuman::onFrame() {
 				auto supplyType = unit->getType().getRace().getSupplyProvider();
 				auto buildPos = Broodwar->getBuildLocation(supplyType, unit->getTilePosition());
 
-				if (unit->build(supplyType, buildPos)) {
-					_queuedSupply += 8;
-					_timeLastQueuedSupply = Broodwar->elapsedTime();
-					break;
-				}
+				doBuild(unit, supplyType, buildPos);
 			}
 		}
 	}
 
-	if (availableMinerals >= 150 && !_isBuildingBarracks && _nBarracks < 20) {
+	if (getSpendableResources().first >= 150 && !_isBuildingBarracks && _nBarracks < 20) {
 		// Build barracks!
 		for (auto &u : Broodwar->self()->getUnits()) {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals()) {
 				auto buildingType = UnitTypes::Terran_Barracks;
 				auto buildingPos = Broodwar->getBuildLocation(buildingType, u->getTilePosition());
 
-				if (u->build(buildingType, buildingPos)) {
+				if (doBuild(u, buildingType, buildingPos)) {
+
 					_isBuildingBarracks = true;
-					availableMinerals -= 150;
 					break;
 				}
 			}
@@ -275,15 +305,13 @@ void Neohuman::onFrame() {
 				if (nWorkers >= 70)
 					continue;
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
-				if (workers.size() < mineralFields.size() * 2 && availableMinerals >= 50) {
+				if (workers.size() < mineralFields.size() * 2 && getSpendableResources().first >= 50) {
 					if (u->train(u->getType().getRace().getWorker())) {
 						Position pos = u->getPosition();
 						Error lastErr = Broodwar->getLastError();
 						Broodwar->registerEvent([pos, lastErr](Game*){ Broodwar->drawTextMap(pos + Position(0, -10), "%c%s", Text::Red, lastErr.c_str()); },   // action
 							nullptr,    // condition
 							Broodwar->getLatencyFrames());  // frames to run
-					} else {
-						availableMinerals -= 50;
 					}
 				}
 			}

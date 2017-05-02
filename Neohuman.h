@@ -33,23 +33,24 @@ public:
 
   int _nSupplyOverhead = 0;
   int _wantedExtraSupply = 0;
-  int _supplyBeingMade = 0;
-  int _queuedSupply = 0;
   int _timeLastQueuedSupply = 0;
   bool _isExpanding = false;
   bool _isBuildingBarracks = false;
   int _nBarracks = 0;
 
-  std::vector <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>> _buildingQueue;
 
   std::mt19937 _rand = std::mt19937(std::default_random_engine{});
 
   int randint(int, int);
+  std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 
   bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
   std::pair <int, int> getQueuedResources() const;
 
   std::pair <int, int> getSpendableResources() const;
+  int getQueuedSupply() const;
+
+  void manageBuildingQueue();
 
   template <typename T>
   T randele(std::vector <T>&);
