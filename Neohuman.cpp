@@ -24,8 +24,9 @@ bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
 std::pair <int, int> Neohuman::getQueuedResources() const {
 	std::pair <int, int> resources;
 	for (auto &o : _buildingQueue)
-		resources.first  += o.first.second.mineralPrice(),
-		resources.second += o.first.second.gasPrice();
+		if (!o.second)
+			resources.first  += o.first.second.mineralPrice(),
+			resources.second += o.first.second.gasPrice();
 	return resources;
 }
 
