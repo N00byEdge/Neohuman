@@ -47,7 +47,7 @@ public:
   int Neohuman::additionalWantedSupply() const;
 
   bool canAfford(BWAPI::UnitType t) const;
-  int countUnit(BWAPI::UnitType t, bool countQueued) const;
+  int countUnit(BWAPI::UnitType t, const BWAPI::UnitFilter &filter, bool countQueued) const;
 
   void manageBuildingQueue();
 
