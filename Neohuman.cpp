@@ -59,10 +59,14 @@ bool Neohuman::canAfford(UnitType t) const {
 	return !(spendable.first < 0 || spendable.second < 0);
 }
 
-int Neohuman::countUnit(UnitType t, bool countQueued = true) const {
+int Neohuman::countUnit(UnitType t, const UnitFilter &filter = nullptr, bool countQueued = true) const {
+	if (!Broodwar->getAllUnits().size())
+		return 0;
+
+	Unit anyUnit = *(Broodwar->getAllUnits().begin());
 	int c = 0;
 
-	for (auto &u : Broodwar->getAllUnits())
+	for (auto &u : anyUnit->getUnitsInRadius(999999, filter))
 		if (u->exists() && u->getType() == t)
 			c++;
 
