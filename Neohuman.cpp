@@ -120,8 +120,8 @@ void Neohuman::manageBuildingQueue() {
 			if (Broodwar->canBuildHere(_buildingQueue[i].first.third, _buildingQueue[i].first.second)) {
 				// Let's just keep replacing there, and hope for the best.
 				Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
-			} else {
-				// Let's find a new location for this building
+			} else if(_buildingQueue[i].first.second != UnitTypes::Terran_Command_Center) {
+				// If it's not a cc, let's find a new location for this building
 				_buildingQueue[i].first.third = Broodwar->getBuildLocation(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
 				Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
 			}
