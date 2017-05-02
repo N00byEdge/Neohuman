@@ -240,21 +240,8 @@ void Neohuman::onFrame() {
 
 	manageBuildingQueue();
 
-	_nBarracks = 0;
-	for (auto &u : Broodwar->self()->getUnits()) {
-		if (u->getType() == UnitTypes::Terran_Barracks)
-			++_nBarracks;
-	}
-
-	int nWorkers = 0;
-	for (auto &u : Broodwar->getAllUnits()) {
-		if (u->getType() == u->getType().getRace().getWorker() && u->getPlayer() == Broodwar->self()) {
-			++nWorkers;
-		}
-	}
-
 	// Check if supply should be increased
-	if (wantedSupplyOverhead() > 0 && getSpendableResources().first >= 100 && Broodwar->self()->supplyTotal() < 400) {
+	if (additionalWantedSupply() > 0 && getSpendableResources().first >= 100 && Broodwar->self()->supplyTotal() < 400) {
 		// Find unit to build our supply!
 		for (auto &unit : Broodwar->self()->getUnits()) {
 			if (unit->exists() && unit->isGatheringMinerals() && unit->isMoving() && !unit->isCarryingMinerals()) {
@@ -262,23 +249,21 @@ void Neohuman::onFrame() {
 				auto supplyType = unit->getType().getRace().getSupplyProvider();
 				auto buildPos = Broodwar->getBuildLocation(supplyType, unit->getTilePosition());
 
-				doBuild(unit, supplyType, buildPos);
+				if(doBuild(unit, supplyType, buildPos))
+					break;
 			}
 		}
 	}
 
-	if (getSpendableResources().first >= 150 && !_isBuildingBarracks && _nBarracks < 20) {
+	if (getSpendableResources().first >= 150 && countUnit(UnitTypes::Terran_Barracks)*4 < countUnit(UnitTypes::Terran_SCV)) {
 		// Build barracks!
 		for (auto &u : Broodwar->self()->getUnits()) {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals()) {
 				auto buildingType = UnitTypes::Terran_Barracks;
 				auto buildingPos = Broodwar->getBuildLocation(buildingType, u->getTilePosition());
 
-				if (doBuild(u, buildingType, buildingPos)) {
-
-					_isBuildingBarracks = true;
+				if (doBuild(u, buildingType, buildingPos))
 					break;
-				}
 			}
 		}
 	}
@@ -342,7 +327,7 @@ void Neohuman::onFrame() {
 			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
 			if (u->isIdle()) {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
-				if (nWorkers >= 70)
+				if (countUnit(UnitTypes::Terran_SCV) >= 70)
 					continue;
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
 				if (workers.size() < mineralFields.size() * 2 && getSpendableResources().first >= 50) {
@@ -436,6 +421,4 @@ void Neohuman::onSaveGame(std::string gameName){
 void Neohuman::onUnitComplete(Unit unit){
 	if (unit->getType() == unit->getType().getRace().getCenter())
 		_isExpanding = false;
-	if (unit->getType() == UnitTypes::Terran_Barracks)
-		_isBuildingBarracks = false;
 }
