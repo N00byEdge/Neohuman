@@ -53,6 +53,8 @@ public:
 
   bool isWorkerBuilding(BWAPI::Unit u) const;
 
+  BWAPI::TilePosition getNextExpansion() const;
+
   std::mt19937 _rand = std::mt19937(std::default_random_engine{});
   int randint(int, int);
   template <typename T>

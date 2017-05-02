@@ -148,6 +148,14 @@ bool Neohuman::isWorkerBuilding(BWAPI::Unit u) const {
 	return false;
 }
 
+TilePosition Neohuman::getNextExpansion() const {
+	for (auto &b : _allBases)
+		if (Broodwar->canBuildHere(b->Location(), UnitTypes::Terran_Command_Center))
+			return b->Location();
+
+	return TilePosition(600, 600);
+}
+
 void Neohuman::onStart() {
 	Broodwar << "The map is totally not " << Broodwar->mapName() << "!" << std::endl;
 
