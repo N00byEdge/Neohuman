@@ -135,7 +135,6 @@ T Neohuman::randele(std::vector <T> &v) {
 void Neohuman::onFrame() {
 	// Called once every game frame
 	int constructingLine = 0;
-	int availableMinerals = Broodwar->self()->minerals();
 
 #ifdef SHOWTHINGS
 
