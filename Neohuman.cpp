@@ -187,10 +187,11 @@ void Neohuman::onStart() {
 			BWAPI::TilePosition a(l);
 			// Do some insertion sorting for the possible expansions
 			for (unsigned currentPos = 0; currentPos < _allBases.size() - 1; ++currentPos) {
-				int shortestDist = l.getApproxDistance(_allBases[currentPos]->Location());
+				double shortestDist = l.getApproxDistance(_allBases[currentPos]->Location());
 				for (unsigned currentCmp = currentPos + 1; currentCmp < _allBases.size(); ++currentCmp) {
-					int dist = l.getApproxDistance(_allBases[currentCmp]->Location());
+					double dist = l.getApproxDistance(_allBases[currentCmp]->Location());
 					if (dist < shortestDist) {
+						shortestDist = dist;
 						const Base * temp = _allBases[currentPos];
 						_allBases[currentPos] = _allBases[currentCmp];
 						_allBases[currentCmp] = temp;
