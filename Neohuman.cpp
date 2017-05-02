@@ -17,6 +17,8 @@ using namespace BWEM::utils;
 namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
+	if (isWorkerBuilding(u))
+		return false;
 	_buildingQueue.push_back({Triple<int, UnitType, TilePosition>{u->getID(), building, at}, false});
 	return u->build(building, at);
 }
@@ -83,17 +85,23 @@ int Neohuman::additionalWantedSupply() const {
 void Neohuman::manageBuildingQueue() {
 	for (unsigned i = 0; i < _buildingQueue.size(); ++i) {
 		// Work on halted queue progress, SCV died
-		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->exists() && !_buildingQueue[i].second) {
+		if (Broodwar->getUnit(_buildingQueue[i].first.first) == nullptr || !Broodwar->getUnit(_buildingQueue[i].first.first)->exists() && !_buildingQueue[i].second) {
 			// Replace placing scv
 			auto pos = Position(_buildingQueue[i].first.third);
-			_buildingQueue[i].first.first = Broodwar->getClosestUnit(pos, IsOwned && IsGatheringMinerals && !IsCarryingMinerals)->getID();
-			Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].second, _buildingQueue[i].first.third);
+			Unit closestBuilder = Broodwar->getClosestUnit(pos, IsOwned && IsGatheringMinerals && !IsCarryingMinerals && CurrentOrder != Orders::PlaceBuilding && CurrentOrder != Orders::ConstructingBuilding);
+			if (closestBuilder == nullptr || isWorkerBuilding(closestBuilder))
+				continue;
+			_buildingQueue[i].first.first = closestBuilder->getID();
+			closestBuilder->build(_buildingQueue[i].second, _buildingQueue[i].first.third);
 		}
-		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->isConstructing() && !_buildingQueue[i].second) {
+		if (Broodwar->getUnit(_buildingQueue[i].first.first) == nullptr || !Broodwar->getUnit(_buildingQueue[i].first.first)->exists() && _buildingQueue[i].second) {
 			// Replace building scv
 			auto pos = Position(_buildingQueue[i].first.third);
-			_buildingQueue[i].first.first = Broodwar->getClosestUnit(pos, IsOwned && IsGatheringMinerals && !IsCarryingMinerals)->getID();
-			Broodwar->getUnit(_buildingQueue[i].first.first)->rightClick(Broodwar->getClosestUnit(pos, IsOwned && IsBeingConstructed));
+			Unit closestBuilder = Broodwar->getClosestUnit(pos, IsOwned && IsGatheringMinerals && !IsCarryingMinerals && CurrentOrder != Orders::PlaceBuilding && CurrentOrder != Orders::ConstructingBuilding);
+			if (closestBuilder == nullptr || isWorkerBuilding(closestBuilder))
+				continue;
+			_buildingQueue[i].first.first = closestBuilder->getID();
+			closestBuilder->rightClick(Broodwar->getClosestUnit(pos, IsOwned && IsBeingConstructed));
 		}
 
 		// Building was placed, update status
@@ -101,11 +109,13 @@ void Neohuman::manageBuildingQueue() {
 			_buildingQueue[i].second = true;
 
 		// Building was placed and finished
-		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->isConstructing() && _buildingQueue[i].second && Broodwar->getClosestUnit(Position(_buildingQueue[i].first.third), (IsBuilding))->getTilePosition() == _buildingQueue[i].first.third)
+		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->isConstructing() && _buildingQueue[i].second && Broodwar->getClosestUnit(Position(_buildingQueue[i].first.third), (IsBuilding))->getTilePosition() == _buildingQueue[i].first.third) {
 			_buildingQueue.erase(_buildingQueue.begin() + i--);
+			continue;
+		}
 
 		// Building was not placed, retry placing:
-		if (!Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::PlaceBuilding && Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::ConstructingBuilding) {
+		if (Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::PlaceBuilding && Broodwar->getUnit(_buildingQueue[i].first.first)->getOrder() != Orders::ConstructingBuilding) {
 			// Let's see if the location is buildable
 			if (Broodwar->canBuildHere(_buildingQueue[i].first.third, _buildingQueue[i].first.second)) {
 				// Let's just keep replacing there, and hope for the best.
@@ -117,6 +127,14 @@ void Neohuman::manageBuildingQueue() {
 			}
 		}
 	}
+}
+
+bool Neohuman::isWorkerBuilding(BWAPI::Unit u) const {
+	for (auto &o : _buildingQueue)
+		if (u->getID() == o.first.first)
+			return true;
+	
+	return false;
 }
 
 void Neohuman::onStart() {
