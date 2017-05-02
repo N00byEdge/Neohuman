@@ -39,9 +39,6 @@ public:
   int _nBarracks = 0;
 
 
-  std::mt19937 _rand = std::mt19937(std::default_random_engine{});
-
-  int randint(int, int);
   std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 
   bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
@@ -52,6 +49,8 @@ public:
 
   void manageBuildingQueue();
 
+  std::mt19937 _rand = std::mt19937(std::default_random_engine{});
+  int randint(int, int);
   template <typename T>
   T randele(std::vector <T>&);
 
