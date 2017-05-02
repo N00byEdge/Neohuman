@@ -32,8 +32,6 @@ public:
   // Things
 
   bool _isExpanding = false;
-  bool _isBuildingBarracks = false;
-  int _nBarracks = 0;
 
   std::vector <const BWEM::Base*> _allBases;
 
