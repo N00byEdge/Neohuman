@@ -128,6 +128,10 @@ void Neohuman::manageBuildingQueue() {
 				// If it's not a cc, let's find a new location for this building
 				_buildingQueue[i].first.third = Broodwar->getBuildLocation(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
 				Broodwar->getUnit(_buildingQueue[i].first.first)->build(_buildingQueue[i].first.second, _buildingQueue[i].first.third);
+			} else {
+				// If cc fails to place, remove it from the queue
+				_buildingQueue.erase(_buildingQueue.begin() + i--);
+				continue;
 			}
 		}
 	}
