@@ -14,8 +14,6 @@ using namespace BWEM::utils;
 #define SATRUATION_RADIUS 350
 #define WORKERAGGRORADIUS 200
 
-#define SHOWTHINGS
-
 namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
@@ -172,16 +170,12 @@ void Neohuman::onFrame() {
 	// Called once every game frame
 	int constructingLine = 0;
 
-#ifdef SHOWTHINGS
-
 	// Display the game frame rate as text in the upper left area of the screen
 	Broodwar->drawTextScreen(200, 0,  "FPS: %d", Broodwar->getFPS());
 	Broodwar->drawTextScreen(200, 12, "Average FPS: %f", Broodwar->getAverageFPS());
 	Broodwar->drawTextScreen(200, 24, "I want %d more supply (%d coming up)", additionalWantedSupply(), getQueuedSupply());
 	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", _nBarracks);
 	Broodwar->drawTextScreen(200, 48, "I have %d APM!", Broodwar->getAPM());
-
-#endif
 
 	try {
 		//BWEM::utils::gridMapExample(BWEMMap);
@@ -203,8 +197,6 @@ void Neohuman::onFrame() {
 		constructingLine += 12;
 	}
 
-#ifdef SHOWTHINGS
-
 	// Show worker info
 	for (auto &u : Broodwar->self()->getUnits()) {
 		if (u->getType().isResourceDepot()) {
@@ -216,8 +208,6 @@ void Neohuman::onFrame() {
 			Broodwar->drawTextMap(u->getPosition() + Position(0, 30), "%cWorkers: %d/%d", Text::White, workers.size(), 2*mineralFields.size());
 		}
 	}
-
-#endif
 
 	// Prevent spamming by only running our onFrame once every number of latency frames.
 	// Latency frames are the number of frames before commands are processed.
