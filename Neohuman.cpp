@@ -1,8 +1,6 @@
 #include "Neohuman.h"
 #include <iostream>
 
-#include "BWEM/bwem.h"
-
 using namespace BWAPI;
 using namespace Filter;
 

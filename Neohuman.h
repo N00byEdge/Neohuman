@@ -5,6 +5,8 @@
 
 #include "Triple.h"
 
+#include "BWEM/bwem.h"
+
 // Remember not to use "Broodwar" in any global class constructor!
 
 class Neohuman: public BWAPI::AIModule {
