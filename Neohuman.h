@@ -31,9 +31,6 @@ public:
 
   // Things
 
-  int _nSupplyOverhead = 0;
-  int _wantedExtraSupply = 0;
-  int _timeLastQueuedSupply = 0;
   bool _isExpanding = false;
   bool _isBuildingBarracks = false;
   int _nBarracks = 0;
@@ -47,6 +44,12 @@ public:
 
   std::pair <int, int> getSpendableResources() const;
   int getQueuedSupply() const;
+
+  int Neohuman::wantedSupplyOverhead() const;
+  int Neohuman::additionalWantedSupply() const;
+
+  bool canAfford(BWAPI::UnitType t) const;
+  int countUnit(BWAPI::UnitType t) const;
 
   void manageBuildingQueue();
 

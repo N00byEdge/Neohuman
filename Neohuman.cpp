@@ -51,6 +51,31 @@ int Neohuman::getQueuedSupply() const {
 	return sum;
 }
 
+bool Neohuman::canAfford(UnitType t) const {
+	auto spendable = getSpendableResources();
+	spendable.first -= t.mineralPrice();
+	spendable.second -= t.gasPrice();
+	return !(spendable.first < 0 || spendable.second < 0);
+}
+
+int Neohuman::countUnit(UnitType t) const {
+	int c = 0;
+
+	for (auto &u : Broodwar->getAllUnits())
+		if (u->getType() == t && u->isCompleted())
+			c++;
+
+	return c;
+}
+
+int Neohuman::wantedSupplyOverhead() const {
+	return 2 + MAX((Broodwar->self()->supplyUsed() - 10) / 8, 0);
+}
+
+int Neohuman::additionalWantedSupply() const {
+	return (Broodwar->self()->supplyUsed() - (Broodwar->self()->supplyTotal() + 2 * getQueuedSupply())) / 2 + wantedSupplyOverhead();
+}
+
 void Neohuman::manageBuildingQueue() {
 	for (unsigned i = 0; i < _buildingQueue.size(); ++i) {
 		// Work on halted queue progress, SCV died
@@ -152,7 +177,7 @@ void Neohuman::onFrame() {
 	// Display the game frame rate as text in the upper left area of the screen
 	Broodwar->drawTextScreen(200, 0,  "FPS: %d", Broodwar->getFPS());
 	Broodwar->drawTextScreen(200, 12, "Average FPS: %f", Broodwar->getAverageFPS());
-	Broodwar->drawTextScreen(200, 24, "I want %d more supply (%d coming up)", _wantedExtraSupply, getQueuedSupply());
+	Broodwar->drawTextScreen(200, 24, "I want %d more supply (%d coming up)", additionalWantedSupply(), getQueuedSupply());
 	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", _nBarracks);
 	Broodwar->drawTextScreen(200, 48, "I have %d APM!", Broodwar->getAPM());
 
@@ -201,9 +226,6 @@ void Neohuman::onFrame() {
 
 	manageBuildingQueue();
 
-	_nSupplyOverhead = 2 + MAX((Broodwar->self()->supplyUsed() - 10) / 8, 0);
-	_wantedExtraSupply = (Broodwar->self()->supplyUsed() - (Broodwar->self()->supplyTotal() + getQueuedSupply())) / 2 + _nSupplyOverhead;
-
 	_nBarracks = 0;
 	for (auto &u : Broodwar->self()->getUnits()) {
 		if (u->getType() == UnitTypes::Terran_Barracks)
@@ -218,7 +240,7 @@ void Neohuman::onFrame() {
 	}
 
 	// Check if supply should be increased
-	if (_wantedExtraSupply > 0 && getSpendableResources().first >= 100 && Broodwar->self()->supplyTotal() < 400) {
+	if (wantedSupplyOverhead() > 0 && getSpendableResources().first >= 100 && Broodwar->self()->supplyTotal() < 400) {
 		// Find unit to build our supply!
 		for (auto &unit : Broodwar->self()->getUnits()) {
 			if (unit->exists() && unit->isGatheringMinerals() && unit->isMoving() && !unit->isCarryingMinerals()) {
