@@ -158,6 +158,10 @@ void Neohuman::onStart() {
 	BWEMMap.Initialize();
 	BWEMMap.EnableAutomaticPathAnalysis();
 
+	for (auto &a : BWEMMap.Areas())
+		for (auto &b : a.Bases())
+			_allBases.push_back(&b);
+
 	for (auto &l : Broodwar->getStartLocations()) {
 		if (Broodwar->isVisible(l)) {
 			// My start location
@@ -165,10 +169,6 @@ void Neohuman::onStart() {
 			//auto area = BWEM::Map::GetArea(a);
 		}
 	}
-
-	for (auto &a : BWEMMap.Areas())
-		for (auto &b : a.Bases())
-			_allBases.push_back(&b);
 }
 
 void Neohuman::onEnd(bool didWin) {
