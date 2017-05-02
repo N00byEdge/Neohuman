@@ -56,12 +56,17 @@ bool Neohuman::canAfford(UnitType t) const {
 	return !(spendable.first < 0 || spendable.second < 0);
 }
 
-int Neohuman::countUnit(UnitType t) const {
+int Neohuman::countUnit(UnitType t, bool countQueued = true) const {
 	int c = 0;
 
 	for (auto &u : Broodwar->getAllUnits())
-		if (u->getType() == t && u->isCompleted())
+		if (u->exists() && u->getType() == t)
 			c++;
+
+	if (countQueued)
+		for (auto &o : _buildingQueue)
+			if (o.first.second == t && !o.second)
+				c++;
 
 	return c;
 }
