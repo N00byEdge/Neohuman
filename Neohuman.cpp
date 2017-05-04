@@ -375,10 +375,16 @@ void Neohuman::onFrame() {
 				u->attack(enemyUnit->getPosition());
 				continue;
 			}
-			auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
-			if (closestMarine) {
-				auto walk = u->getPosition() - closestMarine->getPosition();
-				u->move(u->getPosition() + walk);
+			auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
+			if (closeSpecialBuilding)
+				u->attack(closeSpecialBuilding);
+			else {
+				auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
+				if (closestMarine) {
+					auto walk = u->getPosition() - closestMarine->getPosition();
+					auto ang = atan(walk.x/walk.y);
+					u->move(u->getPosition() + Position(20.0f*sin(ang), 20.0f*cos(ang)));
+				}
 			}
 		}
 	}
