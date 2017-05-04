@@ -393,24 +393,45 @@ void Neohuman::onFrame() {
 			if (u->isIdle() && getSpendableResources().first >= 50)
 				u->train(UnitTypes::Terran_Marine);
 		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 16 == 0) {
-			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
-			if (enemyUnit) {
-				u->attack(enemyUnit->getPosition());
-				continue;
+			int enemyCount    = u->getUnitsInRadius(1000, IsEnemy && !IsBuilding && !IsWorker).size();
+			int friendlyCount = u->getUnitsInRadius(1000, IsOwned && !IsBuilding && !IsWorker).size() + 1;
+			if (enemyCount + 5 > friendlyCount) {
+				auto fleeFrom = u->getClosestUnit(IsEnemy);
+				if (fleeFrom != nullptr) {
+					u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
+					continue;
+				}
 			}
-			enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
-			if (enemyUnit) {
-				u->attack(enemyUnit->getPosition());
-				continue;
-			}
-			auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
-			if (closeSpecialBuilding)
-				u->attack(closeSpecialBuilding);
-			else {
-				auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
-				if (closestMarine) {
-					auto walk = u->getPosition() - closestMarine->getPosition();
-					u->move(u->getPosition() + walk);
+			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking);
+			if (enemyUnit && !enemyUnit->isDetected()) {
+				// Request scan
+				// if no scan available
+					goto noDetect;
+				// else {
+					// requestScan(enemyUnit->getPosition());
+					// u->attack(enemyUnit->getPosition());
+				// }
+			} else {
+				noDetect:;
+				enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
+				if (enemyUnit) {
+					u->attack(enemyUnit->getPosition());
+					continue;
+				}
+				enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
+				if (enemyUnit) {
+					u->attack(enemyUnit->getPosition());
+					continue;
+				}
+				auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
+				if (closeSpecialBuilding)
+					u->attack(closeSpecialBuilding);
+				else {
+					auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
+					if (closestMarine && friendlyCount >= 5) {
+						auto walk = u->getPosition() - closestMarine->getPosition();
+						u->move(u->getPosition() + walk);
+					}
 				}
 			}
 		}
