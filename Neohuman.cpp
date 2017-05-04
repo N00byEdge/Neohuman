@@ -220,7 +220,7 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(200, 0,  "FPS: %c%d", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getFPS());
 	Broodwar->drawTextScreen(200, 12, "Average FPS: %c%f", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getAverageFPS());
 	Broodwar->drawTextScreen(200, 24, "I want %c%d%c more supply (%d coming up)", additionalWantedSupply() == 0 ? Text::Yellow : (additionalWantedSupply() > 0 ? Text::Red : Text::Green), additionalWantedSupply(), Text::Default, getQueuedSupply());
-	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", countUnit(UnitTypes::Terran_Barracks));
+	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", countUnit(UnitTypes::Terran_Barracks, IsOwned));
 	Broodwar->drawTextScreen(200, 48, "I have %d APM!", Broodwar->getAPM());
 
 	try {
@@ -348,7 +348,7 @@ void Neohuman::onFrame() {
 			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
 			if (u->isIdle()) {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
-				if (countUnit(UnitTypes::Terran_SCV) >= 70)
+				if (countUnit(UnitTypes::Terran_SCV, IsOwned) >= 70)
 					continue;
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
 				if (workers.size() < mineralFields.size() * 2 && getSpendableResources().first >= 50) {
