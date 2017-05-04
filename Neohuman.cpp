@@ -366,8 +366,21 @@ void Neohuman::onFrame() {
 					Broodwar->getMinerals();
 				}
 			}
-		} else if (u->getType().isResourceDepot()) {
+		} else if (u->getType().isResourceDepot() && !u->isBeingConstructed()) {
 			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
+			if (nearbyGeysers.size()){
+				auto buildingType = UnitTypes::Terran_Refinery;
+				for (Unit geyser : nearbyGeysers) {
+					for (auto &o : _buildingQueue){
+						if (o.first.third == geyser->getTilePosition())
+							goto skipgeyser;
+					}
+					if (getClosestBuilder(u) != nullptr)
+						doBuild(getClosestBuilder(u), buildingType, geyser->getTilePosition());
+					skipgeyser:;
+				}
+			}
+
 			if (u->isIdle()) {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
 				if (countUnit(UnitTypes::Terran_SCV, IsOwned) >= 70)
