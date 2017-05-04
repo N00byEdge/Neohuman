@@ -300,6 +300,12 @@ void Neohuman::onFrame() {
 			doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
 	}
 
+	if (canAfford(UnitTypes::Terran_Academy) && countUnit(UnitTypes::Terran_Barracks) >= 2 && !countUnit(UnitTypes::Terran_Academy)) {
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
+	}
+
 	if (getSpendableResources().first >= 200){
 		for (auto &u : Broodwar->self()->getUnits()) {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
@@ -434,6 +440,12 @@ void Neohuman::onFrame() {
 					}
 				}
 			}
+		}
+		else if (u->getType() == UnitTypes::Terran_Academy && u->isIdle()){
+			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0) 
+				u->upgrade(UpgradeTypes::U_238_Shells);
+			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
+				u->research(TechTypes::Stim_Packs);
 		}
 	}
 }
