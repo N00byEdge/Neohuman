@@ -290,21 +290,21 @@ void Neohuman::onFrame() {
 		}
 	}
 
-	/*if (!_isExpanding && availableMinerals >= 400){
-		// Expand!
+	if (getSpendableResources().first >= 200){
 		for (auto &u : Broodwar->self()->getUnits()) {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
 				auto buildingType = u->getType().getRace().getCenter();
-				auto buildPos = Broodwar->getBuildLocation(buildingType, u->getTilePosition());
-
-				if (u->build(buildingType, buildPos)) {
-					_isExpanding = true;
-					availableMinerals -= 400;
+				auto buildPos = getNextExpansion();
+				if (!buildPos.isValid()) {
+					Broodwar->sendText("Valid expansion not found.");
 					break;
 				}
+
+				if (doBuild(u, buildingType, buildPos))
+					break;
 			}
 		}
-	}*/
+	}
 
 	// Iterate through all the units that we own
 	for (auto &u : Broodwar->self()->getUnits()) {
