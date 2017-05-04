@@ -404,10 +404,7 @@ void Neohuman::onFrame() {
 				auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
 				if (closestMarine) {
 					auto walk = u->getPosition() - closestMarine->getPosition();
-					if (walk.y == 0)
-						continue;
-					auto ang = atan(walk.x/walk.y);
-					u->move(u->getPosition() + Position((int)(20.0f*sin(ang)), (int)(20.0f*cos(ang))));
+					u->move(u->getPosition() + walk);
 				}
 			}
 		}
