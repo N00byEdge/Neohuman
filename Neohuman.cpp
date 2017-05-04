@@ -176,7 +176,7 @@ void Neohuman::onStart() {
 		if (Broodwar->isVisible(l)) {
 			// My start location
 			BWAPI::TilePosition a(l);
-			// Do some insertion sorting for the possible expansions
+			// Do some insertion sorting for the possible expansions, based on the distance to our home base
 			for (unsigned currentPos = 0; currentPos < _allBases.size() - 1; ++currentPos) {
 				double shortestDist = l.getApproxDistance(_allBases[currentPos]->Location());
 				for (unsigned currentCmp = currentPos + 1; currentCmp < _allBases.size(); ++currentCmp) {
@@ -222,6 +222,11 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(200, 24, "I want %c%d%c more supply (%d coming up)", additionalWantedSupply() == 0 ? Text::Yellow : (additionalWantedSupply() > 0 ? Text::Red : Text::Green), additionalWantedSupply(), Text::Default, getQueuedSupply());
 	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", countUnit(UnitTypes::Terran_Barracks, IsOwned));
 	Broodwar->drawTextScreen(200, 48, "I have %d APM!", Broodwar->getAPM());
+
+	/*for (unsigned i = 0; i < _allBases.size(); ++ i) {
+		Broodwar->drawBoxMap(Position(_allBases[i]->Location()), Position(Position(_allBases[i]->Location()) + Position(UnitTypes::Terran_Command_Center.tileSize())), Colors::Grey);
+		Broodwar->drawTextMap(Position(_allBases[i]->Location()), "Base #%u", i);
+	}*/
 
 	try {
 		//BWEM::utils::gridMapExample(BWEMMap);
