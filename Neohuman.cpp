@@ -43,16 +43,7 @@ std::pair <int, int> Neohuman::getSpendableResources() const {
 }
 
 int Neohuman::getQueuedSupply() const {
-	int sum = 0;
-	for (auto &u : Broodwar->getAllUnits()) {
-		if (u->isBeingConstructed()) {
-			if (u->getType() == UnitTypes::Terran_Supply_Depot)
-				sum += 8;
-			else if (u->getType() == UnitTypes::Terran_Command_Center)
-				sum += 10;
-		}
-	}
-	return sum;
+	return 8 * countUnit(UnitTypes::Terran_Supply_Depot) + 10 * countUnit(UnitTypes::Terran_Command_Center);
 }
 
 bool Neohuman::canAfford(UnitType t) const {
