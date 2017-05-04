@@ -131,7 +131,7 @@ void Neohuman::manageBuildingQueue() {
 	}
 }
 
-bool Neohuman::isWorkerBuilding(BWAPI::Unit u) const {
+bool Neohuman::isWorkerBuilding(Unit u) const {
 	for (auto &o : _buildingQueue)
 		if (u->getID() == o.first.first)
 			return true;
