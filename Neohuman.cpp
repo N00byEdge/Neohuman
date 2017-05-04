@@ -393,7 +393,7 @@ void Neohuman::onFrame() {
 				if (closestMarine) {
 					auto walk = u->getPosition() - closestMarine->getPosition();
 					auto ang = atan(walk.x/walk.y);
-					u->move(u->getPosition() + Position(20.0f*sin(ang), 20.0f*cos(ang)));
+					u->move(u->getPosition() + Position((int)(20.0f*sin(ang)), (int)(20.0f*cos(ang))));
 				}
 			}
 		}
