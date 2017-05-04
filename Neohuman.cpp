@@ -151,6 +151,14 @@ Unit Neohuman::getClosestBuilder(Unit u) const {
 	return u->getClosestUnit(IsOwned && IsWorker && !IsCarryingMinerals && IsGatheringMinerals);
 }
 
+Unit Neohuman::getAnyBuilder() const {
+	for (auto &u : Broodwar->self()->getUnits())
+		if (u->getType().isWorker() && !u->isCarryingMinerals() && u->isGatheringMinerals())
+			return u;
+
+	return nullptr;
+}
+
 TilePosition Neohuman::getNextExpansion() const {
 	for (auto &b : _allBases)
 		if (Broodwar->canBuildHere(b->Location(), UnitTypes::Terran_Command_Center))
@@ -281,30 +289,15 @@ void Neohuman::onFrame() {
 
 	// Check if supply should be increased
 	if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal() < 400) {
-		// Find unit to build our supply!
-		for (auto &unit : Broodwar->self()->getUnits()) {
-			if (unit->exists() && unit->isGatheringMinerals() && unit->isMoving() && !unit->isCarryingMinerals()) {
-				// We have found our candidate!
-				auto supplyType = unit->getType().getRace().getSupplyProvider();
-				auto buildPos = Broodwar->getBuildLocation(supplyType, unit->getTilePosition());
-
-				if(doBuild(unit, supplyType, buildPos))
-					break;
-			}
-		}
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Supply_Depot, Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, builder->getTilePosition()));
 	}
 
 	if ((canAfford(UnitTypes::Terran_Barracks) && countUnit(UnitTypes::Terran_Barracks) < countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals) / 6) || getSpendableResources().first >= 500   ) {
-		// Build barracks!
-		for (auto &u : Broodwar->self()->getUnits()) {
-			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
-				auto buildingType = UnitTypes::Terran_Barracks;
-				auto buildingPos = Broodwar->getBuildLocation(buildingType, u->getTilePosition());
-
-				if (doBuild(u, buildingType, buildingPos))
-					break;
-			}
-		}
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
 	}
 
 	if (getSpendableResources().first >= 200){

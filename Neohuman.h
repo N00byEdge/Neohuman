@@ -52,6 +52,7 @@ public:
   void manageBuildingQueue();
 
   BWAPI::Unit getClosestBuilder(BWAPI::Unit) const;
+  BWAPI::Unit getAnyBuilder() const;
   bool isWorkerBuilding(BWAPI::Unit u) const;
 
   BWAPI::TilePosition getNextExpansion() const;
