@@ -272,7 +272,7 @@ void Neohuman::onFrame() {
 	manageBuildingQueue();
 
 	// Check if supply should be increased
-	if (additionalWantedSupply() > 0 && getSpendableResources().first >= 100 && Broodwar->self()->supplyTotal() < 400) {
+	if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal() < 400) {
 		// Find unit to build our supply!
 		for (auto &unit : Broodwar->self()->getUnits()) {
 			if (unit->exists() && unit->isGatheringMinerals() && unit->isMoving() && !unit->isCarryingMinerals()) {
