@@ -421,6 +421,8 @@ void Neohuman::onFrame() {
 				noDetect:;
 				enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
 				if (enemyUnit) {
+					if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->canAttack(enemyUnit))
+						u->useTech(TechTypes::Stim_Packs);
 					u->attack(enemyUnit->getPosition());
 					continue;
 				}
