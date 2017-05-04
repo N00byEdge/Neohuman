@@ -343,10 +343,15 @@ void Neohuman::onFrame() {
 				if (u->isCarryingGas() || u->isCarryingMinerals())
 					u->returnCargo();
 
-				else if (!u->getPowerUp()) {
+				else if (!u->getPowerUp() && Broodwar->getMinerals().size()) {
 					// Probably need to set up some better logic for this
-					auto preferredMiningLocation = u->getClosestUnit(IsMineralField);
+					auto preferredMiningLocation = *(Broodwar->getMinerals().begin());
+					for (auto &m : Broodwar->getMinerals())
+						if (preferredMiningLocation->getPosition().getApproxDistance(u->getPosition()) > m->getPosition().getApproxDistance(u->getPosition()))
+							preferredMiningLocation = m;
+
 					u->gather(preferredMiningLocation);
+					Broodwar->getMinerals();
 				}
 			}
 		} else if (u->getType().isResourceDepot()) {
