@@ -43,7 +43,14 @@ std::pair <int, int> Neohuman::getSpendableResources() const {
 }
 
 int Neohuman::getQueuedSupply() const {
-	return 8 * countUnit(UnitTypes::Terran_Supply_Depot, IsOwned, true) + 10 * countUnit(UnitTypes::Terran_Command_Center, IsOwned, true);
+	int s = 0;
+	for (auto &o : _buildingQueue) {
+		if (!o.second && o.first.second == UnitTypes::Terran_Supply_Depot)
+			s += 8;
+		else if (!o.second && o.first.second == UnitTypes::Terran_Command_Center)
+			s += 10;
+	}
+	return s + 8 * countUnit(UnitTypes::Terran_Supply_Depot, IsOwned && IsConstructing, true) + 10 * countUnit(UnitTypes::Terran_Command_Center, IsOwned && IsConstructing, true);
 }
 
 bool Neohuman::canAfford(UnitType t) const {
