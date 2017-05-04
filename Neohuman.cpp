@@ -139,6 +139,11 @@ bool Neohuman::isWorkerBuilding(Unit u) const {
 	return false;
 }
 
+
+Unit Neohuman::getClosestBuilder(Unit u) const {
+	return u->getClosestUnit(IsOwned && IsWorker && !IsCarryingMinerals && IsGatheringMinerals);
+}
+
 TilePosition Neohuman::getNextExpansion() const {
 	for (auto &b : _allBases)
 		if (Broodwar->canBuildHere(b->Location(), UnitTypes::Terran_Command_Center))
