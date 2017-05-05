@@ -285,7 +285,7 @@ void Neohuman::onFrame() {
 
 	// Prevent spamming by only running our onFrame once every number of latency frames.
 	// Latency frames are the number of frames before commands are processed.
-	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames() != 0)
+	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames())
 		return;
 
 	manageBuildingQueue();
@@ -413,48 +413,49 @@ void Neohuman::onFrame() {
 						continue;
 					}
 				}
-			}
-			else {
+			} else {
 				friendlyCount = u->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
 			}
+
 			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking);
 			if (enemyUnit && !enemyUnit->isDetected()) {
 				// Request scan
-				// if no scan available
-					goto noDetect;
-				// else {
+				// if scan available
 					// requestScan(enemyUnit->getPosition());
-					// u->attack(enemyUnit->getPosition());
-				// }
-			} else {
-				noDetect:;
-				enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
-				if (enemyUnit) {
-					if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->canAttack(enemyUnit))
-						u->useTech(TechTypes::Stim_Packs);
-					u->attack(enemyUnit->getPosition());
-					continue;
-				}
-				enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
-				if (enemyUnit) {
-					u->attack(enemyUnit->getPosition());
-					continue;
-				}
-				auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
-				if (closeSpecialBuilding)
-					u->attack(closeSpecialBuilding);
-				else {
-					auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
-					if (closestMarine && friendlyCount >= 5) {
-						auto walk = u->getPosition() - closestMarine->getPosition();
-						u->move(u->getPosition() + walk);
-					}
+				//
+			}
+
+			enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
+			if (enemyUnit != nullptr) {
+				u->attack(enemyUnit->getPosition());
+				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) <= u->getDistance(enemyUnit))
+					u->useTech(TechTypes::Stim_Packs);
+				continue;
+			}
+
+			enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
+			if (enemyUnit) {
+				u->attack(enemyUnit->getPosition());
+				continue;
+			}
+
+			auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
+			if (closeSpecialBuilding)
+				u->attack(closeSpecialBuilding);
+			else {
+				auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
+				if (closestMarine && friendlyCount >= 5) {
+					auto walk = u->getPosition() - closestMarine->getPosition();
+					u->move(u->getPosition() + walk);
 				}
 			}
+
 		}
+
 		else if (u->getType() == UnitTypes::Terran_Academy && u->isIdle()){
 			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0) 
 				u->upgrade(UpgradeTypes::U_238_Shells);
+
 			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
 				u->research(TechTypes::Stim_Packs);
 		}
