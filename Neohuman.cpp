@@ -236,6 +236,9 @@ void Neohuman::onFrame() {
 	// Called once every game frame
 	int constructingLine = 0;
 
+	if (Broodwar->isReplay())
+		return;
+
 	// Display the game frame rate as text in the upper left area of the screen
 	Broodwar->drawTextScreen(200, 0,  "FPS: %c%d", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getFPS());
 	Broodwar->drawTextScreen(200, 12, "Average FPS: %c%f", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getAverageFPS());
@@ -256,7 +259,7 @@ void Neohuman::onFrame() {
 	}
 
 	// Return if the game is a replay or is paused
-	if (Broodwar->isReplay() || Broodwar->isPaused() || !Broodwar->self())
+	if (Broodwar->isPaused() || !Broodwar->self())
 		return;
 
 	Broodwar->drawTextScreen(0, constructingLine, "%c%u buildings in queue", Text::White, _buildingQueue.size());
