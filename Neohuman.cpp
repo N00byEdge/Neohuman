@@ -367,7 +367,7 @@ void Neohuman::onFrame() {
 			}
 		} else if (u->getType().isResourceDepot() && !u->isBeingConstructed()) {
 			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
-			if (nearbyGeysers.size()){
+			if (nearbyGeysers.size() && Broodwar->self()->supplyUsed()/2 >= 13){
 				auto buildingType = UnitTypes::Terran_Refinery;
 				for (Unit geyser : nearbyGeysers) {
 					for (auto &o : _buildingQueue){
