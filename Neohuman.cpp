@@ -545,8 +545,6 @@ void Neohuman::onSaveGame(std::string gameName){
 }
 
 void Neohuman::onUnitComplete(Unit unit){
-	if (unit->getType() == unit->getType().getRace().getCenter())
-		_isExpanding = false;
 	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
 		_comsats.insert(unit);
 }

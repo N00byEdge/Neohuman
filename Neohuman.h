@@ -31,8 +31,6 @@ public:
 
   // Things
 
-  bool _isExpanding = false;
-
   std::vector <const BWEM::Base*> _allBases;
   std::set <const BWEM::Base*> _unexploredBases;
 
