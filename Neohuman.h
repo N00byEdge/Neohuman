@@ -34,6 +34,7 @@ public:
   bool _isExpanding = false;
 
   std::vector <const BWEM::Base*> _allBases;
+  std::set <const BWEM::Base*> _unexploredBases;
 
   std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 

@@ -190,7 +190,7 @@ void Neohuman::onStart() {
 
 	for (auto &a : BWEMMap.Areas())
 		for (auto &b : a.Bases())
-			_allBases.push_back(&b);
+			_allBases.push_back(&b), _unexploredBases.insert(&b);
 
 	for (auto &l : Broodwar->getStartLocations()) {
 		if (Broodwar->isVisible(l)) {
@@ -307,6 +307,14 @@ void Neohuman::onFrame() {
 		Unit builder = getAnyBuilder();
 		if (builder != nullptr)
 			doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
+	}
+
+	for (std::set <const Base*>::iterator it = _unexploredBases.begin(); it != _unexploredBases.end(); ++it) {
+		if (Broodwar->isVisible((*it)->Location())) {
+			_unexploredBases.erase(it);
+			// Break loop, iterator invalidated
+			break;
+		}
 	}
 
 	if (getSpendableResources().first >= 200){
