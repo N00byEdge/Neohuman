@@ -18,6 +18,12 @@ using namespace BWEM::utils;
 #define HEALTHTEXT (char)Text::Green
 #define ENERGYTEXT (char)Text::Purple
 
+#define BUILDINGTEXT (char)Text::Green
+#define PLACINGTEXT  (char)Text::Cyan
+
+#define BUILDINGCOLOR Colors::Green
+#define PLACINGCOLOR  Colors::Cyan
+
 namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
