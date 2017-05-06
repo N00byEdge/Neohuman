@@ -58,6 +58,9 @@ public:
 
   BWAPI::TilePosition getNextExpansion() const;
 
+  bool _didUseScanThisFrame = false;
+  bool requestScan(BWAPI::Position);
+
   std::mt19937 _rand = std::mt19937(std::default_random_engine{});
   int randint(int, int);
   template <typename T>

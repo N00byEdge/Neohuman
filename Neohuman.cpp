@@ -171,6 +171,13 @@ TilePosition Neohuman::getNextExpansion() const {
 	return TilePosition(600, 600);
 }
 
+bool Neohuman::requestScan(Position p) {
+	for (auto &c : _comsats)
+		if (!_didUseScanThisFrame && c->canUseTech(TechTypes::Scanner_Sweep, p) && c->useTech(TechTypes::Scanner_Sweep, p), _didUseScanThisFrame = true)
+			return true;
+	return false;
+}
+
 void Neohuman::onStart() {
 	Broodwar << "The map is totally not " << Broodwar->mapName() << "!" << std::endl;
 
@@ -298,6 +305,8 @@ void Neohuman::onFrame() {
 	// Latency frames are the number of frames before commands are processed.
 	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames())
 		return;
+
+	_didUseScanThisFrame = false;
 
 	manageBuildingQueue();
 
@@ -441,10 +450,7 @@ void Neohuman::onFrame() {
 
 			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking);
 			if (enemyUnit && !enemyUnit->isDetected()) {
-				// Request scan
-				// if scan available
-					// requestScan(enemyUnit->getPosition());
-				//
+				requestScan(enemyUnit->getPosition());
 			}
 
 			enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
