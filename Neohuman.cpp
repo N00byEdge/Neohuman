@@ -455,6 +455,9 @@ void Neohuman::onFrame() {
 				if (closestMarine && friendlyCount >= 5) {
 					auto walk = u->getPosition() - closestMarine->getPosition();
 					u->move(u->getPosition() + walk);
+				} else {
+					if (_unexploredBases.size())
+						u->move((Position)(*_unexploredBases.begin())->Location());
 				}
 			}
 
