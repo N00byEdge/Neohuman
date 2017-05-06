@@ -431,12 +431,12 @@ void Neohuman::onFrame() {
 			if (u->isIdle() && getSpendableResources().first >= 50)
 				u->train(UnitTypes::Terran_Marine);
 		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 16 == 0) {
-			auto fleeFrom = u->getClosestUnit(IsEnemy, 1000);
+			auto fleeFrom = u->getClosestUnit(IsEnemy && CanAttack, 200);
 			int friendlyCount;
 			if (fleeFrom) {
-				int enemyCount = fleeFrom->getUnitsInRadius(1000, IsEnemy && !IsBuilding && !IsWorker).size() + 1;
-				friendlyCount = fleeFrom->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
-				if (enemyCount + 5 > friendlyCount) {
+				int enemyCount = fleeFrom->getUnitsInRadius(200, IsEnemy && CanAttack).size() + 1;
+				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
+				if (enemyCount + 3 > friendlyCount) {
 					if (fleeFrom != nullptr) {
 						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
 						continue;
