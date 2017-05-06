@@ -170,7 +170,7 @@ TilePosition Neohuman::getNextExpansion() const {
 void Neohuman::onStart() {
 	Broodwar << "The map is totally not " << Broodwar->mapName() << "!" << std::endl;
 
-	//Broodwar->enableFlag(Flag::UserInput);
+	Broodwar->enableFlag(Flag::UserInput);
 
 	// Uncomment the following line and the bot will know about everything through the fog of war (cheat).
 	//Broodwar->enableFlag(Flag::CompleteMapInformation);
