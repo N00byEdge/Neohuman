@@ -342,10 +342,8 @@ void Neohuman::onFrame() {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
 				auto buildingType = u->getType().getRace().getCenter();
 				auto buildPos = getNextExpansion();
-				if (!buildPos.isValid()) {
-					Broodwar->sendText("Valid expansion not found.");
+				if (!buildPos.isValid())
 					break;
-				}
 
 				if (doBuild(u, buildingType, buildPos))
 					break;
