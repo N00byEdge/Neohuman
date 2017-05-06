@@ -14,6 +14,10 @@ using namespace BWEM::utils;
 #define SATRUATION_RADIUS 350
 #define WORKERAGGRORADIUS 200
 
+#define SHIELDTEXT (char)Text::Blue
+#define HEALTHTEXT (char)Text::Green
+#define ENERGYTEXT (char)Text::Purple
+
 namespace { auto & BWEMMap = Map::Instance(); }
 
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
@@ -262,6 +266,13 @@ void Neohuman::onFrame() {
 	if (Broodwar->isPaused() || !Broodwar->self())
 		return;
 
+	std::string s = "Comsats (" + std::to_string(_comsats.size()) + "): " + ENERGYTEXT;
+	for (auto &c : _comsats)
+		s += std::to_string(c->getEnergy()) + " ";
+
+	Broodwar->drawTextScreen(0, constructingLine, s.c_str());
+	constructingLine += 12;
+
 	Broodwar->drawTextScreen(0, constructingLine, "%c%u buildings in queue", Text::White, _buildingQueue.size());
 	constructingLine += 12;
 
@@ -407,6 +418,8 @@ void Neohuman::onFrame() {
 					}
 				}
 			}
+			if (u->isIdle() && canAfford(UnitTypes::Terran_Comsat_Station))
+				u->buildAddon(UnitTypes::Terran_Comsat_Station);
 		} else if (u->getType() == UnitTypes::Terran_Barracks) {
 			if (u->isIdle() && getSpendableResources().first >= 50)
 				u->train(UnitTypes::Terran_Marine);
@@ -517,6 +530,8 @@ void Neohuman::onUnitDestroy(Unit unit) {
 	} catch (const std::exception & e) {
 		Broodwar << "EXCEPTION: " << e.what() << std::endl;
 	}
+	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
+		_comsats.erase(unit);
 }
 
 void Neohuman::onUnitMorph(Unit unit) {
@@ -532,4 +547,6 @@ void Neohuman::onSaveGame(std::string gameName){
 void Neohuman::onUnitComplete(Unit unit){
 	if (unit->getType() == unit->getType().getRace().getCenter())
 		_isExpanding = false;
+	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
+		_comsats.insert(unit);
 }
