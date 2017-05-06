@@ -397,7 +397,6 @@ void Neohuman::onFrame() {
 							preferredMiningLocation = m;
 
 					u->gather(preferredMiningLocation);
-					Broodwar->getMinerals();
 				}
 			}
 		} else if (u->getType().isResourceDepot() && !u->isBeingConstructed()) {
