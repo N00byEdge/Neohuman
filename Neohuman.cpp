@@ -385,8 +385,9 @@ void Neohuman::onFrame() {
 						if (o.first.third == geyser->getTilePosition())
 							goto skipgeyser;
 					}
-					if (getClosestBuilder(u) != nullptr)
-						doBuild(getClosestBuilder(u), buildingType, geyser->getTilePosition());
+					Unit builder = getClosestBuilder(geyser);
+					if (builder != nullptr)
+						doBuild(builder, buildingType, geyser->getTilePosition());
 					skipgeyser:;
 				}
 			}
