@@ -416,7 +416,7 @@ void Neohuman::onFrame() {
 			if (fleeFrom) {
 				int enemyCount = fleeFrom->getUnitsInRadius(1000, IsEnemy && !IsBuilding && !IsWorker).size() + 1;
 				friendlyCount = fleeFrom->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
-				if (enemyCount > friendlyCount + 5) {
+				if (enemyCount + 5 > friendlyCount) {
 					if (fleeFrom != nullptr) {
 						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
 						continue;
