@@ -284,8 +284,8 @@ void Neohuman::onFrame() {
 	constructingLine += 12;
 
 	for (auto &o : _buildingQueue) {
-		Broodwar->drawTextScreen(0, constructingLine, "%c%s", o.second ? Text::Blue : Text::Orange, o.first.second.c_str());
-		Broodwar->drawBoxMap(Position(o.first.third), Position((Position)o.first.third + (Position)o.first.second.tileSize()), o.second ? Colors::Blue : Colors::Orange, false);
+		Broodwar->drawTextScreen(0, constructingLine, "%c%s", o.second ? BUILDINGTEXT : PLACINGTEXT, o.first.second.c_str());
+		Broodwar->drawBoxMap(Position(o.first.third), Position((Position)o.first.third + (Position)o.first.second.tileSize()), o.second ? BUILDINGCOLOR : PLACINGCOLOR, false);
 		constructingLine += 12;
 	}
 
