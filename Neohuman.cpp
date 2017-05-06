@@ -436,7 +436,7 @@ void Neohuman::onFrame() {
 			enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
 			if (enemyUnit != nullptr) {
 				u->attack(enemyUnit->getPosition());
-				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) <= u->getDistance(enemyUnit))
+				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) >= u->getDistance(enemyUnit))
 					u->useTech(TechTypes::Stim_Packs);
 				continue;
 			}
