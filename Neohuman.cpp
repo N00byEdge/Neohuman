@@ -173,8 +173,8 @@ TilePosition Neohuman::getNextExpansion() const {
 
 bool Neohuman::requestScan(Position p) {
 	for (auto &c : _comsats)
-		if (!_didUseScanThisFrame && c->canUseTech(TechTypes::Scanner_Sweep, p) && c->useTech(TechTypes::Scanner_Sweep, p), _didUseScanThisFrame = true)
-			return true;
+		if (!_didUseScanThisFrame && c->canUseTech(TechTypes::Scanner_Sweep, p) && c->useTech(TechTypes::Scanner_Sweep, p))
+			return _didUseScanThisFrame = true;
 	return false;
 }
 
