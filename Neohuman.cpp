@@ -341,10 +341,14 @@ void Neohuman::onFrame() {
 	}
 
 	for (auto &u : _knownEnemies) {
+		if (u.first->isVisible()) {
+			--_enemyUnitTypes[u.second.second];
+			u.second.first = u.first->getPosition();
+			u.second.second = u.first->getType();
+			++_enemyUnitTypes[u.second.second];
+		}
 		Broodwar->drawBoxMap(u.second.first - Position(u.second.second.tileSize()) / 2, u.second.first + Position(u.second.second.tileSize()) / 2, ENEMYCOLOR);
 		Broodwar->drawTextMap(u.second.first + u.second.second.size() / 2 + Position(10, 10), "%s", noRaceName(u.second.second.c_str()));
-		if (u.first->isVisible())
-			u.second.first = u.first->getPosition();
 	}
 
 	for (auto &ut : _enemyUnitTypes) {
