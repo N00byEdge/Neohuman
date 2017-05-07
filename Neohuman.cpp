@@ -365,7 +365,7 @@ void Neohuman::onFrame() {
 	manageBuildingQueue();
 
 	// Check if supply should be increased
-	if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal() < 400) {
+	if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal()/2 + getQueuedSupply() < 200) {
 		Unit builder = getAnyBuilder();
 		if (builder != nullptr)
 			doBuild(builder, UnitTypes::Terran_Supply_Depot, Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, builder->getTilePosition()));
