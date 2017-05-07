@@ -625,9 +625,9 @@ void Neohuman::onUnitDestroy(Unit unit) {
 	}
 	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
 		_comsats.erase(unit);
-	if (unit->getPlayer() == Broodwar->enemy())
+	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon())
 		_knownEnemies.erase(unit);
-	if (unit->getPlayer() == Broodwar->enemy() && !--_enemyUnitTypes[unit->getType()])
+	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon() && !--_enemyUnitTypes[unit->getType()])
 		_enemyUnitTypes.erase(unit->getType());
 }
 
