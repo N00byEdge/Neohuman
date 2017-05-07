@@ -186,12 +186,20 @@ Unit Neohuman::getAnyBuilder() const {
 	return nullptr;
 }
 
-TilePosition Neohuman::getNextExpansion() const {
+TilePosition Neohuman::getNextExpansion() {
 	for (auto &b : _allBases)
-		if (Broodwar->canBuildHere(b->Location(), UnitTypes::Terran_Command_Center))
+		if (Broodwar->canBuildHere(b->Location(), UnitTypes::Terran_Command_Center)) {
+			if (!Broodwar->isExplored(b->Location()) && !requestScan(Position(b->Location())))
+				continue;
+			for (auto &eu : _knownEnemies) {
+				if (eu.second.first.getApproxDistance(Position(b->Location())) < 1000)
+					goto skiplocation;
+			}
 			return b->Location();
+			skiplocation:;
+		}
 
-	return TilePosition(600, 600);
+	return TilePosition(-1, -1);
 }
 
 bool Neohuman::requestScan(Position p) {
