@@ -383,12 +383,36 @@ void Neohuman::onFrame() {
 			doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
 	}
 
+	if (canAfford(UnitTypes::Terran_Factory) && !countUnit(UnitTypes::Terran_Factory, IsOwned) && Broodwar->self()->supplyUsed()/2 >= 70) {
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Factory, Broodwar->getBuildLocation(UnitTypes::Terran_Factory, builder->getTilePosition()));
+	}
+
+	if (canAfford(UnitTypes::Terran_Starport) && !countUnit(UnitTypes::Terran_Starport, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 70) {
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Starport, Broodwar->getBuildLocation(UnitTypes::Terran_Starport, builder->getTilePosition()));
+	}
+
+	if (canAfford(UnitTypes::Terran_Science_Facility) && !countUnit(UnitTypes::Terran_Science_Facility, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 80) {
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Science_Facility, Broodwar->getBuildLocation(UnitTypes::Terran_Science_Facility, builder->getTilePosition()));
+	}
+
 	for (std::set <const Base*>::iterator it = _unexploredBases.begin(); it != _unexploredBases.end(); ++it) {
 		if (Broodwar->isVisible((*it)->Location())) {
 			_unexploredBases.erase(it);
 			// Break loop, iterator invalidated
 			break;
 		}
+	}
+
+	if (canAfford(UnitTypes::Terran_Engineering_Bay) && countUnit(UnitTypes::Terran_Engineering_Bay) < 2 && Broodwar->self()->supplyUsed()/2 >= 40) {
+		Unit builder = getAnyBuilder();
+		if (builder != nullptr)
+			doBuild(builder, UnitTypes::Terran_Engineering_Bay, Broodwar->getBuildLocation(UnitTypes::Terran_Engineering_Bay, builder->getTilePosition()));
 	}
 
 	if (getSpendableResources().first >= 200){
@@ -539,6 +563,15 @@ void Neohuman::onFrame() {
 
 			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
 				u->research(TechTypes::Stim_Packs);
+		}
+
+		else if (u->getType() == UnitTypes::Terran_Engineering_Bay) {
+			if (u->isIdle())
+				u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
+
+			if (u->isIdle())
+				u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
+
 		}
 	}
 }
