@@ -287,17 +287,18 @@ int getNextLine(int &i) {
 
 void Neohuman::onFrame() {
 	// Called once every game frame
-	int constructingLine = 0;
+	std::vector <int> columnPixelLine(4);
+	std::vector <int> columnStart = { 0, 140, 240, 500 };
 
 	if (Broodwar->isReplay())
 		return;
 
 	// Display the game frame rate as text in the upper left area of the screen
-	Broodwar->drawTextScreen(200, 0,  "FPS: %c%d", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getFPS());
-	Broodwar->drawTextScreen(200, 12, "Average FPS: %c%f", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getAverageFPS());
-	Broodwar->drawTextScreen(200, 24, "I want %c%d%c more supply (%d coming up)", additionalWantedSupply() == 0 ? Text::Yellow : (additionalWantedSupply() > 0 ? Text::Red : Text::Green), additionalWantedSupply(), Text::Default, getQueuedSupply());
-	Broodwar->drawTextScreen(200, 36, "I have %d barracks!", countUnit(UnitTypes::Terran_Barracks, IsOwned));
-	Broodwar->drawTextScreen(200, 48, "I have %d APM!", Broodwar->getAPM());
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "FPS: %c%d", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getFPS());
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "Average FPS: %c%f", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getAverageFPS());
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I want %c%d%c more supply", additionalWantedSupply() == 0 ? Text::Yellow : (additionalWantedSupply() > 0 ? Text::Red : Text::Green), additionalWantedSupply(), Text::Default);
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d barracks!", countUnit(UnitTypes::Terran_Barracks, IsOwned));
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d APM!", Broodwar->getAPM());
 
 	/*for (unsigned i = 0; i < _allBases.size(); ++ i) {
 		Broodwar->drawBoxMap(Position(_allBases[i]->Location()), Position(Position(_allBases[i]->Location()) + Position(UnitTypes::Terran_Command_Center.tileSize())), Colors::Grey);
@@ -319,16 +320,14 @@ void Neohuman::onFrame() {
 	for (auto &c : _comsats)
 		s += std::to_string(c->getEnergy()) + " ";
 
-	Broodwar->drawTextScreen(0, constructingLine, s.c_str());
-	constructingLine += 12;
+	Broodwar->drawTextScreen(0, getNextLine(columnPixelLine[0]), s.c_str());
 
-	Broodwar->drawTextScreen(0, constructingLine, "%c%u buildings in queue", Text::White, _buildingQueue.size());
-	constructingLine += 12;
+	Broodwar->drawTextScreen(0, getNextLine(columnPixelLine[0]), "%c%u buildings in queue", Text::White, _buildingQueue.size());
 
 	for (auto &o : _buildingQueue) {
-		Broodwar->drawTextScreen(0, constructingLine, "%c%s", o.second ? BUILDINGTEXT : PLACINGTEXT, o.first.second.c_str());
+		Broodwar->drawTextScreen(0, getNextLine(columnPixelLine[0]), "%c%s", o.second ? BUILDINGTEXT : PLACINGTEXT, noRaceName(o.first.second.c_str()));
 		Broodwar->drawBoxMap(Position(o.first.third), Position((Position)o.first.third + (Position)o.first.second.tileSize()), o.second ? BUILDINGCOLOR : PLACINGCOLOR, false);
-		constructingLine += 12;
+		Broodwar->drawTextMap(Position(o.first.third) + Position(10, 10), "%s", noRaceName(o.first.second.getName().c_str()));
 	}
 
 	// Show worker info
