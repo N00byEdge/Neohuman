@@ -274,6 +274,17 @@ T Neohuman::randele(std::vector <T> &v) {
 	return v[randint(0, v.size())];
 }
 
+const char *noRaceName(const char *name) {
+	for (const char *c = name; *c; c++)
+		if (*c == '_') return ++c;
+	return name;
+}
+
+int getNextLine(int &i) {
+	i += 12;
+	return i - 12;
+}
+
 void Neohuman::onFrame() {
 	// Called once every game frame
 	int constructingLine = 0;
