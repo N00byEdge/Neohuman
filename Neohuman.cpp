@@ -506,7 +506,7 @@ void Neohuman::onFrame() {
 			auto fleeFrom = u->getClosestUnit(IsEnemy && CanAttack, 200);
 			int friendlyCount;
 			if (fleeFrom) {
-				int enemyCount = fleeFrom->getUnitsInRadius(200, IsEnemy && CanAttack).size() + 1;
+				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && CanAttack).size() + 1;
 				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
 				if (enemyCount + 3 > friendlyCount) {
 					if (fleeFrom != nullptr) {
