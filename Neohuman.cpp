@@ -14,15 +14,17 @@ using namespace BWEM::utils;
 #define SATRUATION_RADIUS 350
 #define WORKERAGGRORADIUS 200
 
-#define SHIELDTEXT (char)Text::Blue
-#define HEALTHTEXT (char)Text::Green
-#define ENERGYTEXT (char)Text::Purple
+#define SHIELDTEXT		(char)Text::Blue
+#define HEALTHTEXT		(char)Text::Green
+#define ENERGYTEXT		(char)Text::Purple
 
-#define BUILDINGTEXT (char)Text::Green
-#define PLACINGTEXT  (char)Text::Cyan
+#define BUILDINGTEXT	(char)Text::Green
+#define PLACINGTEXT		(char)Text::Cyan
 
-#define BUILDINGCOLOR Colors::Green
-#define PLACINGCOLOR  Colors::Cyan
+#define BUILDINGCOLOR	Colors::Green
+#define PLACINGCOLOR	Colors::Cyan
+
+#define ENEMYCOLOR		Colors::Red
 
 namespace { auto & BWEMMap = Map::Instance(); }
 
