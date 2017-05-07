@@ -31,6 +31,21 @@ namespace { auto & BWEMMap = Map::Instance(); }
 bool Neohuman::doBuild(Unit u, UnitType building, TilePosition at) {
 	if (isWorkerBuilding(u))
 		return false;
+
+	// If this intersects with current building project
+	for (auto &o : _buildingQueue) {
+		if (building == UnitTypes::Terran_Refinery || building == UnitTypes::Terran_Command_Center) {
+			if (intersect(at.x, at.y, at.x + building.tileSize().x, at.x + building.tileSize().y,
+				o.first.third.x, o.first.third.y, o.first.third.x + o.first.second.tileSize().x, o.first.third.y + o.first.second.tileSize().y))
+				return false;
+		} else {
+			if (intersect(at.x, at.y, at.x + building.tileSize().x + 1, at.x + building.tileSize().y + 1,
+				o.first.third.x, o.first.third.y, o.first.third.x + o.first.second.tileSize().x + 1, o.first.third.y + o.first.second.tileSize().y + 1))
+				return false;
+		}
+	}
+		
+
 	if (u->build(building, at)) {
 		_buildingQueue.push_back({ Triple<int, UnitType, TilePosition>{u->getID(), building, at}, false });
 		return true;
