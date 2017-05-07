@@ -476,7 +476,7 @@ void Neohuman::onFrame() {
 		} else if (u->getType() == UnitTypes::Terran_Barracks) {
 			if (u->isIdle() && getSpendableResources().first >= 50)
 				u->train(UnitTypes::Terran_Marine);
-		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 16 == 0) {
+		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 6 == 0) {
 			auto fleeFrom = u->getClosestUnit(IsEnemy && CanAttack, 200);
 			int friendlyCount;
 			if (fleeFrom) {
