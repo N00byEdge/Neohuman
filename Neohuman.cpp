@@ -371,13 +371,13 @@ void Neohuman::onFrame() {
 			doBuild(builder, UnitTypes::Terran_Supply_Depot, Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, builder->getTilePosition()));
 	}
 
-	if ((canAfford(UnitTypes::Terran_Barracks) && countUnit(UnitTypes::Terran_Barracks) < countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals) / 6) || getSpendableResources().first >= 500   ) {
+	if ((canAfford(UnitTypes::Terran_Barracks) && countUnit(UnitTypes::Terran_Barracks, IsOwned) < countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || getSpendableResources().first >= 500   ) {
 		Unit builder = getAnyBuilder();
 		if (builder != nullptr)
 			doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
 	}
 
-	if (canAfford(UnitTypes::Terran_Academy) && countUnit(UnitTypes::Terran_Barracks) >= 2 && !countUnit(UnitTypes::Terran_Academy)) {
+	if (canAfford(UnitTypes::Terran_Academy) && countUnit(UnitTypes::Terran_Barracks, IsOwned) >= 2 && !countUnit(UnitTypes::Terran_Academy, IsOwned)) {
 		Unit builder = getAnyBuilder();
 		if (builder != nullptr)
 			doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
