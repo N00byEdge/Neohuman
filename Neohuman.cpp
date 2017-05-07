@@ -342,6 +342,17 @@ void Neohuman::onFrame() {
 		}
 	}
 
+	for (auto &u : _knownEnemies) {
+		Broodwar->drawBoxMap(u.second.first - Position(u.second.second.tileSize()) / 2, u.second.first + Position(u.second.second.tileSize()) / 2, ENEMYCOLOR);
+		Broodwar->drawTextMap(u.second.first + u.second.second.size() / 2 + Position(10, 10), "%s", noRaceName(u.second.second.c_str()));
+		if (u.first->isVisible())
+			u.second.first = u.first->getPosition();
+	}
+
+	for (auto &ut : _enemyUnitTypes) {
+		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %d", noRaceName(ut.first.c_str()), ut.second);
+	}
+
 	// Prevent spamming by only running our onFrame once every number of latency frames.
 	// Latency frames are the number of frames before commands are processed.
 	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames())
@@ -548,6 +559,10 @@ void Neohuman::onNukeDetect(Position target) {
 }
 
 void Neohuman::onUnitDiscover(Unit unit) {
+	if (unit->getPlayer() == Broodwar->enemy() && _knownEnemies.find(unit) == _knownEnemies.end() && !unit->getType().isAddon())
+		++_enemyUnitTypes[unit->getType()];
+	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon())
+		_knownEnemies[unit] = { unit->getPosition(), unit->getType() };
 }
 
 void Neohuman::onUnitEvade(Unit unit) {
@@ -571,6 +586,10 @@ void Neohuman::onUnitDestroy(Unit unit) {
 	}
 	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
 		_comsats.erase(unit);
+	if (unit->getPlayer() == Broodwar->enemy())
+		_knownEnemies.erase(unit);
+	if (unit->getPlayer() == Broodwar->enemy() && !--_enemyUnitTypes[unit->getType()])
+		_enemyUnitTypes.erase(unit->getType());
 }
 
 void Neohuman::onUnitMorph(Unit unit) {

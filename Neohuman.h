@@ -36,6 +36,9 @@ public:
 
   std::set <BWAPI::Unit> _comsats;
 
+  std::map <BWAPI::Unit, std::pair<BWAPI::Position, BWAPI::UnitType>> _knownEnemies;
+  std::map <BWAPI::UnitType, int> _enemyUnitTypes;
+
   std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 
   bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
