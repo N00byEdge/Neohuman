@@ -439,14 +439,9 @@ void Neohuman::onFrame() {
 			if (nearbyGeysers.size() && Broodwar->self()->supplyUsed()/2 >= 13){
 				auto buildingType = UnitTypes::Terran_Refinery;
 				for (Unit geyser : nearbyGeysers) {
-					for (auto &o : _buildingQueue){
-						if (o.first.third == geyser->getTilePosition())
-							goto skipgeyser;
-					}
 					Unit builder = getClosestBuilder(geyser);
 					if (builder != nullptr)
 						doBuild(builder, buildingType, geyser->getTilePosition());
-					skipgeyser:;
 				}
 			}
 
