@@ -492,14 +492,13 @@ void Neohuman::onFrame() {
 				friendlyCount = u->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
 			}
 
-			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking);
-			if (enemyUnit && !enemyUnit->isDetected()) {
+			auto enemyUnit = u->getClosestUnit(!IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
+			if (enemyUnit)
 				requestScan(enemyUnit->getPosition());
-			}
 
-			enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking && IsDetected);
-			if (enemyUnit != nullptr) {
-				u->attack(enemyUnit->getPosition());
+			enemyUnit = u->getClosestUnit(IsEnemy && CanAttack && IsDetected);
+			if (enemyUnit) {
+				u->attack(enemyUnit);
 				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) >= u->getDistance(enemyUnit))
 					u->useTech(TechTypes::Stim_Packs);
 				continue;
@@ -507,7 +506,7 @@ void Neohuman::onFrame() {
 
 			enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
 			if (enemyUnit) {
-				u->attack(enemyUnit->getPosition());
+				u->attack(enemyUnit);
 				continue;
 			}
 
