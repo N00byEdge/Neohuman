@@ -56,7 +56,7 @@ public:
   BWAPI::Unit getAnyBuilder() const;
   bool isWorkerBuilding(BWAPI::Unit u) const;
 
-  BWAPI::TilePosition getNextExpansion() const;
+  BWAPI::TilePosition getNextExpansion();
 
   bool _didUseScanThisFrame = false;
   bool requestScan(BWAPI::Position);
