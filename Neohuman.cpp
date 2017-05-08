@@ -437,41 +437,68 @@ void Neohuman::onFrame() {
 
 	timer_buildbuildings.reset();
 
-	// Check if supply should be increased
-	if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal()/2 + getQueuedSupply() < 200) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Supply_Depot, Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, builder->getTilePosition()));
-	}
+	static int buildingFrame = 0;
 
-	if ((canAfford(UnitTypes::Terran_Barracks) && countUnit(UnitTypes::Terran_Barracks, IsOwned) < countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || getSpendableResources().first >= 500   ) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
-	}
-
-	if (canAfford(UnitTypes::Terran_Academy) && countUnit(UnitTypes::Terran_Barracks, IsOwned) >= 2 && !countUnit(UnitTypes::Terran_Academy, IsOwned)) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
-	}
-
-	if (canAfford(UnitTypes::Terran_Factory) && !countUnit(UnitTypes::Terran_Factory, IsOwned) && Broodwar->self()->supplyUsed()/2 >= 70) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Factory, Broodwar->getBuildLocation(UnitTypes::Terran_Factory, builder->getTilePosition()));
-	}
-
-	if (canAfford(UnitTypes::Terran_Starport) && !countUnit(UnitTypes::Terran_Starport, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 70) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Starport, Broodwar->getBuildLocation(UnitTypes::Terran_Starport, builder->getTilePosition()));
-	}
-
-	if (canAfford(UnitTypes::Terran_Science_Facility) && !countUnit(UnitTypes::Terran_Science_Facility, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 80) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Science_Facility, Broodwar->getBuildLocation(UnitTypes::Terran_Science_Facility, builder->getTilePosition()));
+	switch (buildingFrame++) {
+		case 8:
+			buildingFrame = 0;
+		case 0:
+			if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal() / 2 + getQueuedSupply() < 200) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Supply_Depot, Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, builder->getTilePosition()));
+			}
+			break;
+		case 1:
+			if ((canAfford(UnitTypes::Terran_Barracks) && countUnit(UnitTypes::Terran_Barracks, IsOwned) < countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || getSpendableResources().first >= 500) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
+			}
+			break;
+		case 2:
+			if (canAfford(UnitTypes::Terran_Academy) && countUnit(UnitTypes::Terran_Barracks, IsOwned) >= 2 && !countUnit(UnitTypes::Terran_Academy, IsOwned)) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
+			}
+			break;
+		case 3:
+			if (canAfford(UnitTypes::Terran_Factory) && !countUnit(UnitTypes::Terran_Factory, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 70) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Factory, Broodwar->getBuildLocation(UnitTypes::Terran_Factory, builder->getTilePosition()));
+			}
+			break;
+		case 4:
+			if (canAfford(UnitTypes::Terran_Starport) && !countUnit(UnitTypes::Terran_Starport, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 70) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Starport, Broodwar->getBuildLocation(UnitTypes::Terran_Starport, builder->getTilePosition()));
+			}
+			break;
+		case 5:
+			if (canAfford(UnitTypes::Terran_Science_Facility) && !countUnit(UnitTypes::Terran_Science_Facility, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 80) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Science_Facility, Broodwar->getBuildLocation(UnitTypes::Terran_Science_Facility, builder->getTilePosition()));
+			}
+			break;
+		case 6:
+			if (canAfford(UnitTypes::Terran_Engineering_Bay) && countUnit(UnitTypes::Terran_Engineering_Bay) < 2 && Broodwar->self()->supplyUsed() / 2 >= 40) {
+				Unit builder = getAnyBuilder();
+				if (builder != nullptr)
+					doBuild(builder, UnitTypes::Terran_Engineering_Bay, Broodwar->getBuildLocation(UnitTypes::Terran_Engineering_Bay, builder->getTilePosition()));
+			}
+			break;
+		case 7:
+			if (canAfford(UnitTypes::Terran_Command_Center)){
+				Unit builder = getAnyBuilder();
+				TilePosition pos = getNextExpansion();
+				if (builder != nullptr && pos.isValid())
+					doBuild(builder, UnitTypes::Terran_Command_Center, pos);
+			}
+			break;
 	}
 
 	for (std::set <const Base*>::iterator it = _unexploredBases.begin(); it != _unexploredBases.end(); ++it) {
@@ -482,25 +509,7 @@ void Neohuman::onFrame() {
 		}
 	}
 
-	if (canAfford(UnitTypes::Terran_Engineering_Bay) && countUnit(UnitTypes::Terran_Engineering_Bay) < 2 && Broodwar->self()->supplyUsed()/2 >= 40) {
-		Unit builder = getAnyBuilder();
-		if (builder != nullptr)
-			doBuild(builder, UnitTypes::Terran_Engineering_Bay, Broodwar->getBuildLocation(UnitTypes::Terran_Engineering_Bay, builder->getTilePosition()));
-	}
-
-	if (getSpendableResources().first >= 200){
-		for (auto &u : Broodwar->self()->getUnits()) {
-			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
-				auto buildingType = u->getType().getRace().getCenter();
-				auto buildPos = getNextExpansion();
-				if (!buildPos.isValid())
-					break;
-
-				if (doBuild(u, buildingType, buildPos))
-					break;
-			}
-		}
-	}
+	
 
 	timer_buildbuildings.stop();
 
@@ -580,65 +589,75 @@ void Neohuman::onFrame() {
 
 	timer_unitlogic.stop();
 
-	if (Broodwar->getFrameCount() % 6 == 0) {
-		timer_marinelogic.reset();
-		for (auto &u : _unitsByType[UnitTypes::Terran_Marine]) {
-			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 200);
-			int friendlyCount;
-			if (fleeFrom) {
-				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
-				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
-				if (enemyCount + 3 > friendlyCount) {
-					if (fleeFrom != nullptr) {
-						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
-						continue;
-					}
-				}
-			}
-			else {
-				friendlyCount = u->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
-			}
+	timer_marinelogic.reset();
 
-			auto enemyUnit = u->getClosestUnit(!IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
-			if (enemyUnit)
-				requestScan(enemyUnit->getPosition());
+	static int marineFrame = 0;
+	if (marineFrame == 2)
+		marineFrame = 0;
+	else ++marineFrame;
 
-			enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
-			if (enemyUnit) {
-				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
-					u->useTech(TechTypes::Stim_Packs);
-				continue;
-			}
-
-			enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected);
-			if (enemyUnit) {
-				u->attack(enemyUnit);
-				continue;
-			}
-
-			enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
-			if (enemyUnit) {
-				u->attack(enemyUnit);
-				continue;
-			}
-
-			auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
-			if (closeSpecialBuilding)
-				u->attack(closeSpecialBuilding);
-			else {
-				auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
-				if (closestMarine && friendlyCount >= 5) {
-					auto walk = u->getPosition() - closestMarine->getPosition();
-					u->move(u->getPosition() + walk);
-				}
-				else {
-					if (_unexploredBases.size())
-						u->move((Position)(*_unexploredBases.begin())->Location());
+	int marineN = 0;
+	for (auto &u : _unitsByType[UnitTypes::Terran_Marine]) {
+		if (marineN++ % 2 == marineFrame)
+			continue;
+		auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 200);
+		int friendlyCount;
+		if (fleeFrom) {
+			int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
+			friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
+			if (enemyCount + 3 > friendlyCount) {
+				if (fleeFrom != nullptr) {
+					u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
+					continue;
 				}
 			}
 		}
-		timer_marinelogic.stop();
+		else {
+			friendlyCount = u->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
+		}
+
+		if (u->getGroundWeaponCooldown())
+			continue;
+
+		auto enemyUnit = u->getClosestUnit(!IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
+		if (enemyUnit)
+			requestScan(enemyUnit->getPosition());
+
+		enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
+		if (enemyUnit) {
+			if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
+				u->useTech(TechTypes::Stim_Packs);
+			continue;
+		}
+
+		enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected);
+		if (enemyUnit) {
+			u->attack(enemyUnit);
+			continue;
+		}
+
+		enemyUnit = u->getClosestUnit(IsEnemy && IsDetected);
+		if (enemyUnit) {
+			u->attack(enemyUnit);
+			continue;
+		}
+
+		auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
+		if (closeSpecialBuilding)
+			u->attack(closeSpecialBuilding);
+		else {
+			auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
+			if (closestMarine && friendlyCount >= 5) {
+				auto walk = u->getPosition() - closestMarine->getPosition();
+				u->move(u->getPosition() + walk);
+			}
+			else {
+				if (_unexploredBases.size())
+					u->move((Position)(*_unexploredBases.begin())->Location());
+			}
+		}
 	}
+	timer_marinelogic.stop();
 
 	timer_total.stop();
 }
