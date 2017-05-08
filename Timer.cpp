@@ -6,6 +6,8 @@ void Neolib::Timer::reset() {
 
 void Neolib::Timer::stop() {
 	lastMeasuredTime = std::chrono::duration <double, std::milli>(std::chrono::high_resolution_clock::now() - tStart).count();
+	if (lastMeasuredTime > highestMeasuredTime)
+		highestMeasuredTime = lastMeasuredTime;
 	++nRuns, totMeasuredTime += lastMeasuredTime;
 }
 

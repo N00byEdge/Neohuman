@@ -9,6 +9,7 @@ namespace Neolib {
 			void reset();
 			void stop();
 			double lastMeasuredTime = 0;
+			double highestMeasuredTime = 0;
 			double avgMeasuredTime() const;
 		private:
 			std::chrono::system_clock::time_point tStart;
