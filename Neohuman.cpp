@@ -340,7 +340,8 @@ int getNextLine(int &i) {
 }
 
 void Neohuman::onFrame() {
-	static Timer timer_drawinfo, timer_managequeue, timer_buildbuildings, timer_unitlogic, timer_marinelogic;
+	static Timer timer_drawinfo, timer_managequeue, timer_buildbuildings, timer_unitlogic, timer_marinelogic, timer_total;
+	timer_total.reset();
 	timer_drawinfo.reset();
 
 	// Called once every game frame
@@ -410,12 +411,13 @@ void Neohuman::onFrame() {
 	for (auto &ut : _enemyUnitsByType)
 		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %u", noRaceName(ut.first.c_str()), ut.second.size());
 
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Frame times:"));
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Drawinfo: %.1lf ms", timer_drawinfo.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Managequeue: %.1lf ms", timer_managequeue.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Buildbuildings: %.1lf ms", timer_buildbuildings.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Unitlogic: %.1lf ms", timer_unitlogic.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Marines: %.1lf ms", timer_marinelogic.lastMeasuredTime);
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Frame times [last/avg/high]:");
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Total: %.1lf ms / %.1lf ms / %.1lf ms", timer_total.lastMeasuredTime, timer_total.avgMeasuredTime(), timer_total.highestMeasuredTime);
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Drawinfo: %.1lf ms / %.1lf ms / %.1lf ms", timer_drawinfo.lastMeasuredTime, timer_drawinfo.avgMeasuredTime(), timer_drawinfo.highestMeasuredTime);
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Managequeue: %.1lf ms / %.1lf ms / %.1lf ms", timer_managequeue.lastMeasuredTime, timer_managequeue.avgMeasuredTime(), timer_managequeue.highestMeasuredTime);
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Buildbuildings: %.1lf ms / %.1lf ms / %.1lf ms", timer_buildbuildings.lastMeasuredTime, timer_buildbuildings.avgMeasuredTime(), timer_buildbuildings.highestMeasuredTime);
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Unitlogic: %.1lf ms / %.1lf ms / %.1lf ms", timer_unitlogic.lastMeasuredTime, timer_unitlogic.avgMeasuredTime(), timer_unitlogic.highestMeasuredTime);
+	Broodwar->drawTextScreen(430, getNextLine(columnPixelLine[3]), "Marines: %.1lf ms / %.1lf ms / %.1lf ms", timer_marinelogic.lastMeasuredTime, timer_marinelogic.avgMeasuredTime(), timer_marinelogic.highestMeasuredTime);
 	timer_drawinfo.stop();
 
 	// Return if the game is a replay or is paused
@@ -637,6 +639,8 @@ void Neohuman::onFrame() {
 		}
 		timer_marinelogic.stop();
 	}
+
+	timer_total.stop();
 }
 
 void Neohuman::onSendText(std::string text) {
