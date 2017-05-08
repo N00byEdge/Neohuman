@@ -109,10 +109,15 @@ int Neohuman::countUnit(UnitType t, const UnitFilter &filter = nullptr, bool cou
 unsigned Neohuman::countFriendly(UnitType t = UnitTypes::AllUnits, bool onlyWithWeapons = false, bool countQueued = true) {
 	unsigned sum = 0;
 
-	if (t == UnitTypes::AllUnits)
-		for (auto &ut : _unitsByType)
-			if (onlyWithWeapons && ut.first.groundWeapon() || ut.first.airWeapon())
+	if (t == UnitTypes::AllUnits) {
+		if (onlyWithWeapons)
+			for (auto &ut : _unitsByType)
+				if (onlyWithWeapons && ut.first.groundWeapon() || ut.first.airWeapon())
+					sum += ut.second.size();
+		else
+			for (auto &ut : _unitsByType)
 				sum += ut.second.size();
+	}
 
 	else
 		sum = _unitsByType[t].size();
@@ -132,10 +137,15 @@ unsigned Neohuman::countFriendly(UnitType t = UnitTypes::AllUnits, bool onlyWith
 unsigned Neohuman::countEnemies(UnitType t = UnitTypes::AllUnits, bool onlyWithWeapons = false) {
 	unsigned sum = 0;
 
-	if (t == UnitTypes::AllUnits)
-		for (auto &ut : _enemyUnitsByType)
-			if (onlyWithWeapons && ut.first.groundWeapon() || ut.first.airWeapon())
+	if (t == UnitTypes::AllUnits) {
+		if (onlyWithWeapons)
+			for (auto &ut : _enemyUnitsByType)
+				if (ut.first.groundWeapon() || ut.first.airWeapon())
+					sum += ut.second.size();
+		else
+			for (auto &ut : _enemyUnitsByType)
 				sum += ut.second.size();
+	}
 
 	else
 		sum = _enemyUnitsByType[t].size();
