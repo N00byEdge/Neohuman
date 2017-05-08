@@ -244,7 +244,7 @@ bool Neohuman::requestScan(Position p) {
 		return false;
 	Unit highestEnergy = nullptr;
 	for (auto & u : _unitsByType[UnitTypes::Terran_Comsat_Station])
-		if (u->getEnergy() > highestEnergy->getEnergy())
+		if (!highestEnergy || u->getEnergy() > highestEnergy->getEnergy())
 			highestEnergy = u;
 	
 	if (highestEnergy == nullptr)
