@@ -104,6 +104,43 @@ int Neohuman::countUnit(UnitType t, const UnitFilter &filter = nullptr, bool cou
 	return c;
 }
 
+unsigned Neohuman::countFriendly(UnitType t = UnitTypes::AllUnits, bool onlyWithWeapons = false, bool countQueued = true) {
+	unsigned sum = 0;
+
+	if (t == UnitTypes::AllUnits)
+		for (auto &ut : _unitsByType)
+			if (onlyWithWeapons && ut.first.groundWeapon() || ut.first.airWeapon())
+				sum += ut.second.size();
+
+	else
+		sum = _unitsByType[t].size();
+
+	if (countQueued) {
+		if (t == UnitTypes::AllUnits)
+			sum += _buildingQueue.size();
+		else
+			for (auto &bo : _buildingQueue)
+				if (bo.first.second == t)
+					++sum;
+	}
+
+	return sum;
+}
+
+unsigned Neohuman::countEnemies(UnitType t = UnitTypes::AllUnits, bool onlyWithWeapons = false) {
+	unsigned sum = 0;
+
+	if (t == UnitTypes::AllUnits)
+		for (auto &ut : _enemyUnitsByType)
+			if (onlyWithWeapons && ut.first.groundWeapon() || ut.first.airWeapon())
+				sum += ut.second.size();
+
+	else
+		sum = _enemyUnitsByType[t].size();
+
+	return sum;
+}
+
 int Neohuman::wantedSupplyOverhead() const {
 	return 2 + MAX((Broodwar->self()->supplyUsed() - 10) / 8, 0);
 }
@@ -201,7 +238,7 @@ TilePosition Neohuman::getNextExpansion() {
 }
 
 bool Neohuman::requestScan(Position p) {
-	for (auto &c : _comsats)
+	for (auto &c : _unitsByType[UnitTypes::Terran_Comsat_Station])
 		if (!_didUseScanThisFrame && c->canUseTech(TechTypes::Scanner_Sweep, p) && c->useTech(TechTypes::Scanner_Sweep, p))
 			return _didUseScanThisFrame = true;
 	return false;
@@ -295,7 +332,8 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "FPS: %c%d", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getFPS());
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "Average FPS: %c%f", Broodwar->getFPS() >= 30 ? Text::Green : Text::Red, Broodwar->getAverageFPS());
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I want %c%d%c more supply", additionalWantedSupply() == 0 ? Text::Yellow : (additionalWantedSupply() > 0 ? Text::Red : Text::Green), additionalWantedSupply(), Text::Default);
-	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d barracks!", countUnit(UnitTypes::Terran_Barracks, IsOwned));
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "%u marines swarming you", countFriendly(UnitTypes::Terran_Marine));
+	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d barracks!", countFriendly(UnitTypes::Terran_Barracks));
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d APM!", Broodwar->getAPM());
 
 	/*for (unsigned i = 0; i < _allBases.size(); ++ i) {
@@ -314,8 +352,8 @@ void Neohuman::onFrame() {
 	if (Broodwar->isPaused() || !Broodwar->self())
 		return;
 
-	std::string s = "Comsats (" + std::to_string(_comsats.size()) + "): " + ENERGYTEXT;
-	for (auto &c : _comsats)
+	std::string s = "Comsats (" + std::to_string(_unitsByType[UnitTypes::Terran_Comsat_Station].size()) + "): " + ENERGYTEXT;
+	for (auto &c : _unitsByType[UnitTypes::Terran_Comsat_Station])
 		s += std::to_string(c->getEnergy()) + " ";
 
 	Broodwar->drawTextScreen(0, getNextLine(columnPixelLine[0]), s.c_str());
@@ -341,19 +379,15 @@ void Neohuman::onFrame() {
 	}
 
 	for (auto &u : _knownEnemies) {
-		if (u.first->isVisible()) {
-			--_enemyUnitTypes[u.second.second];
+		if (u.first->isVisible())
 			u.second.first = u.first->getPosition();
-			u.second.second = u.first->getType();
-			++_enemyUnitTypes[u.second.second];
-		}
+
 		Broodwar->drawBoxMap(u.second.first - Position(u.second.second.tileSize()) / 2, u.second.first + Position(u.second.second.tileSize()) / 2, ENEMYCOLOR);
 		Broodwar->drawTextMap(u.second.first + u.second.second.size() / 2 + Position(10, 10), "%s", noRaceName(u.second.second.c_str()));
 	}
 
-	for (auto &ut : _enemyUnitTypes) {
-		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %d", noRaceName(ut.first.c_str()), ut.second);
-	}
+	for (auto &ut : _enemyUnitsByType)
+		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %u", noRaceName(ut.first.c_str()), ut.second.size());
 
 	// Prevent spamming by only running our onFrame once every number of latency frames.
 	// Latency frames are the number of frames before commands are processed.
@@ -429,84 +463,66 @@ void Neohuman::onFrame() {
 		}
 	}
 
-	// Iterate through all the units that we own
-	for (auto &u : Broodwar->self()->getUnits()) {
-		// Ignore the unit if it no longer exists
-		// Make sure to include this block when handling any Unit pointer!
-		if (!u->exists())
-			continue;
+	for (auto &u : _unitsByType[UnitTypes::Terran_SCV]) {
+		auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking, WORKERAGGRORADIUS);
+		if (enemyUnit)
+			u->attack(enemyUnit);
 
-		// Ignore the unit if it has one of the following status ailments
-		if (u->isLockedDown() || u->isMaelstrommed() || u->isStasised())
-			continue;
+		// if our worker is idle
+		if (u->isIdle()) {
+			// Order workers carrying a resource to return them to the center,
+			// otherwise find a mineral patch to harvest.
+			if (u->isCarryingGas() || u->isCarryingMinerals())
+				u->returnCargo();
 
-		// Ignore the unit if it is in one of the following states
-		if (u->isLoaded() || !u->isPowered() || u->isStuck())
-			continue;
+			else if (!u->getPowerUp() && Broodwar->getMinerals().size()) {
+				// Probably need to set up some better logic for this
+				auto preferredMiningLocation = *(Broodwar->getMinerals().begin());
+				for (auto &m : Broodwar->getMinerals())
+					if (preferredMiningLocation->getPosition().getApproxDistance(u->getPosition()) > m->getPosition().getApproxDistance(u->getPosition()))
+						preferredMiningLocation = m;
 
-		// Ignore the unit if it is incomplete or busy constructing
-		if (!u->isCompleted() || u->isConstructing())
-			continue;
-
-		// If the unit is a worker unit
-		if (u->getType().isWorker()) {
-			auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking, WORKERAGGRORADIUS);
-			if (enemyUnit)
-				u->attack(enemyUnit);
-
-			// if our worker is idle
-			if (u->isIdle()) {
-				// Order workers carrying a resource to return them to the center,
-				// otherwise find a mineral patch to harvest.
-				if (u->isCarryingGas() || u->isCarryingMinerals())
-					u->returnCargo();
-
-				else if (!u->getPowerUp() && Broodwar->getMinerals().size()) {
-					// Probably need to set up some better logic for this
-					auto preferredMiningLocation = *(Broodwar->getMinerals().begin());
-					for (auto &m : Broodwar->getMinerals())
-						if (preferredMiningLocation->getPosition().getApproxDistance(u->getPosition()) > m->getPosition().getApproxDistance(u->getPosition()))
-							preferredMiningLocation = m;
-
-					u->gather(preferredMiningLocation);
-				}
+				u->gather(preferredMiningLocation);
 			}
-		} else if (u->getType().isResourceDepot() && !u->isBeingConstructed()) {
-			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
-			if (nearbyGeysers.size() && Broodwar->self()->supplyUsed()/2 >= 13){
-				auto buildingType = UnitTypes::Terran_Refinery;
-				for (Unit geyser : nearbyGeysers) {
-					Unit builder = getClosestBuilder(geyser);
-					if (builder != nullptr)
-						doBuild(builder, buildingType, geyser->getTilePosition());
-				}
-			}
+		}
+	}
 
-			if (u->isIdle()) {
-				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
-				if (countUnit(UnitTypes::Terran_SCV, IsOwned) >= 70)
-					continue;
-				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
-				if (workers.size() < mineralFields.size() * 2 && getSpendableResources().first >= 50) {
-					if (u->train(u->getType().getRace().getWorker())) {
-						Position pos = u->getPosition();
-						Error lastErr = Broodwar->getLastError();
-						Broodwar->registerEvent([pos, lastErr](Game*){ Broodwar->drawTextMap(pos + Position(0, -10), "%c%s", Text::Red, lastErr.c_str()); },   // action
-							nullptr,    // condition
-							Broodwar->getLatencyFrames());  // frames to run
-					}
-				}
+	for (auto &u : _unitsByType[UnitTypes::Terran_Command_Center]) {
+		if (u->isConstructing())
+			continue;
+
+		auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
+		if (nearbyGeysers.size() && Broodwar->self()->supplyUsed() / 2 >= 13){
+			auto buildingType = UnitTypes::Terran_Refinery;
+			for (Unit geyser : nearbyGeysers) {
+				Unit builder = getClosestBuilder(geyser);
+				if (builder != nullptr)
+					doBuild(builder, buildingType, geyser->getTilePosition());
 			}
-			if (u->isIdle() && canAfford(UnitTypes::Terran_Comsat_Station))
-				u->buildAddon(UnitTypes::Terran_Comsat_Station);
-		} else if (u->getType() == UnitTypes::Terran_Barracks) {
-			if (u->isIdle() && getSpendableResources().first >= 50)
-				u->train(UnitTypes::Terran_Marine);
-		} else if (u->getType() == UnitTypes::Terran_Marine && Broodwar->getFrameCount() % 6 == 0) {
-			auto fleeFrom = u->getClosestUnit(IsEnemy && CanAttack, 200);
+		}
+
+		if (u->isIdle()) {
+			auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
+			if (countUnit(UnitTypes::Terran_SCV, IsOwned) >= 70)
+				continue;
+			auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
+			if (workers.size() < mineralFields.size() * 2 && canAfford(UnitTypes::Terran_SCV))
+				u->train(UnitTypes::Terran_SCV);
+		}
+		if (u->isIdle() && canAfford(UnitTypes::Terran_Comsat_Station))
+			u->buildAddon(UnitTypes::Terran_Comsat_Station);
+	}
+
+	for (auto &u : _unitsByType[UnitTypes::Terran_Barracks])
+		if (u->isIdle() && canAfford(UnitTypes::Terran_Marine))
+			u->train(UnitTypes::Terran_Marine);
+
+	if (Broodwar->getFrameCount() % 6 == 0) {
+		for (auto &u : _unitsByType[UnitTypes::Terran_Marine]) {
+			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 200);
 			int friendlyCount;
 			if (fleeFrom) {
-				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && CanAttack).size() + 1;
+				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
 				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
 				if (enemyCount + 3 > friendlyCount) {
 					if (fleeFrom != nullptr) {
@@ -514,7 +530,8 @@ void Neohuman::onFrame() {
 						continue;
 					}
 				}
-			} else {
+			}
+			else {
 				friendlyCount = u->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
 			}
 
@@ -522,14 +539,14 @@ void Neohuman::onFrame() {
 			if (enemyUnit)
 				requestScan(enemyUnit->getPosition());
 
-			enemyUnit = u->getClosestUnit(IsEnemy && CanAttack && IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
+			enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
 			if (enemyUnit) {
 				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
 					u->useTech(TechTypes::Stim_Packs);
 				continue;
 			}
 
-			enemyUnit = u->getClosestUnit(IsEnemy && CanAttack && IsDetected);
+			enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected);
 			if (enemyUnit) {
 				u->attack(enemyUnit);
 				continue;
@@ -549,30 +566,31 @@ void Neohuman::onFrame() {
 				if (closestMarine && friendlyCount >= 5) {
 					auto walk = u->getPosition() - closestMarine->getPosition();
 					u->move(u->getPosition() + walk);
-				} else {
+				}
+				else {
 					if (_unexploredBases.size())
 						u->move((Position)(*_unexploredBases.begin())->Location());
 				}
 			}
-
 		}
+	}
 
-		else if (u->getType() == UnitTypes::Terran_Academy && u->isIdle()){
-			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0) 
+	for (auto &u : _unitsByType[UnitTypes::Terran_Academy]) {
+		if (u->isIdle()) {
+			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0)
 				u->upgrade(UpgradeTypes::U_238_Shells);
 
 			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
 				u->research(TechTypes::Stim_Packs);
 		}
+	}
 
-		else if (u->getType() == UnitTypes::Terran_Engineering_Bay) {
-			if (u->isIdle())
-				u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
+	for (auto &u : _unitsByType[UnitTypes::Terran_Engineering_Bay]) {
+		if (u->isIdle())
+			u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
 
-			if (u->isIdle())
-				u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
-
-		}
+		if (u->isIdle())
+			u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
 	}
 }
 
@@ -598,10 +616,18 @@ void Neohuman::onNukeDetect(Position target) {
 }
 
 void Neohuman::onUnitDiscover(Unit unit) {
-	if (unit->getPlayer() == Broodwar->enemy() && _knownEnemies.find(unit) == _knownEnemies.end() && !unit->getType().isAddon())
-		++_enemyUnitTypes[unit->getType()];
-	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon())
+	if (!unit->getType().isAddon() && unit->getPlayer() == Broodwar->enemy()) {
+		if (_knownEnemies.count(unit) && _knownEnemies[unit].second != unit->getType()) // If there is a new type for the unit
+			_enemyUnitsByType[_knownEnemies[unit].second].erase(unit);
+
+		if (_knownEnemies.count(unit) && _enemyUnitsByType[_knownEnemies[unit].second].empty())
+			_enemyUnitsByType.erase(_knownEnemies[unit].second);
+
+		if (_knownEnemies.find(unit) == _knownEnemies.end())
+			_enemyUnitsByType[unit->getType()].insert(unit);
+
 		_knownEnemies[unit] = { unit->getPosition(), unit->getType() };
+	}
 }
 
 void Neohuman::onUnitEvade(Unit unit) {
@@ -617,31 +643,39 @@ void Neohuman::onUnitCreate(Unit unit) {
 }
 
 void Neohuman::onUnitDestroy(Unit unit) {
-	try {
-		if (unit->getType().isMineralField())			BWEMMap.OnMineralDestroyed(unit);
-		else if (unit->getType().isSpecialBuilding())	BWEMMap.OnStaticBuildingDestroyed(unit);
-	} catch (const std::exception & e) {
-		Broodwar << "EXCEPTION: " << e.what() << std::endl;
-	}
-	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
-		_comsats.erase(unit);
-	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon())
+	if (unit->getType().isMineralField())			BWEMMap.OnMineralDestroyed(unit);
+	else if (unit->getType().isSpecialBuilding())	BWEMMap.OnStaticBuildingDestroyed(unit);
+
+	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon()) {
 		_knownEnemies.erase(unit);
-	if (unit->getPlayer() == Broodwar->enemy() && !unit->getType().isAddon() && !--_enemyUnitTypes[unit->getType()])
-		_enemyUnitTypes.erase(unit->getType());
+		_enemyUnitsByType[unit->getType()].erase(unit);
+		if (_enemyUnitsByType[unit->getType()].empty())
+			_enemyUnitsByType.erase(unit->getType());
+	}
+
+	if (unit->getPlayer() == Broodwar->self()) {
+		_unitsByType[unit->getType()].erase(unit);
+		_unitsInTypeSet.erase(unit);
+	}
 }
 
 void Neohuman::onUnitMorph(Unit unit) {
-	this->onUnitComplete(unit);
+	onUnitDiscover(unit);
+	onUnitComplete(unit);
 }
 
-void Neohuman::onUnitRenegade(Unit unit){
+void Neohuman::onUnitRenegade(Unit unit) {
 }
 
-void Neohuman::onSaveGame(std::string gameName){
+void Neohuman::onSaveGame(std::string gameName) {
 }
 
-void Neohuman::onUnitComplete(Unit unit){
-	if (unit->getType() == UnitTypes::Terran_Comsat_Station)
-		_comsats.insert(unit);
+void Neohuman::onUnitComplete(Unit unit) {
+	if (unit->getPlayer() == Broodwar->self()) {
+		if (_unitsInTypeSet.count(unit))
+			_unitsByType[_unitsInTypeSet[unit]].erase(unit);
+
+		_unitsInTypeSet[unit] = unit->getType();
+		_unitsByType[unit->getType()].insert(unit);
+	}
 }

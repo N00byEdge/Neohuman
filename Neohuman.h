@@ -34,10 +34,11 @@ public:
   std::vector <const BWEM::Base*> _allBases;
   std::set <const BWEM::Base*> _unexploredBases;
 
-  std::set <BWAPI::Unit> _comsats;
-
   std::map <BWAPI::Unit, std::pair<BWAPI::Position, BWAPI::UnitType>> _knownEnemies;
-  std::map <BWAPI::UnitType, int> _enemyUnitTypes;
+  std::map <BWAPI::Unit, BWAPI::UnitType> _unitsInTypeSet;
+
+  std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> _enemyUnitsByType;
+  std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> _unitsByType;
 
   std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 
@@ -52,6 +53,9 @@ public:
 
   bool canAfford(BWAPI::UnitType t) const;
   int countUnit(BWAPI::UnitType t, const BWAPI::UnitFilter &filter, bool countQueued) const;
+
+  unsigned Neohuman::countFriendly(BWAPI::UnitType t, bool onlyWithWeapons, bool countQueued);
+  unsigned Neohuman::countEnemies(BWAPI::UnitType t, bool onlyWithWeapons);
 
   void manageBuildingQueue();
 
