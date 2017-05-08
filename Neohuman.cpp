@@ -8,6 +8,8 @@ using namespace BWEM;
 using namespace BWEM::BWAPI_ext;
 using namespace BWEM::utils;
 
+using namespace Neolib;
+
 #define MIN(a, b) (((a) < (b) ? (a) : (b)))
 #define MAX(a, b) (((a) < (b) ? (b) : (a)))
 

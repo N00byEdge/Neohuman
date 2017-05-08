@@ -40,7 +40,7 @@ public:
   std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> _enemyUnitsByType;
   std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> _unitsByType;
 
-  std::vector <std::pair <Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
+  std::vector <std::pair <Neolib::Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> _buildingQueue;
 
   bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
   std::pair <int, int> getQueuedResources() const;
