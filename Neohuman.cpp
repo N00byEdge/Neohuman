@@ -348,10 +348,6 @@ void Neohuman::onFrame() {
 		Broodwar << "EXCEPTION: " << e.what() << std::endl;
 	}
 
-	// Return if the game is a replay or is paused
-	if (Broodwar->isPaused() || !Broodwar->self())
-		return;
-
 	std::string s = "Comsats (" + std::to_string(_unitsByType[UnitTypes::Terran_Comsat_Station].size()) + "): " + ENERGYTEXT;
 	for (auto &c : _unitsByType[UnitTypes::Terran_Comsat_Station])
 		s += std::to_string(c->getEnergy()) + " ";
@@ -388,6 +384,10 @@ void Neohuman::onFrame() {
 
 	for (auto &ut : _enemyUnitsByType)
 		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %u", noRaceName(ut.first.c_str()), ut.second.size());
+
+	// Return if the game is a replay or is paused
+	if (Broodwar->isPaused() || !Broodwar->self())
+		return;
 
 	// Prevent spamming by only running our onFrame once every number of latency frames.
 	// Latency frames are the number of frames before commands are processed.
