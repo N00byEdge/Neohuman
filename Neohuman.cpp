@@ -240,10 +240,17 @@ TilePosition Neohuman::getNextExpansion() {
 }
 
 bool Neohuman::requestScan(Position p) {
-	for (auto &c : _unitsByType[UnitTypes::Terran_Comsat_Station])
-		if (!_didUseScanThisFrame && c->canUseTech(TechTypes::Scanner_Sweep, p) && c->useTech(TechTypes::Scanner_Sweep, p))
-			return _didUseScanThisFrame = true;
-	return false;
+	if (_didUseScanThisFrame)
+		return false;
+	Unit highestEnergy = nullptr;
+	for (auto & u : _unitsByType[UnitTypes::Terran_Comsat_Station])
+		if (u->getEnergy() > highestEnergy->getEnergy())
+			highestEnergy = u;
+	
+	if (highestEnergy == nullptr)
+		return false;
+
+	return highestEnergy->useTech(TechTypes::Scanner_Sweep);
 }
 
 void Neohuman::onStart() {
