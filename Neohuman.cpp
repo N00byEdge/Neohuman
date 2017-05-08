@@ -394,11 +394,11 @@ void Neohuman::onFrame() {
 		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %u", noRaceName(ut.first.c_str()), ut.second.size());
 
 	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Frame times:"));
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Drawinfo: %.2lf ms", timer_drawinfo.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Managequeue: %.2lf ms", timer_managequeue.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Buildbuildings: %.2lf ms", timer_buildbuildings.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Unitlogic: %.2lf ms", timer_unitlogic.lastMeasuredTime);
-	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Marines: %.2lf ms", timer_marinelogic.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Drawinfo: %.1lf ms", timer_drawinfo.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Managequeue: %.1lf ms", timer_managequeue.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Buildbuildings: %.1lf ms", timer_buildbuildings.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Unitlogic: %.1lf ms", timer_unitlogic.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Marines: %.1lf ms", timer_marinelogic.lastMeasuredTime);
 	timer_drawinfo.stop();
 
 	// Return if the game is a replay or is paused
