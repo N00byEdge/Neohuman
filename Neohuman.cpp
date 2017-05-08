@@ -469,9 +469,6 @@ void Neohuman::onFrame() {
 			doBuild(builder, UnitTypes::Terran_Engineering_Bay, Broodwar->getBuildLocation(UnitTypes::Terran_Engineering_Bay, builder->getTilePosition()));
 	}
 
-	timer_buildbuildings.stop();
-
-	timer_unitlogic.reset();
 	if (getSpendableResources().first >= 200){
 		for (auto &u : Broodwar->self()->getUnits()) {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
@@ -485,6 +482,10 @@ void Neohuman::onFrame() {
 			}
 		}
 	}
+
+	timer_buildbuildings.stop();
+
+	timer_unitlogic.reset();
 
 	for (auto &u : _unitsByType[UnitTypes::Terran_SCV]) {
 		auto enemyUnit = u->getClosestUnit(IsEnemy && IsAttacking, WORKERAGGRORADIUS);
