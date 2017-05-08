@@ -260,7 +260,7 @@ bool Neohuman::requestScan(Position p) {
 	if (highestEnergy == nullptr)
 		return false;
 
-	return highestEnergy->useTech(TechTypes::Scanner_Sweep);
+	return (highestEnergy->useTech(TechTypes::Scanner_Sweep, p) && (_didUseScanThisFrame = true));
 }
 
 void Neohuman::onStart() {
