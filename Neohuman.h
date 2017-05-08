@@ -4,6 +4,7 @@
 #include <random>
 
 #include "Triple.h"
+#include "Timer.h"
 
 #include "BWEM/bwem.h"
 

@@ -323,8 +323,11 @@ int getNextLine(int &i) {
 }
 
 void Neohuman::onFrame() {
+	static Timer timer_drawinfo, timer_managequeue, timer_buildbuildings, timer_unitlogic, timer_marinelogic;
+	timer_drawinfo.reset();
+
 	// Called once every game frame
-	std::vector <int> columnPixelLine(4);
+	std::vector <int> columnPixelLine = { 0, 0, 0, 200 };
 	std::vector <int> columnStart = { 0, 140, 240, 500 };
 
 	if (Broodwar->isReplay())
@@ -337,6 +340,9 @@ void Neohuman::onFrame() {
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "%u marines swarming you", countFriendly(UnitTypes::Terran_Marine));
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d barracks!", countFriendly(UnitTypes::Terran_Barracks));
 	Broodwar->drawTextScreen(140, getNextLine(columnPixelLine[1]), "I have %d APM!", Broodwar->getAPM());
+
+	Broodwar->drawTextScreen(450, 16, "%d", getSpendableResources().first);
+	Broodwar->drawTextScreen(518, 16, "%d", getSpendableResources().second);
 
 	/*for (unsigned i = 0; i < _allBases.size(); ++ i) {
 		Broodwar->drawBoxMap(Position(_allBases[i]->Location()), Position(Position(_allBases[i]->Location()) + Position(UnitTypes::Terran_Command_Center.tileSize())), Colors::Grey);
@@ -387,6 +393,14 @@ void Neohuman::onFrame() {
 	for (auto &ut : _enemyUnitsByType)
 		Broodwar->drawTextScreen(280, getNextLine(columnPixelLine[2]), "%s: %u", noRaceName(ut.first.c_str()), ut.second.size());
 
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Frame times:"));
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Drawinfo: %.2lf ms", timer_drawinfo.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Managequeue: %.2lf ms", timer_managequeue.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Buildbuildings: %.2lf ms", timer_buildbuildings.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Unitlogic: %.2lf ms", timer_unitlogic.lastMeasuredTime);
+	Broodwar->drawTextScreen(500, getNextLine(columnPixelLine[3]), "Marines: %.2lf ms", timer_marinelogic.lastMeasuredTime);
+	timer_drawinfo.stop();
+
 	// Return if the game is a replay or is paused
 	if (Broodwar->isPaused() || !Broodwar->self())
 		return;
@@ -398,7 +412,11 @@ void Neohuman::onFrame() {
 
 	_didUseScanThisFrame = false;
 
+	timer_managequeue.reset();
 	manageBuildingQueue();
+	timer_managequeue.stop();
+
+	timer_buildbuildings.reset();
 
 	// Check if supply should be increased
 	if (additionalWantedSupply() > 0 && canAfford(UnitTypes::Terran_Supply_Depot) && Broodwar->self()->supplyTotal()/2 + getQueuedSupply() < 200) {
@@ -451,6 +469,9 @@ void Neohuman::onFrame() {
 			doBuild(builder, UnitTypes::Terran_Engineering_Bay, Broodwar->getBuildLocation(UnitTypes::Terran_Engineering_Bay, builder->getTilePosition()));
 	}
 
+	timer_buildbuildings.stop();
+
+	timer_unitlogic.reset();
 	if (getSpendableResources().first >= 200){
 		for (auto &u : Broodwar->self()->getUnits()) {
 			if (u->exists() && u->isGatheringMinerals() && u->isMoving() && !u->isCarryingMinerals() && !isWorkerBuilding(u)) {
@@ -519,7 +540,28 @@ void Neohuman::onFrame() {
 		if (u->isIdle() && canAfford(UnitTypes::Terran_Marine))
 			u->train(UnitTypes::Terran_Marine);
 
+	for (auto &u : _unitsByType[UnitTypes::Terran_Academy]) {
+		if (u->isIdle()) {
+			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0)
+				u->upgrade(UpgradeTypes::U_238_Shells);
+
+			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
+				u->research(TechTypes::Stim_Packs);
+		}
+	}
+
+	for (auto &u : _unitsByType[UnitTypes::Terran_Engineering_Bay]) {
+		if (u->isIdle())
+			u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
+
+		if (u->isIdle())
+			u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
+	}
+
+	timer_unitlogic.stop();
+
 	if (Broodwar->getFrameCount() % 6 == 0) {
+		timer_marinelogic.reset();
 		for (auto &u : _unitsByType[UnitTypes::Terran_Marine]) {
 			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 200);
 			int friendlyCount;
@@ -575,24 +617,7 @@ void Neohuman::onFrame() {
 				}
 			}
 		}
-	}
-
-	for (auto &u : _unitsByType[UnitTypes::Terran_Academy]) {
-		if (u->isIdle()) {
-			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0)
-				u->upgrade(UpgradeTypes::U_238_Shells);
-
-			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
-				u->research(TechTypes::Stim_Packs);
-		}
-	}
-
-	for (auto &u : _unitsByType[UnitTypes::Terran_Engineering_Bay]) {
-		if (u->isIdle())
-			u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
-
-		if (u->isIdle())
-			u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
+		timer_marinelogic.stop();
 	}
 }
 
