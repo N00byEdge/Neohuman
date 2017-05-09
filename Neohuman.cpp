@@ -252,6 +252,7 @@ TilePosition Neohuman::getNextExpansion() {
 bool Neohuman::requestScan(Position p) {
 	if (_didUseScanThisFrame)
 		return false;
+
 	Unit highestEnergy = nullptr;
 	for (auto & u : _unitsByType[UnitTypes::Terran_Comsat_Station])
 		if (!highestEnergy || u->getEnergy() > highestEnergy->getEnergy())
@@ -264,6 +265,8 @@ bool Neohuman::requestScan(Position p) {
 }
 
 void Neohuman::onStart() {
+	Timer timer_onStart;
+	timer_onStart.reset();
 	Broodwar << "The map is totally not " << Broodwar->mapName() << "!" << std::endl;
 
 	Broodwar->enableFlag(Flag::UserInput);
@@ -307,6 +310,8 @@ void Neohuman::onStart() {
 			}
 		}
 	}
+	timer_onStart.stop();
+	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
 }
 
 void Neohuman::onEnd(bool didWin) {
@@ -622,6 +627,8 @@ void Neohuman::onFrame() {
 		auto enemyUnit = u->getClosestUnit(!IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
 		if (enemyUnit)
 			requestScan(enemyUnit->getPosition());
+			
+		
 
 		enemyUnit = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && IsDetected, Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle));
 		if (enemyUnit) {
