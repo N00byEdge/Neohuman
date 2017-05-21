@@ -14,5 +14,5 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 }
 
 extern "C" __declspec(dllexport) BWAPI::AIModule* newAIModule() {
-  return new Neohuman();
+	return &neoInstance;
 }
