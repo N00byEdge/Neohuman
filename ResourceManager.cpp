@@ -30,7 +30,7 @@ namespace Neolib {
 		return ResourceCount(minerals + other.minerals, gas + other.gas);
 	}
 
-	ResourceCount ResourceCount::operator+=(const ResourceCount &other) {
+	ResourceCount &ResourceCount::operator+=(const ResourceCount &other) {
 		minerals += other.minerals;
 		gas += other.gas;
 		return *this;
@@ -40,7 +40,7 @@ namespace Neolib {
 		return ResourceCount(minerals - other.minerals, gas - other.gas);
 	}
 
-	ResourceCount ResourceCount::operator-=(const ResourceCount &other) {
+	ResourceCount &ResourceCount::operator-=(const ResourceCount &other) {
 		minerals -= other.minerals;
 		gas -= other.gas;
 		return *this;
@@ -50,7 +50,7 @@ namespace Neolib {
 		return ResourceCount(minerals * factor, gas * factor);
 	}
 	
-	ResourceCount ResourceCount::operator*=(const int factor) {
+	ResourceCount &ResourceCount::operator*=(const int factor) {
 		minerals *= factor;
 		gas *= factor;
 		return *this;
@@ -60,7 +60,7 @@ namespace Neolib {
 		return ResourceCount(minerals / divisor, gas / divisor);
 	}
 
-	ResourceCount ResourceCount::operator/=(const int divisor) {
+	ResourceCount &ResourceCount::operator/=(const int divisor) {
 		minerals /= divisor;
 		gas /= divisor;
 		return *this;

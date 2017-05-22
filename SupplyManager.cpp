@@ -18,7 +18,7 @@ namespace Neolib {
 		return SupplyCount(protoss + other.protoss, terran + other.terran, zerg + other.zerg);
 	}
 
-	SupplyCount SupplyCount::operator+=(const SupplyCount &other) {
+	SupplyCount &SupplyCount::operator+=(const SupplyCount &other) {
 		protoss += other.protoss;
 		terran += other.terran;
 		zerg += other.zerg;
@@ -29,7 +29,7 @@ namespace Neolib {
 		return SupplyCount(protoss - other.protoss, terran - other.terran, zerg - other.zerg);
 	}
 
-	SupplyCount SupplyCount::operator-=(const SupplyCount &other) {
+	SupplyCount &SupplyCount::operator-=(const SupplyCount &other) {
 		protoss -= other.protoss;
 		terran -= other.terran;
 		zerg -= other.zerg;
@@ -40,7 +40,7 @@ namespace Neolib {
 		return SupplyCount(protoss * factor, terran * factor, zerg * factor);
 	}
 
-	SupplyCount SupplyCount::operator*=(const int factor) {
+	SupplyCount &SupplyCount::operator*=(const int factor) {
 		protoss *= factor;
 		terran *= factor;
 		zerg *= factor;
@@ -51,7 +51,7 @@ namespace Neolib {
 		return SupplyCount(protoss / divisor, terran / divisor, zerg / divisor);
 	}
 
-	SupplyCount SupplyCount::operator/=(const int divisor) {
+	SupplyCount &SupplyCount::operator/=(const int divisor) {
 		protoss /= divisor;
 		terran /= divisor;
 		zerg /= divisor;

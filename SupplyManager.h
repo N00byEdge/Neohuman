@@ -6,14 +6,14 @@ namespace Neolib {
 		SupplyCount();
 		SupplyCount(int protoss, int terran, int zerg);
 
-		SupplyCount operator+ (const SupplyCount &other) const;
-		SupplyCount operator+=(const SupplyCount &other);
-		SupplyCount operator- (const SupplyCount &other) const;
-		SupplyCount operator-=(const SupplyCount &other);
-		SupplyCount operator* (const int factor) const;
-		SupplyCount operator*=(const int factor);
-		SupplyCount operator/ (const int divisor) const;
-		SupplyCount operator/=(const int divisor);
+		SupplyCount  operator+ (const SupplyCount &other) const;
+		SupplyCount &operator+=(const SupplyCount &other);
+		SupplyCount  operator- (const SupplyCount &other) const;
+		SupplyCount &operator-=(const SupplyCount &other);
+		SupplyCount  operator* (const int factor) const;
+		SupplyCount &operator*=(const int factor);
+		SupplyCount  operator/ (const int divisor) const;
+		SupplyCount &operator/=(const int divisor);
 
 		int protoss, terran, zerg;
 	};

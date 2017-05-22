@@ -10,14 +10,14 @@ namespace Neolib {
 		ResourceCount(BWAPI::UpgradeType);
 		ResourceCount(BWAPI::TechType);
 
-		ResourceCount operator+ (const ResourceCount &other) const;
-		ResourceCount operator+=(const ResourceCount &other);
-		ResourceCount operator- (const ResourceCount &other) const;
-		ResourceCount operator-=(const ResourceCount &other);
-		ResourceCount operator* (const int factor) const;
-		ResourceCount operator*=(const int factor);
-		ResourceCount operator/ (const int divisor) const;
-		ResourceCount operator/=(const int divisor);
+		ResourceCount  operator+ (const ResourceCount &other) const;
+		ResourceCount &operator+=(const ResourceCount &other);
+		ResourceCount  operator- (const ResourceCount &other) const;
+		ResourceCount &operator-=(const ResourceCount &other);
+		ResourceCount  operator* (const int factor) const;
+		ResourceCount &operator*=(const int factor);
+		ResourceCount  operator/ (const int divisor) const;
+		ResourceCount &operator/=(const int divisor);
 
 		int minerals, gas;
 	};
