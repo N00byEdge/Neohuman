@@ -4,6 +4,8 @@
 #include "BuildingQueue.h"
 #include "Util.h"
 
+Neolib::SupplyManager supplyManager = Neolib::SupplyManager();
+
 namespace Neolib {
 
 	SupplyCount::SupplyCount() : protoss(0), terran(0), zerg(0) {

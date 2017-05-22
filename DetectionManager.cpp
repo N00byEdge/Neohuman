@@ -3,6 +3,8 @@
 #include "Neohuman.h"
 #include "UnitManager.h"
 
+Neolib::DetectionManager detectionManager = Neolib::DetectionManager();
+
 namespace Neolib {
 
 	bool DetectionManager::requestDetection(BWAPI::Position p) {

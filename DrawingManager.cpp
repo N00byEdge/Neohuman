@@ -32,6 +32,8 @@ const std::vector <int> columnYStart = { 0, 0, 0, 200, 16 };
 #define TERRANTEXT		BWAPI::Text::Green
 #define ZERGTEXT		BWAPI::Text::Red
 
+Neolib::DrawingManager drawingManager = Neolib::DrawingManager();
+
 namespace Neolib {
 
 	DrawingManager::DrawingManager(const DrawingManager &other) : enableTopInfo(other.enableTopInfo), enableResourceOverlay(other.enableResourceOverlay), enableBWEMOverlay(other.enableBWEMOverlay),

@@ -4,6 +4,8 @@
 
 #include "BuildingQueue.h"
 
+Neolib::ResourceManager resourceManager = Neolib::ResourceManager();
+
 namespace Neolib {
 
 	ResourceCount::ResourceCount() : minerals(0), gas(0) {

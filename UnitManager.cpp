@@ -4,6 +4,8 @@
 
 std::set <BWAPI::Unit> emptyUnitset;
 
+Neolib::UnitManager unitManager = Neolib::UnitManager();
+
 namespace Neolib{
 
 	const std::map <BWAPI::Unit, std::pair<BWAPI::Position, BWAPI::UnitType>> &UnitManager::getKnownEnemies() const {

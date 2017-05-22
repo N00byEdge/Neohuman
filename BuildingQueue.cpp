@@ -1,6 +1,8 @@
 #include "BuildingQueue.h"
 #include "BWEM/bwem.h"
 
+Neolib::BuildingQueue buildingQueue = Neolib::BuildingQueue();
+
 namespace Neolib {
 
 	void BuildingQueue::update() {

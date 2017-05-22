@@ -21,18 +21,7 @@ using namespace BWEM::utils;
 
 using namespace Neolib;
 
-Neolib::DrawingManager defaultDrawingSettings = DrawingManager();
-
-Neohuman neoInstance                      = Neohuman();
-BWEM::Map &BWEMMap                        = BWEM::Map::Instance();
-
-Neolib::BuildingQueue buildingQueue       = Neolib::BuildingQueue();
-Neolib::DetectionManager detectionManager = Neolib::DetectionManager();
-Neolib::ResourceManager resourceManager   = Neolib::ResourceManager();
-Neolib::SupplyManager supplyManager       = Neolib::SupplyManager();
-Neolib::UnitManager unitManager           = Neolib::UnitManager();
-Neolib::DrawingManager drawingManager     = defaultDrawingSettings;
-Neolib::MapManager mapManager             = Neolib::MapManager();
+Neohuman neoInstance = Neohuman();
 
 void Neohuman::onStart() {
 	Timer timer_onStart;

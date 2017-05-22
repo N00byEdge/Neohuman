@@ -6,6 +6,9 @@
 
 BWAPI::TilePosition startPos;
 
+Neolib::MapManager mapManager = Neolib::MapManager();
+BWEM::Map &BWEMMap = BWEM::Map::Instance();
+
 struct sortLocations {
 	static bool fromStartPos(const BWEM::Base *lhs, const BWEM::Base *rhs) {
 		return rhs->Location().getApproxDistance(startPos) < rhs->Location().getApproxDistance(startPos);
