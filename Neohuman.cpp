@@ -62,7 +62,7 @@ void Neohuman::onEnd(bool didWin) {
 	resourceManager = Neolib::ResourceManager();
 	supplyManager = Neolib::SupplyManager();
 	unitManager = Neolib::UnitManager();
-	drawingManager = defaultDrawingSettings;
+	drawingManager = Neolib::DrawingManager();
 	mapManager = Neolib::MapManager();
 
 }
