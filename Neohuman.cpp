@@ -43,6 +43,7 @@ void Neohuman::onStart() {
 
 	mapManager.init();
 
+	timer_onStart.stop();
 	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
 }
 
