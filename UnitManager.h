@@ -4,16 +4,42 @@
 
 namespace Neolib {
 
+	struct EnemyData {
+		EnemyData();
+		EnemyData(BWAPI::Unit);
+
+		BWAPI::Unit u;
+		mutable BWAPI::UnitType lastType;
+		mutable BWAPI::Position lastPosition;
+		mutable int lastShiedls;
+		mutable int lastHealth;
+		mutable int frameLastSeen;
+		mutable bool positionInvalidated;
+
+		int expectedHealth() const;
+		int expectedShields() const;
+
+		bool operator< (const EnemyData &other) const;
+		bool operator==(const EnemyData &other) const;
+
+		struct hash {
+			std::size_t operator()(const EnemyData &ed) const {
+				return std::hash <BWAPI::Unit>()(ed.u);
+			}
+		};
+	};
+
 	class UnitManager {
 		public:
-			const std::map <BWAPI::Unit, std::pair<BWAPI::Position, BWAPI::UnitType>> &getKnownEnemies() const;
-			const std::map <BWAPI::Unit, BWAPI::UnitType> &getUnitsInTypeSet() const;
+			const std::map <BWAPI::UnitType, std::unordered_set <EnemyData, EnemyData::hash>>   &getEnemyUnitsByType() const;
+			const std::map <BWAPI::UnitType, std::unordered_set <BWAPI::Unit>> &getFriendlyUnitsByType() const;
 
-			const std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> &getEnemyUnitsByType() const;
-			const std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> &getFriendlyUnitsByType() const;
+			const std::unordered_set <EnemyData, EnemyData::hash> &getNonVisibleEnemies() const;
+			const std::unordered_set <EnemyData, EnemyData::hash> &getVisibleEnemies() const;
+			const std::unordered_set <EnemyData, EnemyData::hash> &getInvalidatedEnemies() const;
 
-			const std::set <BWAPI::Unit> &getEnemyUnitsByType   (BWAPI::UnitType ut) const;
-			const std::set <BWAPI::Unit> &getFriendlyUnitsByType(BWAPI::UnitType ut) const;
+			const std::unordered_set <EnemyData, EnemyData::hash>   &getEnemyUnitsByType(BWAPI::UnitType ut) const;
+			const std::unordered_set <BWAPI::Unit> &getFriendlyUnitsByType(BWAPI::UnitType ut) const;
 
 			BWAPI::Unit getClosestBuilder(BWAPI::Unit u) const;
 			BWAPI::Unit getAnyBuilder() const;
@@ -40,11 +66,18 @@ namespace Neolib {
 			void onUnitComplete(BWAPI::Unit unit);
 
 		private:
-			std::map <BWAPI::Unit, std::pair<BWAPI::Position, BWAPI::UnitType>> knownEnemies;
-			std::map <BWAPI::Unit, BWAPI::UnitType> unitsInTypeSet;
+			// All enemies in here
+			std::unordered_set <EnemyData, EnemyData::hash> knownEnemies;
 
-			std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> enemyUnitsByType;
-			std::map <BWAPI::UnitType, std::set <BWAPI::Unit>> friendlyUnitsByType;
+			// All enemies in one of these
+			std::unordered_set <EnemyData, EnemyData::hash> nonVisibleEnemies;
+			std::unordered_set <EnemyData, EnemyData::hash> visibleEnemies;
+			std::unordered_set <EnemyData, EnemyData::hash> invalidatedEnemies;
+
+			std::map <BWAPI::UnitType, std::unordered_set <EnemyData, EnemyData::hash>> enemyUnitsByType;
+
+			std::map <BWAPI::Unit, BWAPI::UnitType> friendlyUnits;
+			std::map <BWAPI::UnitType, std::unordered_set <BWAPI::Unit>> friendlyUnitsByType;
 	};
 
 }

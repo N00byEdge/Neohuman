@@ -142,9 +142,21 @@ namespace Neolib {
 
 		if (enableEnemyOverlay) {
 
-			for (auto &u : unitManager.getKnownEnemies()) {
-				BWAPI::Broodwar->drawBoxMap(u.second.first - BWAPI::Position(u.second.second.tileSize()) / 2, u.second.first + BWAPI::Position(u.second.second.tileSize()) / 2, ENEMYCOLOR);
-				BWAPI::Broodwar->drawTextMap(u.second.first + BWAPI::Position(u.second.second.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.second.second.c_str()));
+			//BWAPI::Broodwar->sendText("Sizes: %u, %u", unitManager.getKnownEnemies().size(), unitManager.getEnemyUnitsByType().size());
+
+			for (auto &u : unitManager.getVisibleEnemies()) {
+				BWAPI::Broodwar->drawBoxMap(u.lastPosition - BWAPI::Position(u.lastType.tileSize()) / 2, u.lastPosition + BWAPI::Position(u.lastType.tileSize()) / 2, ENEMYCOLOR);
+				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
+			}
+
+			for (auto &u : unitManager.getNonVisibleEnemies()) {
+				BWAPI::Broodwar->drawBoxMap(u.lastPosition - BWAPI::Position(u.lastType.tileSize()) / 2, u.lastPosition + BWAPI::Position(u.lastType.tileSize()) / 2, ENEMYCOLOR);
+				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
+			}
+
+			for (auto &u : unitManager.getInvalidatedEnemies()) {
+				BWAPI::Broodwar->drawBoxMap(u.lastPosition - BWAPI::Position(u.lastType.tileSize()) / 2, u.lastPosition + BWAPI::Position(u.lastType.tileSize()) / 2, INVALIDENEMYCLR);
+				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
 			}
 
 			for (auto &ut : unitManager.getEnemyUnitsByType())

@@ -24,6 +24,7 @@ using namespace Neolib;
 Neohuman neoInstance = Neohuman();
 
 void Neohuman::onStart() {
+
 	Timer timer_onStart;
 	timer_onStart.reset();
 
@@ -101,7 +102,7 @@ void Neohuman::onFrame() {
 			}
 			break;
 		case 1:
-			if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countUnit(UnitTypes::Terran_Barracks, IsOwned) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 500 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot)) {
+			if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countUnit(UnitTypes::Terran_Barracks, IsOwned) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 550 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot)) {
 				Unit builder = unitManager.getAnyBuilder();
 				if (builder != nullptr)
 					buildingQueue.doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
@@ -255,57 +256,52 @@ void Neohuman::onFrame() {
 				}
 			}
 		}
-		else {
-			friendlyCount = u->getUnitsInRadius(2000, IsOwned && !IsBuilding && !IsWorker).size();
-		}
 
 		if (u->getGroundWeaponCooldown())
 			continue;
 
-		BWAPI::Unit enemyUnit = unitManager.getClosestEnemy(u, IsVisible && !IsDetected);
-		if (enemyUnit && enemyUnit->isVisible() && !enemyUnit->isDetected() && u->getDistance(enemyUnit) <= BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle))
-			detectionManager.requestDetection(enemyUnit->getPosition());
+		BWAPI::Unit enemyUnitDetect = unitManager.getClosestEnemy(u, IsVisible && !IsDetected);
+		if (enemyUnitDetect && enemyUnitDetect->isVisible() && !enemyUnitDetect->isDetected() && u->getDistance(enemyUnitDetect) <= BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle))
+			detectionManager.requestDetection(enemyUnitDetect->getPosition());
 		
-		enemyUnit = unitManager.getClosestEnemy(u, true);
-		if (enemyUnit && enemyUnit->isVisible() && enemyUnit->isDetected()) {
-			if (u->getDistance(enemyUnit) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle)) {
-				if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
+		BWAPI::Unit enemyUnitAttacker = unitManager.getClosestEnemy(u, true);
+		if (enemyUnitAttacker && enemyUnitAttacker->isVisible()) {
+			if (u->getDistance(enemyUnitAttacker) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) && !u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
 					u->useTech(TechTypes::Stim_Packs);
-				u->attack(enemyUnit);
-				continue;
-			}
-			else {
-				u->move(unitManager.lastKnownEnemyPosition(enemyUnit));
+			u->attack(enemyUnitAttacker);
+			continue;
+		}
+		else if (enemyUnitAttacker) {
+			u->move(unitManager.lastKnownEnemyPosition(enemyUnitAttacker));
+			continue;
+		}
+
+		BWAPI::Unit enemyUnitPassive = unitManager.getClosestEnemy(u, false);
+		if (enemyUnitPassive && enemyUnitPassive->isVisible()) {
+			if (u->getDistance(enemyUnitPassive) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle)) {
+				u->attack(enemyUnitPassive);
 				continue;
 			}
 		}
-
-		enemyUnit = unitManager.getClosestEnemy(u, false);
-		if (enemyUnit && enemyUnit->isVisible() && enemyUnit->isDetected()) {
-			if (u->getDistance(enemyUnit) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle)) {
-				u->attack(enemyUnit);
-				continue;
-			}
-			else {
-				u->move(unitManager.lastKnownEnemyPosition(enemyUnit));
-				continue;
-			}
+		else if (enemyUnitPassive) {
+			u->move(unitManager.lastKnownEnemyPosition(enemyUnitPassive));
+			continue;
 		}
 
-		auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, WORKERAGGRORADIUS);
-		if (closeSpecialBuilding)
-			u->attack(closeSpecialBuilding);
+
+		auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine, 800);
+		if (closestMarine) {
+			auto walk = u->getPosition() - closestMarine->getPosition();
+			u->move(u->getPosition() + walk);
+			continue;
+		}
 		else {
-			auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine);
-			if (closestMarine && friendlyCount >= 5) {
-				auto walk = u->getPosition() - closestMarine->getPosition();
-				u->move(u->getPosition() + walk);
-			}
-			else {
-				if (mapManager.getUnexploredBases().size())
-					u->move((Position)(*mapManager.getUnexploredBases().begin())->Location());
+			if (mapManager.getUnexploredBases().size()) {
+				u->move((Position)(*mapManager.getUnexploredBases().begin())->Location());
+				continue;
 			}
 		}
+		u->stop();
 	}
 	timer_marinelogic.stop();
 
