@@ -10,7 +10,7 @@ Neolib::MapManager mapManager;
 
 struct sortLocations {
 	static bool fromStartPos(const BWEM::Base *lhs, const BWEM::Base *rhs) {
-		return rhs->Location().getApproxDistance(startPos) < rhs->Location().getApproxDistance(startPos);
+		return lhs->Location().getApproxDistance(startPos) < rhs->Location().getApproxDistance(startPos);
 	}
 };
 
