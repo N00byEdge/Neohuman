@@ -102,7 +102,7 @@ void Neohuman::onFrame() {
 			}
 			break;
 		case 1:
-			if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countUnit(UnitTypes::Terran_Barracks, IsOwned) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 550 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot)) {
+			if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countUnit(UnitTypes::Terran_Barracks, IsOwned) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 550 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot) && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks) < 20) {
 				Unit builder = unitManager.getAnyBuilder();
 				if (builder != nullptr)
 					buildingQueue.doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
