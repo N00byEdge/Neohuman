@@ -1,6 +1,7 @@
 #include "MapManager.h"
 
 #include "UnitManager.h"
+#include "DetectionManager.h"
 
 //#include <algorithm>
 
@@ -50,6 +51,8 @@ namespace Neolib {
 
 	const BWAPI::TilePosition MapManager::getNextBasePosition() const {
 		for (auto &b : allBases) {
+			if (!BWAPI::Broodwar->isExplored(b->Location()))
+				detectionManager.requestDetection((BWAPI::Position)b->Location());
 			if (BWAPI::Broodwar->canBuildHere(b->Location(), BWAPI::UnitTypes::Terran_Command_Center)) {
 				for (auto &eu : unitManager.getKnownEnemies())
 					if (eu.second.first.getApproxDistance(BWAPI::Position(b->Location())) < 1000)
