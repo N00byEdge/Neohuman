@@ -4,7 +4,7 @@
 #include "BuildingQueue.h"
 #include "Util.h"
 
-Neolib::SupplyManager supplyManager = Neolib::SupplyManager();
+Neolib::SupplyManager supplyManager;
 
 namespace Neolib {
 

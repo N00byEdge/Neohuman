@@ -23,5 +23,4 @@ namespace Neolib {
 
 }
 
-extern BWEM::Map &BWEMMap;
 extern Neolib::MapManager mapManager;

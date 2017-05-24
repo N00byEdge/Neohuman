@@ -27,12 +27,13 @@ const std::vector <int> columnYStart = { 0, 0, 0, 200, 16 };
 #define PLACINGCOLOR	BWAPI::Colors::Cyan
 
 #define ENEMYCOLOR		BWAPI::Colors::Red
+#define INVALIDENEMYCLR BWAPI::Colors::Grey
 
 #define PROTOSSTEXT		BWAPI::Text::Teal
 #define TERRANTEXT		BWAPI::Text::Green
 #define ZERGTEXT		BWAPI::Text::Red
 
-Neolib::DrawingManager drawingManager = Neolib::DrawingManager();
+Neolib::DrawingManager drawingManager;
 
 namespace Neolib {
 
@@ -83,8 +84,8 @@ namespace Neolib {
 
 		if (enableBWEMOverlay) {
 
-			BWEM::utils::gridMapExample(BWEMMap);
-			BWEM::utils::drawMap(BWEMMap);
+			BWEM::utils::gridMapExample(BWEM::Map::Instance());
+			BWEM::utils::drawMap(BWEM::Map::Instance());
 
 		}
 

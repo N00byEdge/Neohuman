@@ -4,7 +4,7 @@
 
 #include "BuildingQueue.h"
 
-Neolib::ResourceManager resourceManager = Neolib::ResourceManager();
+Neolib::ResourceManager resourceManager;
 
 namespace Neolib {
 

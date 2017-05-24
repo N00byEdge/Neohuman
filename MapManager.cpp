@@ -6,8 +6,7 @@
 
 BWAPI::TilePosition startPos;
 
-Neolib::MapManager mapManager = Neolib::MapManager();
-BWEM::Map &BWEMMap = BWEM::Map::Instance();
+Neolib::MapManager mapManager;
 
 struct sortLocations {
 	static bool fromStartPos(const BWEM::Base *lhs, const BWEM::Base *rhs) {
@@ -18,10 +17,10 @@ struct sortLocations {
 namespace Neolib {
 
 	void MapManager::init() {
-		BWEMMap.Initialize();
-		BWEMMap.EnableAutomaticPathAnalysis();
+		BWEM::Map::Instance().Initialize();
+		BWEM::Map::Instance().EnableAutomaticPathAnalysis();
 
-		for (auto &a : BWEMMap.Areas())
+		for (auto &a : BWEM::Map::Instance().Areas())
 			for (auto &b : a.Bases())
 				allBases.push_back(&b);
 

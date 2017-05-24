@@ -4,7 +4,7 @@
 
 std::set <BWAPI::Unit> emptyUnitset;
 
-Neolib::UnitManager unitManager = Neolib::UnitManager();
+Neolib::UnitManager unitManager;
 
 namespace Neolib{
 

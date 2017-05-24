@@ -27,6 +27,13 @@ void Neohuman::onStart() {
 	Timer timer_onStart;
 	timer_onStart.reset();
 
+	buildingQueue = Neolib::BuildingQueue();
+	detectionManager = Neolib::DetectionManager();
+	resourceManager = Neolib::ResourceManager();
+	supplyManager = Neolib::SupplyManager();
+	drawingManager = Neolib::DrawingManager();
+	mapManager = Neolib::MapManager();
+
 	mainRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
 
 	Broodwar->enableFlag(Flag::UserInput);
@@ -54,17 +61,6 @@ void Neohuman::onEnd(bool didWin) {
 	} else {
 
 	}
-
-	neoInstance = Neohuman();
-	BWEMMap = BWEM::Map::Instance();
-
-	buildingQueue = Neolib::BuildingQueue();
-	detectionManager = Neolib::DetectionManager();
-	resourceManager = Neolib::ResourceManager();
-	supplyManager = Neolib::SupplyManager();
-	unitManager = Neolib::UnitManager();
-	drawingManager = Neolib::DrawingManager();
-	mapManager = Neolib::MapManager();
 
 }
 

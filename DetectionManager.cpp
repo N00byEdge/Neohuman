@@ -3,7 +3,7 @@
 #include "Neohuman.h"
 #include "UnitManager.h"
 
-Neolib::DetectionManager detectionManager = Neolib::DetectionManager();
+Neolib::DetectionManager detectionManager;
 
 namespace Neolib {
 
