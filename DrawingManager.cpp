@@ -21,7 +21,7 @@ const std::vector <int> columnYStart = { 0, 0, 0, 200, 16 };
 #define PLACINGTEXT		(char)BWAPI::Text::Cyan
 
 #define SATURATIONCOLOR BWAPI::Colors::Blue
-#define WORKERCOLOR		BWAPI::Colors::White
+#define WORKERTXTCOLOR	BWAPI::Text::White
 
 #define BUILDINGCOLOR	BWAPI::Colors::Green
 #define PLACINGCOLOR	BWAPI::Colors::Cyan
@@ -107,7 +107,7 @@ namespace Neolib {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsGatheringMinerals));
 				auto refineries = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::GetType == BWAPI::UnitTypes::Protoss_Assimilator));
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsMineralField));
-				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERCOLOR, workers.size(), 2 * mineralFields.size());
+				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERTXTCOLOR, workers.size(), 2 * mineralFields.size());
 			}
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Command_Center)) {
@@ -115,7 +115,7 @@ namespace Neolib {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsGatheringMinerals));
 				auto refineries = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::GetType == BWAPI::UnitTypes::Terran_Refinery));
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsMineralField));
-				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERCOLOR, workers.size(), 2 * mineralFields.size());
+				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERTXTCOLOR, workers.size(), 2 * mineralFields.size());
 			}
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Zerg_Hatchery)) {
@@ -123,7 +123,7 @@ namespace Neolib {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsGatheringMinerals));
 				auto refineries = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::GetType == BWAPI::UnitTypes::Zerg_Extractor));
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsMineralField));
-				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERCOLOR, workers.size(), 2 * mineralFields.size());
+				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERTXTCOLOR, workers.size(), 2 * mineralFields.size());
 			}
 
 		}
