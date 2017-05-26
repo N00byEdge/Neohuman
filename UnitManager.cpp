@@ -419,7 +419,21 @@ namespace Neolib{
 	}
 
 	void UnitManager::onUnitRenegade(BWAPI::Unit unit) {
-		onUnitDestroy(unit);
+		auto friendlyIt = friendlyUnits.find(unit);
+		if (friendlyIt != friendlyUnits.end())  {
+			friendlyUnits.erase(unit);
+			friendlyUnitsByType[unit->getType()].erase(unit);
+		}
+
+		auto enemyIt = knownEnemies.find(unit);
+		if (enemyIt != knownEnemies.end()) {
+			knownEnemies.erase(unit);
+			enemyUnitsByType[unit->getType()].erase(unit);
+			visibleEnemies.erase(unit);
+			nonVisibleEnemies.erase(unit);
+			invalidatedEnemies.erase(unit);
+		}
+
 		onUnitDiscover(unit);
 	}
 
