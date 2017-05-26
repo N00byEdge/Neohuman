@@ -343,7 +343,7 @@ namespace Neolib{
 	}
 
 	void UnitManager::onUnitDiscover(BWAPI::Unit unit) {
-		if (unit->getPlayer() == BWAPI::Broodwar->enemy()) {
+		if (unit->getPlayer()->isEnemy(BWAPI::Broodwar->self())) {
 			auto ke = knownEnemies.find(unit);
 			EnemyData ed;
 			ed.u = unit;
@@ -401,7 +401,7 @@ namespace Neolib{
 
 	void UnitManager::onUnitDestroy(BWAPI::Unit unit) {
 
-		if (unit->getPlayer() == BWAPI::Broodwar->enemy()) {
+		if (unit->getPlayer()->isEnemy(BWAPI::Broodwar->self())) {
 			knownEnemies.erase(unit);
 			enemyUnitsByType[unit->getType()].erase(unit);
 			if (enemyUnitsByType[unit->getType()].empty())
