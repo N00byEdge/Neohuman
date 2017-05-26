@@ -419,7 +419,8 @@ namespace Neolib{
 	}
 
 	void UnitManager::onUnitRenegade(BWAPI::Unit unit) {
-
+		onUnitDestroy(unit);
+		onUnitDiscover(unit);
 	}
 
 	void UnitManager::onUnitComplete(BWAPI::Unit unit) {
