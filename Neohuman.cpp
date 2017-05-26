@@ -244,7 +244,7 @@ void Neohuman::onFrame() {
 	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Marine)) {
 		if (marineN++ % 2 == marineFrame)
 			continue;
-		auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 200);
+		auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
 		int friendlyCount;
 		if (fleeFrom) {
 			int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
@@ -288,6 +288,10 @@ void Neohuman::onFrame() {
 			continue;
 		}
 
+
+		auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, 200);
+		if (closeSpecialBuilding)
+			u->attack(closeSpecialBuilding);
 
 		auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine, 800);
 		if (closestMarine) {
