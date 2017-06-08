@@ -14,7 +14,7 @@ namespace Neolib {
 	int randint(int, int);
 
 	template <typename T>
-	T randele(std::vector <T>&);
+	T randele(const std::vector <T>&);
 
 	// Drawing text to screen helpers
 	const char *noRaceName(const char *name);

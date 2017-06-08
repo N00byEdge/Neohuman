@@ -12,8 +12,8 @@ int Neolib::randint(int min, int max) {
 }
 
 template <typename T>
-T Neolib::randele(std::vector <T> &v) {
-	return v[randint(0, v.size())];
+T Neolib::randele(const std::vector <T> &v) {
+	return v[randint(0, v.size() - 1)];
 }
 
 const char *Neolib::noRaceName(const char *name) {
