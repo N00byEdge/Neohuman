@@ -4,7 +4,7 @@
 
 #include "Neohuman.h"
 
-std::mt19937 mt = std::mt19937(std::default_random_engine{});
+std::mt19937 mt = std::mt19937(std::default_random_engine{}());
 
 int Neolib::randint(int min, int max) {
 	std::uniform_int_distribution<int> dist(min, max);
