@@ -545,18 +545,6 @@ namespace Neolib {
 			mostAttractiveBase->gasMiners[mostAttractiveGas].insert(unit);
 			workerBaseLookup[unit] = mostAttractiveBase;
 		}
-
-		if (5 == 5)
-			if (6 == 6)
-				5;
-			else if (7 == 7)
-				5;
-
-		if (5 == 5)
-			if (6 == 6)
-				5;
-		else if (7 == 7)
-			5;
 	}
 
 	const std::set <Base> &BaseManager::getAllBases() const {
