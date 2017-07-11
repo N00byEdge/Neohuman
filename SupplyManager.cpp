@@ -87,16 +87,15 @@ namespace Neolib {
 		SupplyCount wantedOverhead;
 
 		if (BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Protoss) || BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Protoss))
-			wantedOverhead.protoss = 2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Protoss) - 20) / 8, 0);
+			wantedOverhead.protoss = 2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Protoss) - 12) / 6, 0);
 
 		if (BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Terran)  || BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Terran))
-			wantedOverhead.terran =  2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Terran) - 20) / 8, 0);
+			wantedOverhead.terran =  2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Terran) - 12) / 6, 0);
 
 		if (BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Zerg)    || BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Zerg))
-			wantedOverhead.zerg =    2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Zerg) - 20) / 8, 0);
+			wantedOverhead.zerg =    2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Zerg) - 12) / 6, 0);
 
 		return wantedOverhead;
-
 	}
 
 	SupplyCount SupplyManager::wantedAdditionalSupply() {
