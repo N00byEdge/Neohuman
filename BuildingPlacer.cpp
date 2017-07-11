@@ -136,8 +136,8 @@ namespace Neolib {
 		if (!ut.isResourceDepot() && !ut.isRefinery()) {
 			--location.x;
 			--location.y;
-			++xEnd;
-			++yEnd;
+			xEnd += 2;
+			yEnd += 2;
 		}
 
 		for (; pos.x < xEnd; ++pos.x)
