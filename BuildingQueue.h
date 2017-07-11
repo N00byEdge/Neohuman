@@ -9,21 +9,33 @@
 
 namespace Neolib{
 
+	struct ConstructionProject {
+		BWAPI::TilePosition designatedLocation;
+		BWAPI::UnitType buildingType;
+
+		BWAPI::Unit builder = nullptr;
+		BWAPI::Unit buildingUnit = nullptr;
+	};
+
 	class BuildingQueue {
 		public:
-			void update();
-
-			bool doBuild(BWAPI::Unit, BWAPI::UnitType, BWAPI::TilePosition);
+			bool doBuild(BWAPI::UnitType building, BWAPI::TilePosition at = BWAPI::TilePositions::None, BWAPI::Unit u = nullptr);
 
 			ResourceCount getQueuedResources() const;
 			SupplyCount getQueuedSupply(bool countResourceDepots = false) const;
 
 			bool isWorkerBuilding(BWAPI::Unit) const;
 
-			const std::vector <std::pair <Neolib::Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> &buildingsQueued();
+			const std::list <ConstructionProject> &buildingsQueued();
+
+			void onFrame();
+			void onUnitComplete(BWAPI::Unit unit);
+			void onUnitCreate(BWAPI::Unit unit);
+			void onUnitDestroy(BWAPI::Unit unit);
+			void onUnitMorph(BWAPI::Unit unit);
 
 		private:
-			std::vector <std::pair <Neolib::Triple <int, BWAPI::UnitType, BWAPI::TilePosition>, bool>> buildingQueue;
+			std::list <ConstructionProject> buildingQueue;
 	};
 
 }

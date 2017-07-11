@@ -61,11 +61,11 @@ namespace Neolib {
 	}
 
 	int mainSupply(SupplyCount sc) {
-		if (neoInstance.mainRace == BWAPI::Races::Protoss)
+		if (neoInstance->playingRace == BWAPI::Races::Protoss)
 			return sc.protoss;
-		if (neoInstance.mainRace == BWAPI::Races::Terran)
+		if (neoInstance->playingRace == BWAPI::Races::Terran)
 			return sc.terran;
-		if (neoInstance.mainRace == BWAPI::Races::Zerg)
+		if (neoInstance->playingRace == BWAPI::Races::Zerg)
 			return sc.zerg;
 
 		return 0;

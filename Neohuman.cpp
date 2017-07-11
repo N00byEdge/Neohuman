@@ -9,6 +9,9 @@
 #include "DrawingManager.h"
 #include "ResourceManager.h"
 #include "MapManager.h"
+#include "CombatSimulator.h"
+#include "BaseManager.h"
+#include "BuildingPlacer.h"
 
 #include <iostream>
 
@@ -21,26 +24,49 @@ using namespace BWEM::utils;
 
 using namespace Neolib;
 
-Neohuman neoInstance = Neohuman();
+Neohuman* neoInstance;
 
 void Neohuman::onStart() {
-
 	Timer timer_onStart;
+
+	const std::vector <std::string> openingStrings = {
+		"fat, she has more trouble getting around than a goliath.",
+		"fat, an arbiter can't recall her.",
+		"fat, you need more than 400 lings to surround her.",
+		"fat, she takes the splash damage from tanks too.",
+		"fat, you can scout her from your own base.",
+		"fat, you need 17 dark archons to mind control her.",
+		"fat, the ultras gets in her way!.",
+		"fat, she can't fit inside a nydus canal!",
+		"fat, she can't fit in a single SC2 control group.",
+		"fat, she can be targeted by air weapons",
+		"fat, she can't burrow into this planet.",
+		"fat, this message doesn't fit in one line.",
+
+		"smelly, her medic needs a medic.",
+
+		"unhealthy, plague heals her."
+	};
+
+	Broodwar->sendText("Hey, %s, yo momma so ", Broodwar->enemy()->getName().c_str());
+	Broodwar->sendText(openingStrings[randint(0, openingStrings.size() - 1)].c_str());
 	timer_onStart.reset();
 
-	buildingQueue = Neolib::BuildingQueue();
+	/*buildingQueue = Neolib::BuildingQueue();
 	detectionManager = Neolib::DetectionManager();
 	resourceManager = Neolib::ResourceManager();
 	supplyManager = Neolib::SupplyManager();
 	drawingManager = Neolib::DrawingManager();
 	mapManager = Neolib::MapManager();
+	baseManager = Neolib::BaseManager();*/
 
-	mainRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
+	playingRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
+	wasRandom = BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Random;
 
 	Broodwar->enableFlag(Flag::UserInput);
 
 	// Uncomment the following line and the bot will know about everything through the fog of war (cheat).
-	//Broodwar->enableFlag(Flag::CompleteMapInformation);
+	// Broodwar->enableFlag(Flag::CompleteMapInformation);
 
 	Broodwar->setCommandOptimizationLevel(2);
 
@@ -50,9 +76,17 @@ void Neohuman::onStart() {
 	}
 
 	mapManager.init();
+	buildingPlacer.init();
+	combatSimulator.init();
 
 	timer_onStart.stop();
 	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
+	combatSimulator.onStart();
+
+	/*
+	Broodwar->sendText("power overwhelming");
+	Broodwar->sendText("black sheep wall");
+	//*/
 }
 
 void Neohuman::onEnd(bool didWin) {
@@ -68,246 +102,300 @@ void Neohuman::onEnd(bool didWin) {
 void Neohuman::onFrame() {
 	timer_total.reset();
 
-	timer_drawinfo.reset();
-	drawingManager.onFrame();
-	timer_drawinfo.stop();
-
-	// Return if the game is a replay or is paused
-	if (Broodwar->isPaused() || Broodwar->isReplay())
-		return;
-
 	// Prevent spamming by only running our onFrame once every number of latency frames.
 	// Latency frames are the number of frames before commands are processed.
-	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames())
-		return;
+	//if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames())
+	//	return;
 
-	unitManager.onFrame();
+	static int lastFramePaused = -5;
+	static const std::vector <std::string> pauseStrings = {
+		"No, " + Broodwar->enemy()->getName() + ", I cannot let you do that.",
+		"No pets, no Pause.",
+		"Your JIT compiler can't keep up? Too bad."
+	};
 
-	timer_managequeue.reset();
-	buildingQueue.update();
-	timer_managequeue.stop();
-
-	timer_buildbuildings.reset();
-
-	static int buildingFrame = 0;
-
-	switch (buildingFrame++) {
-		case 8:
-			buildingFrame = 0;
-		case 0:
-			if (supplyManager.wantedAdditionalSupply().terran > 0 && resourceManager.canAfford(UnitTypes::Terran_Supply_Depot) && supplyManager.usedSupply().terran + buildingQueue.getQueuedSupply().terran < 400) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Supply_Depot, Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, builder->getTilePosition()));
-			}
-			break;
-		case 1:
-			if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countUnit(UnitTypes::Terran_Barracks, IsOwned) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 550 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot) && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks) < 20) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Barracks, Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, builder->getTilePosition()));
-			}
-			break;
-		case 2:
-			if (resourceManager.canAfford(UnitTypes::Terran_Academy) && unitManager.countUnit(UnitTypes::Terran_Barracks, IsOwned) >= 2 && !unitManager.countUnit(UnitTypes::Terran_Academy, IsOwned)) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Academy, Broodwar->getBuildLocation(UnitTypes::Terran_Academy, builder->getTilePosition()));
-			}
-			break;
-		case 3:
-			if (resourceManager.canAfford(UnitTypes::Terran_Factory) && !unitManager.countUnit(UnitTypes::Terran_Factory, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 70) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Factory, Broodwar->getBuildLocation(UnitTypes::Terran_Factory, builder->getTilePosition()));
-			}
-			break;
-		case 4:
-			if (resourceManager.canAfford(UnitTypes::Terran_Starport) && !unitManager.countUnit(UnitTypes::Terran_Starport, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 70) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Starport, Broodwar->getBuildLocation(UnitTypes::Terran_Starport, builder->getTilePosition()));
-			}
-			break;
-		case 5:
-			if (resourceManager.canAfford(UnitTypes::Terran_Science_Facility) && !unitManager.countUnit(UnitTypes::Terran_Science_Facility, IsOwned) && Broodwar->self()->supplyUsed() / 2 >= 80) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Science_Facility, Broodwar->getBuildLocation(UnitTypes::Terran_Science_Facility, builder->getTilePosition()));
-			}
-			break;
-		case 6:
-			if (resourceManager.canAfford(UnitTypes::Terran_Engineering_Bay) && unitManager.countUnit(UnitTypes::Terran_Engineering_Bay) < 2 && Broodwar->self()->supplyUsed() / 2 >= 40) {
-				Unit builder = unitManager.getAnyBuilder();
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Engineering_Bay, Broodwar->getBuildLocation(UnitTypes::Terran_Engineering_Bay, builder->getTilePosition()));
-			}
-			break;
-		case 7:
-			if (resourceManager.canAfford(UnitTypes::Terran_Command_Center)){
-				Unit builder = unitManager.getAnyBuilder();
-				TilePosition pos = mapManager.getNextBasePosition();
-				if (builder != nullptr && pos.isValid())
-					buildingQueue.doBuild(builder, UnitTypes::Terran_Command_Center, pos);
-			}
-			break;
-	}
-
-	timer_buildbuildings.stop();
-
-	mapManager.onFrame();
-
-	timer_unitlogic.reset();
-
-	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_SCV)) {
-		auto enemyUnit = unitManager.getClosestEnemy(u, true);
-		if (enemyUnit && u->getDistance(enemyUnit) <= WORKERAGGRORADIUS)
-			u->attack(enemyUnit);
-
-		// if our worker is idle
-		if (u->isIdle()) {
-			// Order workers carrying a resource to return them to the center,
-			// otherwise find a mineral patch to harvest.
-			if (u->isCarryingGas() || u->isCarryingMinerals())
-				u->returnCargo();
-
-			else if (!u->getPowerUp() && Broodwar->getMinerals().size()) {
-				// Probably need to set up some better logic for this
-				auto preferredMiningLocation = *(Broodwar->getMinerals().begin());
-				for (auto &m : Broodwar->getMinerals())
-					if (preferredMiningLocation->getPosition().getApproxDistance(u->getPosition()) > m->getPosition().getApproxDistance(u->getPosition()))
-						preferredMiningLocation = m;
-
-				u->gather(preferredMiningLocation);
-			}
+	static auto pauseIt = pauseStrings.begin();
+	if (Broodwar->isPaused()) {
+		if (pauseIt != pauseStrings.end() && lastFramePaused < Broodwar->getFrameCount()) {
+			lastFramePaused = Broodwar->getFrameCount();
+			Broodwar->sendText(pauseIt->c_str());
+			++pauseIt;
 		}
+		Broodwar->resumeGame();
 	}
 
-	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Command_Center)) {
-		if (u->isConstructing())
-			continue;
+	if (!(Broodwar->isPaused() || Broodwar->isReplay() || Broodwar->getFrameCount() % Broodwar->getLatencyFrames())) {
+		unitManager.onFrame();
 
-		auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
-		if (nearbyGeysers.size() && Broodwar->self()->supplyUsed() / 2 >= 13){
-			auto buildingType = UnitTypes::Terran_Refinery;
-			for (Unit geyser : nearbyGeysers) {
-				Unit builder = unitManager.getClosestBuilder(geyser);
-				if (builder != nullptr)
-					buildingQueue.doBuild(builder, buildingType, geyser->getTilePosition());
+		timer_managequeue.reset();
+		buildingQueue.onFrame();
+		timer_managequeue.stop();
+
+		timer_buildbuildings.reset();
+		
+		if (BWAPI::Broodwar->getFrameCount() % 16 == 0) {
+			static int buildingFrame = 0;
+
+			switch (buildingFrame++) {
+			case 8:
+				buildingFrame = 0;
+			case 0:
+				if (supplyManager.wantedAdditionalSupply().terran > 0 && resourceManager.canAfford(UnitTypes::Terran_Supply_Depot) && supplyManager.usedSupply().terran + buildingQueue.getQueuedSupply().terran < 400)
+					buildingQueue.doBuild(UnitTypes::Terran_Supply_Depot);
+				break;
+
+			case 1:
+				if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks) < 20 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot, false, true) && (unitManager.countFriendly(UnitTypes::Terran_Barracks) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 550))
+					buildingQueue.doBuild(UnitTypes::Terran_Barracks);
+				break;
+
+			case 2:
+				if (resourceManager.canAfford(UnitTypes::Terran_Academy) && unitManager.countFriendly(UnitTypes::Terran_Barracks) >= 2 && !unitManager.countFriendly(UnitTypes::Terran_Academy))
+					buildingQueue.doBuild(UnitTypes::Terran_Academy);
+				break;
+
+			case 3:
+				if (resourceManager.canAfford(UnitTypes::Terran_Factory) && !unitManager.countFriendly(UnitTypes::Terran_Factory) && supplyManager.usedSupply().terran / 2 >= 70)
+					buildingQueue.doBuild(UnitTypes::Terran_Factory);
+				break;
+
+			case 4:
+				if (resourceManager.canAfford(UnitTypes::Terran_Starport) && !unitManager.countFriendly(UnitTypes::Terran_Starport) && supplyManager.usedSupply().terran / 2 >= 70)
+					buildingQueue.doBuild(UnitTypes::Terran_Starport);
+				break;
+
+			case 5:
+				if (resourceManager.canAfford(UnitTypes::Terran_Science_Facility) && !unitManager.countFriendly(UnitTypes::Terran_Science_Facility) && supplyManager.usedSupply().terran / 2 >= 80)
+					buildingQueue.doBuild(UnitTypes::Terran_Science_Facility);
+				break;
+
+			case 6:
+				if (resourceManager.canAfford(UnitTypes::Terran_Engineering_Bay) && unitManager.countFriendly(UnitTypes::Terran_Engineering_Bay) < 1 + unitManager.countFriendly(UnitTypes::Terran_Science_Facility) && Broodwar->self()->supplyUsed() / 2 >= 70)
+					buildingQueue.doBuild(UnitTypes::Terran_Engineering_Bay);
+				break;
+
+			case 7:
+				if (resourceManager.canAfford(UnitTypes::Terran_Command_Center)) {
+					TilePosition pos = mapManager.getNextBasePosition();
+					if (pos.isValid())
+						buildingQueue.doBuild(UnitTypes::Terran_Command_Center, pos);
+				}
+				break;
 			}
 		}
 
-		if (u->isIdle()) {
-			auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
-			if (unitManager.countUnit(UnitTypes::Terran_SCV, IsOwned) >= 70)
-				continue;
-			auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
-			if (workers.size() < mineralFields.size() * 2 && resourceManager.canAfford(UnitTypes::Terran_SCV))
-				u->train(UnitTypes::Terran_SCV);
-		}
-		if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station))
-			u->buildAddon(UnitTypes::Terran_Comsat_Station);
-	}
+		if (BWAPI::Broodwar->getFrameCount() % 8 == 0) {
+			unsigned count = 0;
+			for (auto &u : unitManager.getFriendlyUnitsByType()) {
+				if (u.first.isWorker()) {
+					for (auto &w : u.second) {
+						bool hasBase = false;
+						for (auto &b : baseManager.getAllBases()) {
+							for (auto &mp : b.mineralMiners)
+								if (mp.second.find(w) != mp.second.end())
+									hasBase = true;
+							for (auto &gg : b.gasMiners)
+								if (gg.second.find(w) != gg.second.end())
+									hasBase = true;
+						}
 
-	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Barracks))
-		if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Marine))
-			u->train(UnitTypes::Terran_Marine);
-
-	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Academy)) {
-		if (u->isIdle()) {
-			if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0)
-				u->upgrade(UpgradeTypes::U_238_Shells);
-
-			else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
-				u->research(TechTypes::Stim_Packs);
-		}
-	}
-
-	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Engineering_Bay)) {
-		if (u->isIdle())
-			u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
-
-		if (u->isIdle())
-			u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
-	}
-
-	timer_unitlogic.stop();
-
-	timer_marinelogic.reset();
-
-	static int marineFrame = 0;
-	if (marineFrame == 2)
-		marineFrame = 0;
-	else ++marineFrame;
-
-	int marineN = 0;
-	for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Marine)) {
-		if (marineN++ % 2 == marineFrame)
-			continue;
-		auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
-		int friendlyCount;
-		if (fleeFrom) {
-			int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
-			friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
-			if (enemyCount + 3 > friendlyCount) {
-				if (fleeFrom != nullptr) {
-					u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
-					continue;
+						if (!hasBase && !w->isConstructing())
+							baseManager.giveBackUnit(w);
+					}
 				}
 			}
 		}
 
-		if (u->getGroundWeaponCooldown())
-			continue;
+		timer_buildbuildings.stop();
 
-		BWAPI::Unit enemyUnitDetect = unitManager.getClosestEnemy(u, IsVisible && !IsDetected);
-		if (enemyUnitDetect && enemyUnitDetect->isVisible() && !enemyUnitDetect->isDetected() && u->getDistance(enemyUnitDetect) <= BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle))
-			detectionManager.requestDetection(enemyUnitDetect->getPosition());
-		
-		BWAPI::Unit enemyUnitAttacker = unitManager.getClosestEnemy(u, true);
-		if (enemyUnitAttacker && enemyUnitAttacker->isVisible()) {
-			if (u->getDistance(enemyUnitAttacker) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) && !u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
-					u->useTech(TechTypes::Stim_Packs);
-			u->attack(enemyUnitAttacker);
-			continue;
-		}
-		else if (enemyUnitAttacker) {
-			u->move(unitManager.lastKnownEnemyPosition(enemyUnitAttacker));
-			continue;
-		}
+		mapManager.onFrame();
 
-		BWAPI::Unit enemyUnitPassive = unitManager.getClosestEnemy(u, false);
-		if (enemyUnitPassive && enemyUnitPassive->isVisible()) {
-			if (u->getDistance(enemyUnitPassive) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle)) {
-				u->attack(enemyUnitPassive);
+		timer_unitlogic.reset();
+
+		/*for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_SCV)) {
+			auto enemyUnit = unitManager.getClosestVisibleEnemy(u, true);
+			if (enemyUnit.u && u->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
+				u->attack(enemyUnit.u);
+
+			// if our worker is idle
+			if (u->isIdle()) {
+				// Order workers carrying a resource to return them to the center,
+				// otherwise find a mineral patch to harvest.
+				if (u->isCarryingGas() || u->isCarryingMinerals())
+					u->returnCargo();
+
+				else if (!u->getPowerUp() && Broodwar->getMinerals().size()) {
+					// Probably need to set up some better logic for this
+					auto preferredMiningLocation = *(Broodwar->getMinerals().begin());
+					for (auto &m : Broodwar->getMinerals())
+						if (preferredMiningLocation->getPosition().getApproxDistance(u->getPosition()) > m->getPosition().getApproxDistance(u->getPosition()))
+							preferredMiningLocation = m;
+
+					u->gather(preferredMiningLocation);
+				}
+			}
+		}*/
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Command_Center)) {
+			if (u->isConstructing())
 				continue;
+
+			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
+			if (nearbyGeysers.size() && Broodwar->self()->supplyUsed() / 2 >= 13){
+				auto buildingType = UnitTypes::Terran_Refinery;
+				for (Unit geyser : nearbyGeysers)
+					buildingQueue.doBuild(UnitTypes::Terran_Refinery, geyser->getTilePosition());
+			}
+
+			if (u->isIdle()) {
+				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
+				if (unitManager.countUnit(UnitTypes::Terran_SCV, IsOwned) >= 90)
+					continue;
+				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
+				if (workers.size() < mineralFields.size() * 2 && resourceManager.canAfford(UnitTypes::Terran_SCV))
+					u->train(UnitTypes::Terran_SCV);
+			}
+			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station))
+				u->buildAddon(UnitTypes::Terran_Comsat_Station);
+		}
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Barracks))
+			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Marine))
+				u->train(UnitTypes::Terran_Marine);
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Academy)) {
+			if (u->isIdle()) {
+				if (Broodwar->self()->getUpgradeLevel(UpgradeTypes::U_238_Shells) == 0)
+					u->upgrade(UpgradeTypes::U_238_Shells);
+
+				else if (Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs))
+					u->research(TechTypes::Stim_Packs);
 			}
 		}
-		else if (enemyUnitPassive) {
-			u->move(unitManager.lastKnownEnemyPosition(enemyUnitPassive));
-			continue;
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Engineering_Bay)) {
+			if (u->isIdle())
+				u->upgrade(UpgradeTypes::Terran_Infantry_Armor);
+
+			if (u->isIdle())
+				u->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
 		}
 
+		timer_unitlogic.stop();
 
-		auto closeSpecialBuilding = u->getClosestUnit(IsSpecialBuilding && !IsInvincible, 200);
-		if (closeSpecialBuilding)
-			u->attack(closeSpecialBuilding);
+		baseManager.onFrame();
 
-		auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine, 800);
-		if (closestMarine) {
-			auto walk = u->getPosition() - closestMarine->getPosition();
-			u->move(u->getPosition() + walk);
-			continue;
-		}
-		else {
-			if (mapManager.getUnexploredBases().size()) {
-				u->move((Position)(*mapManager.getUnexploredBases().begin())->Location());
+		timer_marinelogic.reset();
+
+		static int marineFrame = 0;
+		if (marineFrame == 2)
+			marineFrame = 0;
+		else ++marineFrame;
+
+		int marineN = 0;
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Marine)) {
+			if (marineN++ % 2 == marineFrame)
+				continue;
+			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
+			int friendlyCount;
+			if (fleeFrom) {
+				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
+				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
+				if (enemyCount + 3 > friendlyCount /* u->isUnderAttack()*/) {
+					if (fleeFrom != nullptr) {
+						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
+						continue;
+					}
+				}
+			}
+
+			if (u->getGroundWeaponCooldown())
+				continue;
+
+			/*EnemyData enemyUnitDetect = unitManager.getClosestVisibleEnemy(u, !IsDetected);
+			if (enemyUnitDetect.u && u->getDistance(enemyUnitDetect.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle))
+				detectionManager.requestDetection(enemyUnitDetect.lastPosition);*/
+
+			EnemyData enm = unitManager.getBestTarget(u);
+			if (enm.u) {
+				if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+					if (!enm.u->isVisible())
+						detectionManager.requestDetection(enm.lastPosition);
+					else if (!enm.u->isDetected())
+						detectionManager.requestDetection(enm.lastPosition);
+
+					if (enm.u->isVisible() && enm.u->isDetected()) {
+						if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->getHitPoints() < 20)
+							u->useTech(TechTypes::Stim_Packs);
+						u->attack(enm.u);
+						continue;
+					}
+				}
+				else {
+					if (enm.u->isVisible())
+						u->attack(enm.u);
+					else
+						u->move(enm.lastPosition);
+					continue;
+				}
+			}
+
+			/*EnemyData enemyUnitAttacker = unitManager.getClosestEnemy(u, true);
+			if (enemyUnitAttacker.u) {
+				if (u->getDistance(enemyUnitAttacker.lastPosition) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle)) {
+					if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->getHitPoints() > 20)
+						u->useTech(TechTypes::Stim_Packs);
+					if (!enemyUnitAttacker.u->isVisible())
+						detectionManager.requestDetection(enemyUnitAttacker.lastPosition);
+					u->attack(enemyUnitAttacker.u);
+					continue;
+				}
+				u->move(unitManager.lastKnownEnemyPosition(enemyUnitAttacker.u));
+				continue;
+			}*/
+			
+			/*EnemyData enemyUnitPassive = unitManager.getClosestEnemy(u, false);
+			if (enemyUnitPassive.u) {
+				if (u->getDistance(enemyUnitPassive.lastPosition) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) && enemyUnitPassive.u->isVisible()) {
+					u->attack(enemyUnitPassive.u);
+					continue;
+				}
+				else if (u->getDistance(enemyUnitPassive.lastPosition) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) && !enemyUnitPassive.u->isVisible()) {
+					detectionManager.requestDetection(enemyUnitPassive.lastPosition);
+					continue;
+				}
+				else {
+					u->move(enemyUnitPassive.lastPosition);
+				}
+			}*/
+
+			
+
+
+			auto closeSpecialBuilding = u->getClosestUnit(IsCritter && !IsInvincible, 200);
+			if (closeSpecialBuilding)
+				u->attack(closeSpecialBuilding);
+
+			auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine/*, 800*/);
+			if (closestMarine) {
+				auto walk = u->getPosition() - closestMarine->getPosition();
+				u->move(u->getPosition() + walk);
 				continue;
 			}
+			else {
+				if (mapManager.getUnexploredBases().size()) {
+					u->move((Position)(*mapManager.getUnexploredBases().begin())->Location());
+					continue;
+				}
+			}
+			u->stop();
 		}
-		u->stop();
+		timer_marinelogic.stop();
 	}
-	timer_marinelogic.stop();
+
+	timer_drawinfo.reset();
+	drawingManager.onFrame();
+	timer_drawinfo.stop();
 
 	timer_total.stop();
 }
@@ -335,10 +423,11 @@ void Neohuman::onNukeDetect(Position target) {
 
 void Neohuman::onUnitDiscover(Unit unit) {
 	unitManager.onUnitDiscover(unit);
+	baseManager.onUnitDiscover(unit);
 }
 
 void Neohuman::onUnitEvade(Unit unit) {
-
+	unitManager.onUnitEvade(unit);
 }
 
 void Neohuman::onUnitShow(Unit unit) {
@@ -351,15 +440,18 @@ void Neohuman::onUnitHide(Unit unit) {
 
 void Neohuman::onUnitCreate(Unit unit) {
 	unitManager.onUnitCreate(unit);
+	buildingQueue.onUnitCreate(unit);
 }
 
 void Neohuman::onUnitDestroy(Unit unit) {
 	unitManager.onUnitDestroy(unit);
+	buildingQueue.onUnitDestroy(unit);
+	baseManager.onUnitDestroy(unit);
 }
 
 void Neohuman::onUnitMorph(Unit unit) {
 	unitManager.onUnitMorph(unit);
-	onUnitDiscover(unit);
+	buildingQueue.onUnitMorph(unit);
 }
 
 void Neohuman::onUnitRenegade(Unit unit) {
@@ -372,4 +464,6 @@ void Neohuman::onSaveGame(std::string gameName) {
 
 void Neohuman::onUnitComplete(Unit unit) {
 	unitManager.onUnitComplete(unit);
+	buildingQueue.onUnitComplete(unit);
+	baseManager.onUnitComplete(unit);
 }

@@ -24,8 +24,12 @@ namespace Neolib {
 
 	class ResourceManager {
 		public:
-			ResourceCount getSpendableResources();
-			bool canAfford(ResourceCount);
+			ResourceCount getSpendableResources() const;
+			ResourceCount resourcesReservedForSupply() const;
+
+			ResourceCount getMinuteApproxIncome() const;
+			
+			bool canAfford(ResourceCount) const;
 	};
 
 }

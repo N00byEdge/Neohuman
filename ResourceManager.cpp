@@ -3,6 +3,7 @@
 #include "BWAPI.h"
 
 #include "BuildingQueue.h"
+#include "BaseManager.h"
 
 Neolib::ResourceManager resourceManager;
 
@@ -16,8 +17,10 @@ namespace Neolib {
 
 	}
 
-	ResourceCount::ResourceCount(BWAPI::UnitType ut) : minerals(ut.mineralPrice()), gas(ut.gasPrice()) {
-
+	ResourceCount::ResourceCount(BWAPI::UnitType ut) : minerals(ut == BWAPI::UnitTypes::Zerg_Zergling ? 50 : ut.mineralPrice()), gas(ut.gasPrice()) {
+		if (resourceManager.resourcesReservedForSupply().minerals && ut == BWAPI::UnitTypes::Terran_Supply_Depot || ut == BWAPI::UnitTypes::Protoss_Pylon || ut == BWAPI::UnitTypes::Zerg_Overlord) {
+			minerals = 0;
+		}
 	}
 
 	ResourceCount::ResourceCount(BWAPI::UpgradeType ut) : minerals(ut.mineralPrice()), gas(ut.gasPrice()) {
@@ -68,12 +71,29 @@ namespace Neolib {
 		return *this;
 	}
 
-	ResourceCount ResourceManager::getSpendableResources() {
-		auto queued = buildingQueue.getQueuedResources();
-		return {BWAPI::Broodwar->self()->minerals() - queued.minerals, BWAPI::Broodwar->self()->gas() - queued.gas};
+	ResourceCount ResourceManager::resourcesReservedForSupply() const {
+		ResourceCount rc;
+		rc.minerals += 100 * (int)ceil(supplyManager.wantedAdditionalSupply().terran / 16);
+		rc.minerals += 100 * (int)ceil(supplyManager.wantedAdditionalSupply().protoss / 16);
+		rc.minerals += 100 * (int)ceil(supplyManager.wantedAdditionalSupply().zerg / 16);
+		return rc;
 	}
 
-	bool ResourceManager::canAfford(ResourceCount rc) {
+	ResourceCount ResourceManager::getMinuteApproxIncome() const {
+		ResourceCount sum;
+		for (auto &b : baseManager.getAllBases())
+			sum += b.calculateIncome();
+		return sum;
+	}
+
+	ResourceCount ResourceManager::getSpendableResources() const {
+		ResourceCount queued = buildingQueue.getQueuedResources();
+		ResourceCount reserved = resourcesReservedForSupply();
+		ResourceCount realResources(BWAPI::Broodwar->self()->minerals(), BWAPI::Broodwar->self()->gas());
+		return realResources - queued - reserved;
+	}
+	
+	bool ResourceManager::canAfford(ResourceCount rc) const {
 		return rc <= getSpendableResources();
 	}
 }

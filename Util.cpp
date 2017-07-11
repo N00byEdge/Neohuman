@@ -4,7 +4,15 @@
 
 #include "Neohuman.h"
 
-std::mt19937 mt = std::mt19937(std::default_random_engine{}());
+std::mt19937_64 mt(std::chrono::system_clock::now().time_since_epoch().count());
+
+bool operator< (BWAPI::TilePosition lhs, BWAPI::TilePosition rhs) {
+	if (lhs.x < rhs.x)
+		return true;
+	if (lhs.x > rhs.x)
+		return false;
+	return lhs.y < rhs.y;
+}
 
 int Neolib::randint(int min, int max) {
 	std::uniform_int_distribution<int> dist(min, max);

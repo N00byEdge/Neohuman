@@ -4,7 +4,7 @@
 
 #include "Timer.h"
 
-#include "BWEM/bwem.h"
+#include "bwem.h"
 
 // Remember not to use "Broodwar" in any global class constructor!
 
@@ -29,9 +29,10 @@ class Neohuman : public BWAPI::AIModule {
 		virtual void onUnitComplete(BWAPI::Unit unit);
 
 		// Things
-		BWAPI::Race mainRace;
+		bool wasRandom;
+		BWAPI::Race playingRace;
 
 		Neolib::Timer timer_drawinfo, timer_managequeue, timer_buildbuildings, timer_unitlogic, timer_marinelogic, timer_total;
 };
 
-extern Neohuman neoInstance;
+extern Neohuman* neoInstance;

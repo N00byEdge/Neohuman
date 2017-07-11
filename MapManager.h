@@ -1,6 +1,8 @@
 #pragma once
 
-#include <BWEM/bwem.h>
+#include "bwem.h"
+
+#include <set>
 
 namespace Neolib {
 
