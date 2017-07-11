@@ -125,8 +125,8 @@ namespace Neolib {
 			}
 		}
 
-		if (u)
-			baseManager.takeUnit(u);
+		//if (u)
+		//	baseManager.takeUnit(u);
 
 		if (u->build(building, at)) {
 			ConstructionProject cp;
