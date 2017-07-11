@@ -175,7 +175,7 @@ namespace Neolib {
 			// If managed, cleanup
 			auto bpIt = workerBaseLookup.find(unit);
 
-			if (bpIt != workerBaseLookup.end()) {
+			if (bpIt != workerBaseLookup.end() && bpIt->second && bpIt->second->resourceDepot->exists()) {
 				for (auto &mf : bpIt->second->mineralMiners) {
 					auto mineralIt = mf.second.find(unit);
 					if (mineralIt != mf.second.end())
