@@ -21,11 +21,6 @@ namespace Neolib {
 		}
 	}
 
-#ifdef DEBUG
-#define DBG
-#undef DEBUG
-#endif
-
 	SoundFile::~SoundFile() {
 		PlaySound(NULL, 0, 0);
 		delete[] buf;
@@ -34,26 +29,12 @@ namespace Neolib {
 	void SoundFile::play() {
 		if (buf)
 			PlaySound(buf, hi, SND_MEMORY);
-
-		std::ofstream deb("bwapi-data\\AI\\SOUND.txt");
-		if (deb) deb << buf << std::endl;
-		deb.close();
 	}
 
 	void SoundFile::play_async() {
 		if (buf)
 			PlaySound(buf, hi, SND_MEMORY | SND_ASYNC);
-
-		std::ofstream deb("bwapi-data\\AI\\SOUND.txt");
-		if(deb) deb << buf << std::endl;
-		deb.close();
 	}
-
-#ifdef DBG
-#define DEBUG
-#undef DBG
-#endif
-
 }
 
 
