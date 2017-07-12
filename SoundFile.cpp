@@ -6,7 +6,7 @@
 
 namespace Neolib {
 
-	SoundFile::SoundFile(LPCWSTR filename) {
+	SoundFile::SoundFile(const char *filename) {
 		hi = GetModuleHandle(0);
 
 		std::ifstream inf(filename, std::ios::binary);
@@ -14,7 +14,11 @@ namespace Neolib {
 		if (inf) {
 			inf.seekg(0, std::ios::end);
 			auto length = inf.tellg();
+#ifdef _DEBUG
 			buf = (LPCWSTR)new char[(unsigned)length];
+#else
+			buf = (LPCSTR)new char[(unsigned)length];
+#endif
 			inf.seekg(0, std::ios::beg);
 			inf.read((char*) buf, length);
 			inf.close();

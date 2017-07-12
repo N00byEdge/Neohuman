@@ -5,14 +5,18 @@
 namespace Neolib {
 	class SoundFile {
 		public:
-			SoundFile(LPCWSTR filename);
+			SoundFile(const char *filename);
 			~SoundFile();
 
 			void play();
 			void play_async();
 
 		private:
+#ifdef _DEBUG
 			LPCWSTR buf = nullptr;
+#else
+			LPCSTR buf = nullptr;
+#endif
 			HINSTANCE hi;
 	};
 }
