@@ -273,16 +273,24 @@ void Neohuman::onFrame() {
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Covert_Ops)) {
 			if (!u->isIdle())
 				continue;
+
 			if (u->canResearch(BWAPI::TechTypes::Personnel_Cloaking) && resourceManager.canAfford(BWAPI::TechTypes::Personnel_Cloaking))
 				u->research(BWAPI::TechTypes::Personnel_Cloaking);
 			if (!BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Personnel_Cloaking))
 				continue;
+
 			if(u->canResearch(BWAPI::TechTypes::Lockdown) && resourceManager.canAfford(BWAPI::TechTypes::Lockdown))
 				u->research(BWAPI::TechTypes::Lockdown);
 			if (!BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lockdown))
 				continue;
+
 			if (u->canUpgrade(BWAPI::UpgradeTypes::Moebius_Reactor) && resourceManager.canAfford(BWAPI::UpgradeTypes::Moebius_Reactor))
 				u->upgrade(BWAPI::UpgradeTypes::Moebius_Reactor);
+			if (!BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Moebius_Reactor))
+				continue;
+
+			if (u->canUpgrade(BWAPI::UpgradeTypes::Ocular_Implants) && resourceManager.canAfford(BWAPI::UpgradeTypes::Ocular_Implants))
+				u->upgrade(BWAPI::UpgradeTypes::Ocular_Implants);
 
 		}
 
