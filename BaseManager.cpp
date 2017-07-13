@@ -232,7 +232,7 @@ namespace Neolib {
 			for (auto &b : bases)
 				wantedWorkers += b.additionalWantedWorkers(), numWorkers += b.numWorkers();
 
-			if (wantedWorkers.gas && numWorkers.minerals > numWorkers.gas / 3) {
+			if (wantedWorkers.gas && (numWorkers.minerals > numWorkers.gas / 3 || !wantedWorkers.minerals)) {
 				assignToGas(*it);
 				it = homelessWorkers.erase(it);
 				continue;
