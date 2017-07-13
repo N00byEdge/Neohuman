@@ -713,6 +713,7 @@ namespace Neolib{
 		*/
 
 		if (BWAPI::Broodwar->getFrameCount() % 128 == 0) {
+#ifdef ENABLE_SPARCRAFT
 			combatSimulator.clear();
 			for (auto &u : friendlyUnits)
 				if (u.first->getType() != BWAPI::UnitTypes::Terran_SCV && SparCraft::System::UnitTypeSupported(u.first->getType()))
@@ -725,6 +726,7 @@ namespace Neolib{
 			for (auto &u : nonVisibleEnemies)
 				if (SparCraft::System::UnitTypeSupported(u.lastType))
 					combatSimulator.addUnitToSimulator(u.unitID, u.lastPosition, u.lastType, true, u.expectedHealth(), u.expectedShields());
+#endif // ENABLE_SPARCRAFT
 		}
 	}
 

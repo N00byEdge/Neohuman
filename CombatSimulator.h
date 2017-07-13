@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ENABLE_SPARCRAFT
+
 #include "SparCraft.h"
 
 namespace Neolib {
@@ -27,3 +29,5 @@ namespace Neolib {
 }
 
 extern Neolib::CombatSimulator combatSimulator;
+
+#endif // ENABLE_SPARCRAFT

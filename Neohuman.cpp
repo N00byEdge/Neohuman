@@ -77,11 +77,11 @@ void Neohuman::onStart() {
 
 	mapManager.init();
 	buildingPlacer.init();
-	combatSimulator.init();
+	//combatSimulator.init();
 
 	timer_onStart.stop();
 	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
-	combatSimulator.onStart();
+	//combatSimulator.onStart();
 
 	/*
 	Broodwar->sendText("power overwhelming");

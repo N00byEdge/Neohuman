@@ -1,5 +1,7 @@
 #include "CombatSimulator.h"
 
+#ifdef ENABLE_SPARCRAFT
+
 Neolib::CombatSimulator combatSimulator;
 
 SparCraft::Player_AttackClosest me(SparCraft::Players::Player_One);
@@ -52,3 +54,5 @@ namespace Neolib {
 	}
 
 }
+
+#endif // ENABLE_SPARCRAFT
