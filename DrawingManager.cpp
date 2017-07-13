@@ -210,22 +210,16 @@ namespace Neolib {
 			for (auto &u : unitManager.getVisibleEnemies()) {
 				drawUnitBox(u.lastPosition, u.lastType, ENEMYCOLOR);
 				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
-				if(s.enableHealthBars)
-					drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
 			}
 
 			for (auto &u : unitManager.getNonVisibleEnemies()) {
 				drawUnitBox(u.lastPosition, u.lastType, ENEMYCOLOR);
 				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
-				if (s.enableHealthBars)
-					drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
 			}
 
 			for (auto &u : unitManager.getInvalidatedEnemies()) {
 				drawUnitBox(u.lastPosition, u.lastType, INVALIDENEMYCLR);
 				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
-				if (s.enableHealthBars)
-					drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
 			}
 
 			for (auto &ut : unitManager.getEnemyUnitsByType())
@@ -255,6 +249,13 @@ namespace Neolib {
 			for (auto &b : baseManager.getAllBases())
 				for (auto &mf : b.mineralMiners)
 					drawBars(mf.first->getPosition(), mf.first->getType(), 0, 0, 0, 0, mf.first->getResources(), mf.first->getInitialResources(), false);
+
+			for (auto &u : unitManager.getVisibleEnemies())
+				drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
+			for (auto &u : unitManager.getNonVisibleEnemies())
+				drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
+			for (auto &u : unitManager.getInvalidatedEnemies())
+				drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
 		}
 
 		if (s.enableDeathMatrix) {
