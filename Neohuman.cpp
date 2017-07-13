@@ -132,11 +132,10 @@ void Neohuman::onFrame() {
 		timer_managequeue.stop();
 
 		timer_buildbuildings.reset();
-		
-		if (BWAPI::Broodwar->getFrameCount() % 16 == 0) {
-			static int buildingFrame = 0;
 
-			switch (buildingFrame++) {
+		static int buildingFrame = 0;
+
+		switch (buildingFrame++) {
 			case 8:
 				buildingFrame = 0;
 			case 0:
@@ -181,7 +180,6 @@ void Neohuman::onFrame() {
 						buildingQueue.doBuild(UnitTypes::Terran_Command_Center, pos);
 				}
 				break;
-			}
 		}
 
 		if (BWAPI::Broodwar->getFrameCount() % 8 == 0) {
