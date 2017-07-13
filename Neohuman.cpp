@@ -239,7 +239,7 @@ void Neohuman::onFrame() {
 				continue;
 
 			auto nearbyGeysers = u->getUnitsInRadius(SATRUATION_RADIUS, (GetType == UnitTypes::Resource_Vespene_Geyser));
-			if (nearbyGeysers.size() && Broodwar->self()->supplyUsed() / 2 >= 13){
+			if (nearbyGeysers.size() && Broodwar->self()->supplyUsed() / 2 >= 30) {
 				auto buildingType = UnitTypes::Terran_Refinery;
 				for (Unit geyser : nearbyGeysers)
 					buildingQueue.doBuild(UnitTypes::Terran_Refinery, geyser->getTilePosition());
