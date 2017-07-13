@@ -34,7 +34,7 @@ const std::vector <int> columnYStart = { 0, 0, 0, 200, 16 };
 #define TERRANTEXT		BWAPI::Text::Green
 #define ZERGTEXT		BWAPI::Text::Red
 
-#define BOXSIZE			5
+#define BOXSIZE			2
 
 Neolib::DrawingManager drawingManager;
 
