@@ -245,6 +245,9 @@ void Neohuman::onFrame() {
 					buildingQueue.doBuild(UnitTypes::Terran_Refinery, geyser->getTilePosition());
 			}
 
+			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station))
+				u->buildAddon(UnitTypes::Terran_Comsat_Station);
+
 			if (u->isIdle()) {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
 				if (unitManager.countUnit(UnitTypes::Terran_SCV, IsOwned) >= 90)
@@ -253,8 +256,6 @@ void Neohuman::onFrame() {
 				if (workers.size() < mineralFields.size() * 2 && resourceManager.canAfford(UnitTypes::Terran_SCV))
 					u->train(UnitTypes::Terran_SCV);
 			}
-			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station))
-				u->buildAddon(UnitTypes::Terran_Comsat_Station);
 		}
 
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Science_Facility)) {
