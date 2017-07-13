@@ -3,6 +3,7 @@
 #include <BWAPI.h>
 
 #include "Timer.h"
+#include "SoundFile.h"
 
 #include "bwem.h"
 
@@ -10,6 +11,8 @@
 
 class Neohuman : public BWAPI::AIModule {
 	public:
+		Neohuman();
+
 		virtual void onStart();
 		virtual void onEnd(bool isWinner);
 		virtual void onFrame();
@@ -33,6 +36,7 @@ class Neohuman : public BWAPI::AIModule {
 		BWAPI::Race playingRace;
 
 		Neolib::Timer timer_drawinfo, timer_managequeue, timer_buildbuildings, timer_unitlogic, timer_marinelogic, timer_total;
+		Neolib::SoundFile seinfeld, shittyflute;
 };
 
 extern Neohuman* neoInstance;

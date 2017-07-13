@@ -26,6 +26,11 @@ using namespace Neolib;
 
 Neohuman* neoInstance;
 
+Neohuman::Neohuman(): seinfeld("bwapi-data\\AI\\Seinfeld.wav"),
+					  shittyflute("bwapi-data\\AI\\Shittyflute.wav") {
+
+}
+
 void Neohuman::onStart() {
 	Timer timer_onStart;
 
@@ -126,6 +131,8 @@ void Neohuman::onFrame() {
 
 	if (!(Broodwar->isPaused() || Broodwar->isReplay() || Broodwar->getFrameCount() % Broodwar->getLatencyFrames())) {
 		unitManager.onFrame();
+
+		static BWAPI::Unit scoutingUnit = nullptr;
 
 		timer_managequeue.reset();
 		buildingQueue.onFrame();
@@ -498,6 +505,11 @@ void Neohuman::onUnitDestroy(Unit unit) {
 	unitManager.onUnitDestroy(unit);
 	buildingQueue.onUnitDestroy(unit);
 	baseManager.onUnitDestroy(unit);
+
+	if (unit->getPlayer() != BWAPI::Broodwar->self() && unit->getType().isResourceDepot())
+		seinfeld.play_async();
+	if (unit->getPlayer() == BWAPI::Broodwar->self() && unit->getType().isResourceDepot())
+		shittyflute.play_async();
 }
 
 void Neohuman::onUnitMorph(Unit unit) {
