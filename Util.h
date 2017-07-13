@@ -11,7 +11,8 @@
 #define MINE(a,b) (a) = MIN((a), (b))
 #define MAXE(a,b) (a) = MAX((a), (b))
 
-#define ABS(val) ((val > 0) ? (val) : -(val))
+#define ABS(val) ((val > 0) ? (val) : (unsigned)(~(val)) + 1U)
+#define ABSL(val) ((val > 0) ? (val) : (unsigned long long)(~(val)) + 1ULL)
 
 #define SATRUATION_RADIUS 350
 #define WORKERAGGRORADIUS 200
