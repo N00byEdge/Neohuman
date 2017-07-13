@@ -60,10 +60,10 @@ namespace Neolib {
 				detectionManager.requestDetection((BWAPI::Position)b->Location());
 			if (BWAPI::Broodwar->canBuildHere(b->Location(), BWAPI::UnitTypes::Terran_Command_Center, nullptr, true)) {
 				for (auto &eu : unitManager.getVisibleEnemies())
-					if (eu.lastPosition.getApproxDistance(BWAPI::Position(b->Location())) < 200)
+					if (eu.lastPosition.getApproxDistance(BWAPI::Position(b->Location())) < 1000)
 						goto skiplocation;
 				for (auto &eu : unitManager.getNonVisibleEnemies())
-					if (eu.lastPosition.getApproxDistance(BWAPI::Position(b->Location())) < 200)
+					if (eu.lastPosition.getApproxDistance(BWAPI::Position(b->Location())) < 500)
 						goto skiplocation;
 				
 				return b->Location();
