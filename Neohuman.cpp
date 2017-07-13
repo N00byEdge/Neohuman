@@ -149,22 +149,22 @@ void Neohuman::onFrame() {
 				break;
 
 			case 2:
-				if (resourceManager.canAfford(UnitTypes::Terran_Academy) && unitManager.countFriendly(UnitTypes::Terran_Barracks) >= 2 && !unitManager.countFriendly(UnitTypes::Terran_Academy))
+				if (resourceManager.canAfford(UnitTypes::Terran_Academy) && unitManager.countFriendly(UnitTypes::Terran_Barracks) >= 3 && !unitManager.countFriendly(UnitTypes::Terran_Academy))
 					buildingQueue.doBuild(UnitTypes::Terran_Academy);
 				break;
 
 			case 3:
-				if (resourceManager.canAfford(UnitTypes::Terran_Factory) && !unitManager.countFriendly(UnitTypes::Terran_Factory) && supplyManager.usedSupply().terran / 2 >= 70)
+				if (resourceManager.canAfford(UnitTypes::Terran_Factory) && !unitManager.countFriendly(UnitTypes::Terran_Factory) && supplyManager.usedSupply().terran / 2 >= 40)
 					buildingQueue.doBuild(UnitTypes::Terran_Factory);
 				break;
 
 			case 4:
-				if (resourceManager.canAfford(UnitTypes::Terran_Starport) && !unitManager.countFriendly(UnitTypes::Terran_Starport) && supplyManager.usedSupply().terran / 2 >= 70)
+				if (resourceManager.canAfford(UnitTypes::Terran_Starport) && !unitManager.countFriendly(UnitTypes::Terran_Starport) && supplyManager.usedSupply().terran / 2 >= 50)
 					buildingQueue.doBuild(UnitTypes::Terran_Starport);
 				break;
 
 			case 5:
-				if (resourceManager.canAfford(UnitTypes::Terran_Science_Facility) && !unitManager.countFriendly(UnitTypes::Terran_Science_Facility) && supplyManager.usedSupply().terran / 2 >= 80)
+				if (resourceManager.canAfford(UnitTypes::Terran_Science_Facility) && !unitManager.countFriendly(UnitTypes::Terran_Science_Facility) && supplyManager.usedSupply().terran / 2 >= 60)
 					buildingQueue.doBuild(UnitTypes::Terran_Science_Facility);
 				break;
 
