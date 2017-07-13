@@ -248,6 +248,9 @@ namespace Neolib {
 		}
 
 		for (auto &b : bases) {
+			if (b.resourceDepot->isUnderAttack())
+				b.redAlert = BWAPI::Broodwar->getFrameCount();
+
 			for (auto &mf : b.mineralMiners)
 				for (auto &w : mf.second)
 					if (w->isUnderAttack())
