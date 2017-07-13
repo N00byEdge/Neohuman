@@ -8,6 +8,7 @@
 namespace Neolib {
 
 	struct DrawerSettings {
+#ifdef DEBUG
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
 		bool enableBWEMOverlay = false;
@@ -19,7 +20,21 @@ namespace Neolib {
 		bool enableDeathMatrix = false;
 		bool enableBaseOverlay = true;
 		bool enableHealthBars = true;
+		bool enableFailedLocations = true;
+#else
+		bool enableTopInfo = true;
+		bool enableResourceOverlay = true;
+		bool enableBWEMOverlay = false;
+		bool enableComsatInfo = true;
+		bool enableListBuildingQueue = true;
+		bool enableSaturationInfo = false;
+		bool enableTimerInfo = false;
+		bool enableEnemyOverlay = false;
+		bool enableDeathMatrix = false;
+		bool enableBaseOverlay = false;
+		bool enableHealthBars = true;
 		bool enableFailedLocations = false;
+#endif
 	};
 
 	class DrawingManager {
