@@ -238,6 +238,14 @@ namespace Neolib {
 				else
 					BWAPI::Broodwar->drawTextMap(u->getPosition(), "?");
 			}
+
+			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Ghost)) {
+				Neolib::EnemyData u2 = unitManager.getBestTarget(u);
+				if (u2.u)
+					BWAPI::Broodwar->drawLineMap(u->getPosition(), u2.lastPosition, BWAPI::Colors::Red);
+				else
+					BWAPI::Broodwar->drawTextMap(u->getPosition(), "?");
+			}
 		}
 
 		if (s.enableHealthBars) {

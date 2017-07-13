@@ -64,6 +64,9 @@ namespace Neolib {
 			int countFriendly(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false, bool countQueued = true) const;
 			int countEnemy   (BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false) const;
 
+			bool isAllowedToLockdown(BWAPI::Unit target, BWAPI::Unit own) const;
+			void reserveLockdown(BWAPI::Unit target, BWAPI::Unit own);
+
 			static bool isOnFire(EnemyData building);
 			static int unitDeathGround(BWAPI::UnitType ut);
 			static int unitDeathAir(BWAPI::UnitType ut);
@@ -101,6 +104,8 @@ namespace Neolib {
 
 			std::map <BWAPI::Unit, BWAPI::UnitType> friendlyUnits;
 			std::map <BWAPI::UnitType, std::unordered_set <BWAPI::Unit>> friendlyUnitsByType;
+
+			std::map <BWAPI::Unit, std::pair <BWAPI::Unit, int>> lockdownDB;
 
 			bool score;
 	};

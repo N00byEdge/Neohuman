@@ -259,8 +259,31 @@ void Neohuman::onFrame() {
 				u->buildAddon(UnitTypes::Terran_Comsat_Station);
 		}
 
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Science_Facility)) {
+			if (u->canBuildAddon() && resourceManager.canAfford(UnitTypes::Terran_Covert_Ops))
+				u->buildAddon(UnitTypes::Terran_Covert_Ops);
+		}
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Covert_Ops)) {
+			if (!u->isIdle())
+				continue;
+			if (u->canResearch(BWAPI::TechTypes::Personnel_Cloaking) && resourceManager.canAfford(BWAPI::TechTypes::Personnel_Cloaking))
+				u->research(BWAPI::TechTypes::Personnel_Cloaking);
+			if (!BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Personnel_Cloaking))
+				continue;
+			if(u->canResearch(BWAPI::TechTypes::Lockdown) && resourceManager.canAfford(BWAPI::TechTypes::Lockdown))
+				u->research(BWAPI::TechTypes::Lockdown);
+			if (!BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lockdown))
+				continue;
+			if (u->canUpgrade(BWAPI::UpgradeTypes::Moebius_Reactor) && resourceManager.canAfford(BWAPI::UpgradeTypes::Moebius_Reactor))
+				u->upgrade(BWAPI::UpgradeTypes::Moebius_Reactor);
+
+		}
+
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Barracks))
-			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Marine))
+			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Ghost) && u->canTrain(UnitTypes::Terran_Ghost) && randint(0, 4) < 2) // 40% chance to make ghost
+				u->train(UnitTypes::Terran_Ghost);
+			else if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Marine) && u->canTrain(UnitTypes::Terran_Marine))
 				u->train(UnitTypes::Terran_Marine);
 
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Academy)) {
@@ -312,10 +335,6 @@ void Neohuman::onFrame() {
 			if (u->getGroundWeaponCooldown())
 				continue;
 
-			/*EnemyData enemyUnitDetect = unitManager.getClosestVisibleEnemy(u, !IsDetected);
-			if (enemyUnitDetect.u && u->getDistance(enemyUnitDetect.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle))
-				detectionManager.requestDetection(enemyUnitDetect.lastPosition);*/
-
 			EnemyData enm = unitManager.getBestTarget(u);
 			if (enm.u) {
 				if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
@@ -340,38 +359,6 @@ void Neohuman::onFrame() {
 				}
 			}
 
-			/*EnemyData enemyUnitAttacker = unitManager.getClosestEnemy(u, true);
-			if (enemyUnitAttacker.u) {
-				if (u->getDistance(enemyUnitAttacker.lastPosition) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle)) {
-					if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->getHitPoints() > 20)
-						u->useTech(TechTypes::Stim_Packs);
-					if (!enemyUnitAttacker.u->isVisible())
-						detectionManager.requestDetection(enemyUnitAttacker.lastPosition);
-					u->attack(enemyUnitAttacker.u);
-					continue;
-				}
-				u->move(unitManager.lastKnownEnemyPosition(enemyUnitAttacker.u));
-				continue;
-			}*/
-			
-			/*EnemyData enemyUnitPassive = unitManager.getClosestEnemy(u, false);
-			if (enemyUnitPassive.u) {
-				if (u->getDistance(enemyUnitPassive.lastPosition) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) && enemyUnitPassive.u->isVisible()) {
-					u->attack(enemyUnitPassive.u);
-					continue;
-				}
-				else if (u->getDistance(enemyUnitPassive.lastPosition) < BWAPI::Broodwar->self()->weaponMaxRange(WeaponTypes::Gauss_Rifle) && !enemyUnitPassive.u->isVisible()) {
-					detectionManager.requestDetection(enemyUnitPassive.lastPosition);
-					continue;
-				}
-				else {
-					u->move(enemyUnitPassive.lastPosition);
-				}
-			}*/
-
-			
-
-
 			auto closeSpecialBuilding = u->getClosestUnit(IsCritter && !IsInvincible, 200);
 			if (closeSpecialBuilding)
 				u->attack(closeSpecialBuilding);
@@ -390,8 +377,73 @@ void Neohuman::onFrame() {
 			}
 			u->stop();
 		}
-		timer_marinelogic.stop();
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Ghost)) {
+			if (marineN++ % 2 == marineFrame)
+				continue;
+
+			if (u->isUnderAttack() && u->getEnergy() >= 75)
+				u->cloak();
+
+			auto lockdownTarget = u->getClosestUnit(IsEnemy && LockdownTime < 50 && IsMechanical && !IsWorker && !IsInvincible, 8 * 32 + 50);
+			if (lockdownTarget && unitManager.isAllowedToLockdown(lockdownTarget, u)) {
+				u->useTech(BWAPI::TechTypes::Lockdown, lockdownTarget), unitManager.reserveLockdown(lockdownTarget, u);
+				continue;
+			}
+
+			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
+			int friendlyCount;
+			if (fleeFrom) {
+				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
+				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
+				if (/*enemyCount + 3 > friendlyCount*/ u->isUnderAttack()) {
+					if (fleeFrom != nullptr) {
+						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
+						continue;
+					}
+				}
+			}
+
+			if (u->getGroundWeaponCooldown())
+				continue;
+
+			EnemyData enm = unitManager.getBestTarget(u);
+			if (enm.u) {
+				if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+					if (!enm.u->isVisible())
+						detectionManager.requestDetection(enm.lastPosition);
+					else if (!enm.u->isDetected())
+						detectionManager.requestDetection(enm.lastPosition);
+
+					if (enm.u->isVisible() && enm.u->isDetected()) {
+						u->attack(enm.u);
+						continue;
+					}
+				}
+				else {
+					if (enm.u->isVisible())
+						u->attack(enm.u);
+					else
+						u->move(enm.lastPosition);
+					continue;
+				}
+			}
+
+			auto closeSpecialBuilding = u->getClosestUnit(IsCritter && !IsInvincible, 200);
+			if (closeSpecialBuilding)
+				u->attack(closeSpecialBuilding);
+
+			auto closestGhost = u->getClosestUnit(GetType == UnitTypes::Terran_Ghost);
+			if (closestGhost) {
+				auto walk = u->getPosition() - closestGhost->getPosition();
+				u->move(u->getPosition() + walk);
+				continue;
+			}
+			u->stop();
+		}
 	}
+
+	timer_marinelogic.stop();
 
 	timer_drawinfo.reset();
 	drawingManager.onFrame();

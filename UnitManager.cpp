@@ -177,6 +177,15 @@ namespace Neolib{
 		return sum;
 	}
 
+	bool UnitManager::isAllowedToLockdown(BWAPI::Unit target, BWAPI::Unit own) const {
+		auto it = lockdownDB.find(target);
+		return it == lockdownDB.end() || it->second.first == own;
+	}
+
+	void UnitManager::reserveLockdown(BWAPI::Unit target, BWAPI::Unit own) {
+		lockdownDB[target] = { own, BWAPI::Broodwar->getFrameCount() };
+	}
+
 	/*BWAPI::Unit UnitManager::getClosestBuilder(BWAPI::Position pos, BWAPI::UnitType builds) const {
 		BWAPI::Unit closest = nullptr;
 		int lowestDist;
@@ -728,6 +737,12 @@ namespace Neolib{
 					combatSimulator.addUnitToSimulator(u.unitID, u.lastPosition, u.lastType, true, u.expectedHealth(), u.expectedShields());
 #endif // ENABLE_SPARCRAFT
 		}
+
+		for (auto it = lockdownDB.begin(); it != lockdownDB.end();)
+			if (it->second.second > BWAPI::Broodwar->getFrameCount() + 24 * 3)
+				it = lockdownDB.erase(it);
+			else
+				++it;
 	}
 
 	void UnitManager::onUnitDiscover(BWAPI::Unit unit) {
@@ -785,6 +800,13 @@ namespace Neolib{
 		else if (unit->getPlayer() == BWAPI::Broodwar->self()) {
 			friendlyUnitsByType[unit->getType()].erase(unit);
 			friendlyUnits.erase(unit);
+
+			for (auto it = lockdownDB.begin(); it != lockdownDB.end();) {
+				if (it->second.first == unit)
+					lockdownDB.erase(it);
+				else
+					++it;
+			}
 		}
 
 	}
