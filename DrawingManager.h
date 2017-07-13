@@ -8,7 +8,7 @@
 namespace Neolib {
 
 	struct DrawerSettings {
-#ifdef DEBUG
+#ifdef _DEBUG
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
 		bool enableBWEMOverlay = false;
