@@ -31,6 +31,14 @@ namespace Neolib {
 					}
 				}
 			}
+			else {
+				it->builder = baseManager.findClosestBuilder(it->buildingType.whatBuilds().first, (BWAPI::Position)it->designatedLocation);
+				if (it->builder)
+					if (it->buildingUnit)
+						it->builder->rightClick(it->buildingUnit);
+					else
+						it->builder->build(it->buildingType, it->designatedLocation);
+			}
 		}
 	}
 
