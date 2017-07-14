@@ -879,7 +879,7 @@ namespace Neolib{
 
 			for (auto it = lockdownDB.begin(); it != lockdownDB.end();) {
 				if (it->second.first == unit)
-					lockdownDB.erase(it);
+					it = lockdownDB.erase(it);
 				else
 					++it;
 			}
