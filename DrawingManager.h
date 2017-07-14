@@ -21,6 +21,8 @@ namespace Neolib {
 		bool enableBaseOverlay = true;
 		bool enableHealthBars = true;
 		bool enableFailedLocations = true;
+		bool enableNukeOverlay = true;
+		bool enableNukeSpots = true;
 #else
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
@@ -34,6 +36,8 @@ namespace Neolib {
 		bool enableBaseOverlay = false;
 		bool enableHealthBars = true;
 		bool enableFailedLocations = false;
+		bool enableNukeOverlay = false;
+		bool enableNukeSpots = true;
 #endif
 	};
 

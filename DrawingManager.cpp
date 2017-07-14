@@ -11,7 +11,7 @@
 #include "BWAPI.h"
 #include "bwem.h"
 
-const std::vector <int> columnXStart = { 0, 140, 280, 430, 510 };
+const std::vector <int> columnXStart = { 0, 160, 280, 430, 510 };
 const std::vector <int> columnYStart = { 0, 0, 0, 200, 16 };
 
 #define SHIELDTEXT		(char)BWAPI::Text::Blue
@@ -107,6 +107,7 @@ namespace Neolib {
 
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "FPS: %c%d", BWAPI::Broodwar->getFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getFPS());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Average FPS: %c%f", BWAPI::Broodwar->getAverageFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getAverageFPS());
+			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Nukes: %c%u Armed %c%u Arming %c%u Unarmed", BWAPI::Text::BrightRed, unitManager.getNumArmedSilos(), BWAPI::Text::Orange, unitManager.getNumArmingSilos(), BWAPI::Text::Yellow, unitManager.getNumUnarmedSilos());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%u marines swarming you", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Marine));
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d barracks!", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks));
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d APM!", BWAPI::Broodwar->getAPM());
@@ -117,11 +118,13 @@ namespace Neolib {
 		}
 
 		if (s.enableComsatInfo) {
+
 			std::string s = "Comsats (" + std::to_string(unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station).size()) + "): " + ENERGYTEXT;
 			for (auto &c : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station))
 				s += std::to_string(c->getEnergy()) + " ";
 
 			BWAPI::Broodwar->drawTextScreen(columnXStart[0], getNextColumnY(nextColumnY[0]), s.c_str());
+
 		}
 
 		if (s.enableResourceOverlay) {
@@ -323,6 +326,21 @@ namespace Neolib {
 		if (s.enableFailedLocations) {
 			for (auto &f : failedLocations) {
 				drawBuildingBox(f.first, f.second, BWAPI::Colors::Orange);
+			}
+		}
+
+		if (s.enableNukeOverlay && unitManager.getNumArmedSilos()) {
+			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Ghost)) {
+				auto loc = unitManager.getBestNuke(u);
+				if (loc != BWAPI::Positions::None)
+					BWAPI::Broodwar->drawLineMap(u->getPosition(), loc, BWAPI::Colors::Green);
+			}
+		}
+
+		if (s.enableNukeSpots) {
+			for (auto &nd : BWAPI::Broodwar->getNukeDots()) {
+				BWAPI::Broodwar->drawLineMap(nd + BWAPI::Position(-100, -100), nd + BWAPI::Position(100, 100), BWAPI::Colors::Yellow);
+				BWAPI::Broodwar->drawLineMap(nd + BWAPI::Position(-100, 100), nd + BWAPI::Position(100, -100), BWAPI::Colors::Yellow);
 			}
 		}
 

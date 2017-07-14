@@ -186,6 +186,36 @@ namespace Neolib{
 		lockdownDB[target] = { own, BWAPI::Broodwar->getFrameCount() };
 	}
 
+	unsigned UnitManager::getNumArmedSilos() const {
+		unsigned num = 0;
+
+		for (auto & ns : getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Nuclear_Silo))
+			if (ns->hasNuke())
+				++num;
+
+		return num;
+	}
+
+	unsigned UnitManager::getNumArmingSilos() const {
+		unsigned num = 0;
+
+		for (auto & ns : getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Nuclear_Silo))
+			if (!ns->isIdle() && !ns->hasNuke())
+				++num;
+
+		return num;
+	}
+
+	unsigned UnitManager::getNumUnarmedSilos() const {
+		unsigned num = 0;
+
+		for (auto & ns : getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Nuclear_Silo))
+			if (ns->isIdle() && !ns->hasNuke())
+				++num;
+
+		return num;
+	}
+
 	/*BWAPI::Unit UnitManager::getClosestBuilder(BWAPI::Position pos, BWAPI::UnitType builds) const {
 		BWAPI::Unit closest = nullptr;
 		int lowestDist;
@@ -527,6 +557,52 @@ namespace Neolib{
 		}
 
 		return ret;
+	}
+
+	int UnitManager::getNukeScore(BWAPI::Position pos, BWAPI::Unit from) const {
+		int sum = 0;
+
+		for (auto u : visibleEnemies)
+			if(u.lastPosition.getDistance(pos) < 10 * 32)
+				sum += u.lastType.destroyScore();
+
+		for (auto u : nonVisibleEnemies)
+			if (u.lastPosition.getDistance(pos) < 10 * 32)
+				sum += u.lastType.destroyScore();
+
+		for (auto u : BWAPI::Broodwar->self()->getUnits())
+			if(u->getType().isBuilding() && u->getPosition().getDistance(pos) < 10 * 32)
+				sum -= u->getType().destroyScore();
+
+		if (from)
+			sum -= from->getDistance(pos);
+
+		return sum;
+	}
+
+	BWAPI::Position UnitManager::getBestNuke(BWAPI::Unit from) const {
+		BWAPI::Position pos = BWAPI::Positions::None;
+		int bestScore;
+
+		for (auto possibleTarget : visibleEnemies) {
+			int score = getNukeScore(possibleTarget.lastPosition, from);
+
+			for(auto &nd: BWAPI::Broodwar->getNukeDots())
+				if (nd.getApproxDistance(possibleTarget.lastPosition) < 32 * 10)
+					goto skipUnit;
+
+			if (pos == BWAPI::Positions::None || score > bestScore) {
+				pos = possibleTarget.lastPosition;
+				bestScore = score;
+			}
+
+			skipUnit:;
+		}
+
+		if (pos == BWAPI::Positions::None || bestScore < 600)
+			return BWAPI::Positions::None;
+		else
+			return pos;
 	}
 
 	int UnitManager::targetPriority(BWAPI::Unit f, BWAPI::Unit ag) {

@@ -55,6 +55,8 @@ namespace Neolib {
 			EnemyData getClosestNonVisibleEnemy(BWAPI::Unit from, bool onlyWithWeapons = false) const;
 
 			EnemyData getBestTarget(BWAPI::Unit from);
+			int getNukeScore(BWAPI::Position pos, BWAPI::Unit from) const;
+			BWAPI::Position getBestNuke(BWAPI::Unit from) const;
 
 			static int targetPriority(BWAPI::Unit f, BWAPI::Unit ag);
 			static int deathPerHealth(EnemyData ed, bool flyingTarget);
@@ -66,6 +68,10 @@ namespace Neolib {
 
 			bool isAllowedToLockdown(BWAPI::Unit target, BWAPI::Unit own) const;
 			void reserveLockdown(BWAPI::Unit target, BWAPI::Unit own);
+
+			unsigned getNumArmedSilos() const;
+			unsigned getNumArmingSilos() const;
+			unsigned getNumUnarmedSilos() const;
 
 			static bool isOnFire(EnemyData building);
 			static int unitDeathGround(BWAPI::UnitType ut);

@@ -252,12 +252,15 @@ void Neohuman::onFrame() {
 					buildingQueue.doBuild(UnitTypes::Terran_Refinery, geyser->getTilePosition());
 			}
 
-			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station))
+			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Nuclear_Silo))
+				u->buildAddon(UnitTypes::Terran_Nuclear_Silo);
+
+			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station) && !unitManager.countFriendly(UnitTypes::Terran_Covert_Ops))
 				u->buildAddon(UnitTypes::Terran_Comsat_Station);
 
 			if (u->isIdle()) {
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (IsGatheringMinerals));
-				if (unitManager.countUnit(UnitTypes::Terran_SCV, IsOwned) >= 90)
+				if (unitManager.countUnit(UnitTypes::Terran_SCV, IsOwned) >= 70)
 					continue;
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (IsMineralField));
 				if (workers.size() < mineralFields.size() * 2 && resourceManager.canAfford(UnitTypes::Terran_SCV))
@@ -295,7 +298,9 @@ void Neohuman::onFrame() {
 		}
 
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Barracks))
-			if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Ghost) && u->canTrain(UnitTypes::Terran_Ghost) && randint(0, 4) < 2) // 40% chance to make ghost
+			if (unitManager.countFriendly(UnitTypes::Terran_Marine) + unitManager.countFriendly(UnitTypes::Terran_Ghost) >= 100)
+				break;
+			else if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Ghost) && resourceManager.getSpendableResources().gas > 250 && u->canTrain(UnitTypes::Terran_Ghost) && randint(0, 4) < 2) // 40% chance to make ghost
 				u->train(UnitTypes::Terran_Ghost);
 			else if (u->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Marine) && u->canTrain(UnitTypes::Terran_Marine))
 				u->train(UnitTypes::Terran_Marine);
@@ -309,6 +314,10 @@ void Neohuman::onFrame() {
 					u->research(TechTypes::Stim_Packs);
 			}
 		}
+
+		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Nuclear_Silo))
+			if (u->isIdle() && u->canTrain(BWAPI::UnitTypes::Terran_Nuclear_Missile) && resourceManager.canAfford(BWAPI::UnitTypes::Terran_Nuclear_Missile))
+				u->train(BWAPI::UnitTypes::Terran_Nuclear_Missile);
 
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Engineering_Bay)) {
 			if (u->isIdle())
@@ -333,127 +342,152 @@ void Neohuman::onFrame() {
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Marine)) {
 			if (marineN++ % 2 == marineFrame)
 				continue;
-			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
-			int friendlyCount;
-			if (fleeFrom) {
-				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
-				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
-				if (enemyCount + 3 > friendlyCount /* u->isUnderAttack()*/) {
-					if (fleeFrom != nullptr) {
-						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
-						continue;
-					}
+
+			bool scaredAF = false;
+
+			for (auto &nd : BWAPI::Broodwar->getNukeDots()) {
+				if (u->getDistance(nd) <= 20 * 32) {
+					u->move(u->getPosition() + u->getPosition() - nd);
+					scaredAF = true;
 				}
 			}
 
-			if (u->getGroundWeaponCooldown())
-				continue;
+			if (!scaredAF) {
+				auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
+				int friendlyCount;
+				if (fleeFrom) {
+					int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && GetType != BWAPI::UnitTypes::Protoss_Interceptor).size() + 1;
+					friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
+					if (enemyCount + 3 > friendlyCount /* u->isUnderAttack()*/) {
+						if (fleeFrom != nullptr) {
+							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
+							continue;
+						}
+					}
+				}
 
-			EnemyData enm = unitManager.getBestTarget(u);
-			if (enm.u) {
-				if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
-					if (!enm.u->isVisible())
-						detectionManager.requestDetection(enm.lastPosition);
-					else if (!enm.u->isDetected())
-						detectionManager.requestDetection(enm.lastPosition);
+				if (u->getGroundWeaponCooldown())
+					continue;
 
-					if (enm.u->isVisible() && enm.u->isDetected()) {
-						if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->getHitPoints() < 20)
-							u->useTech(TechTypes::Stim_Packs);
-						u->attack(enm.u);
+				EnemyData enm = unitManager.getBestTarget(u);
+				if (enm.u) {
+					if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+						if (!enm.u->isVisible())
+							detectionManager.requestDetection(enm.lastPosition);
+						else if (!enm.u->isDetected())
+							detectionManager.requestDetection(enm.lastPosition);
+
+						if (enm.u->isVisible() && enm.u->isDetected()) {
+							if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->getHitPoints() < 20)
+								u->useTech(TechTypes::Stim_Packs);
+							u->attack(enm.u);
+							continue;
+						}
+					}
+					else {
+						if (enm.u->isVisible())
+							u->attack(enm.u);
+						else
+							u->move(enm.lastPosition);
 						continue;
 					}
+				}
+
+				auto closeSpecialBuilding = u->getClosestUnit(IsCritter && !IsInvincible, 200);
+				if (closeSpecialBuilding)
+					u->attack(closeSpecialBuilding);
+
+				auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine/*, 800*/);
+				if (closestMarine) {
+					auto walk = u->getPosition() - closestMarine->getPosition();
+					u->move(u->getPosition() + walk);
+					continue;
 				}
 				else {
-					if (enm.u->isVisible())
-						u->attack(enm.u);
-					else
-						u->move(enm.lastPosition);
-					continue;
+					if (mapManager.getUnexploredBases().size()) {
+						u->move((Position)(*mapManager.getUnexploredBases().begin())->Location());
+						continue;
+					}
 				}
+				u->stop();
 			}
-
-			auto closeSpecialBuilding = u->getClosestUnit(IsCritter && !IsInvincible, 200);
-			if (closeSpecialBuilding)
-				u->attack(closeSpecialBuilding);
-
-			auto closestMarine = u->getClosestUnit(GetType == UnitTypes::Terran_Marine/*, 800*/);
-			if (closestMarine) {
-				auto walk = u->getPosition() - closestMarine->getPosition();
-				u->move(u->getPosition() + walk);
-				continue;
-			}
-			else {
-				if (mapManager.getUnexploredBases().size()) {
-					u->move((Position)(*mapManager.getUnexploredBases().begin())->Location());
-					continue;
-				}
-			}
-			u->stop();
 		}
 
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Ghost)) {
 			if (marineN++ % 2 == marineFrame)
 				continue;
 
-			if (u->isUnderAttack() && u->getEnergy() >= 75)
+			if (u->isUnderAttack() && u->getEnergy() >= 200)
 				u->cloak();
 
-			auto lockdownTarget = u->getClosestUnit(IsEnemy && LockdownTime < 50 && IsMechanical && !IsWorker && !IsInvincible, 8 * 32 + 50);
-			if (lockdownTarget && unitManager.isAllowedToLockdown(lockdownTarget, u)) {
-				u->useTech(BWAPI::TechTypes::Lockdown, lockdownTarget), unitManager.reserveLockdown(lockdownTarget, u);
-				continue;
-			}
+			bool scaredAF = false;
 
-			auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
-			int friendlyCount;
-			if (fleeFrom) {
-				int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker)).size() + 1;
-				friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
-				if (/*enemyCount + 3 > friendlyCount*/ u->isUnderAttack()) {
-					if (fleeFrom != nullptr) {
-						u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
-						continue;
-					}
+			for (auto &nd : BWAPI::Broodwar->getNukeDots()) {
+				if (u->getDistance(nd) <= 20 * 32) {
+					u->move(u->getPosition() + u->getPosition() - nd);
+					scaredAF = true;
 				}
 			}
 
-			if (u->getGroundWeaponCooldown())
-				continue;
-
-			EnemyData enm = unitManager.getBestTarget(u);
-			if (enm.u) {
-				if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
-					if (!enm.u->isVisible())
-						detectionManager.requestDetection(enm.lastPosition);
-					else if (!enm.u->isDetected())
-						detectionManager.requestDetection(enm.lastPosition);
-
-					if (enm.u->isVisible() && enm.u->isDetected()) {
-						u->attack(enm.u);
+			if (!scaredAF) {
+				if (unitManager.getNumArmedSilos() && (u->getEnergy() >= 75 || (u->getEnergy() >= 25 && u->isCloaked()))) {
+					auto nukePos = unitManager.getBestNuke(u);
+					if (nukePos != BWAPI::Positions::None) {
+						u->cloak();
+						u->useTech(BWAPI::TechTypes::Nuclear_Strike, nukePos);
 						continue;
 					}
 				}
-				else {
-					if (enm.u->isVisible())
-						u->attack(enm.u);
-					else
-						u->move(enm.lastPosition);
+
+				auto lockdownTarget = u->getClosestUnit(IsEnemy && LockdownTime < 50 && IsMechanical && !IsWorker && !IsInvincible && IsDetected, 8 * 32 + 50);
+				if (lockdownTarget && unitManager.isAllowedToLockdown(lockdownTarget, u)) {
+					u->useTech(BWAPI::TechTypes::Lockdown, lockdownTarget), unitManager.reserveLockdown(lockdownTarget, u);
 					continue;
 				}
-			}
 
-			auto closeSpecialBuilding = u->getClosestUnit(IsCritter && !IsInvincible, 200);
-			if (closeSpecialBuilding)
-				u->attack(closeSpecialBuilding);
+				auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
+				if (fleeFrom) {
+					if (u->isUnderAttack()) {
+						if (fleeFrom != nullptr) {
+							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
+							continue;
+						}
+					}
+				}
 
-			auto closestGhost = u->getClosestUnit(GetType == UnitTypes::Terran_Ghost);
-			if (closestGhost) {
-				auto walk = u->getPosition() - closestGhost->getPosition();
-				u->move(u->getPosition() + walk);
-				continue;
+				if (u->getGroundWeaponCooldown())
+					continue;
+
+				EnemyData enm = unitManager.getBestTarget(u);
+				if (enm.u) {
+					if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+						if (!enm.u->isVisible())
+							detectionManager.requestDetection(enm.lastPosition);
+						else if (!enm.u->isDetected())
+							detectionManager.requestDetection(enm.lastPosition);
+
+						if (enm.u->isVisible() && enm.u->isDetected()) {
+							u->attack(enm.u);
+							continue;
+						}
+					}
+					else {
+						if (enm.u->isVisible())
+							u->attack(enm.u);
+						else
+							u->move(enm.lastPosition);
+						continue;
+					}
+				}
+
+				auto closestGhost = u->getClosestUnit(GetType == UnitTypes::Terran_Ghost);
+				if (closestGhost) {
+					auto walk = u->getPosition() - closestGhost->getPosition();
+					u->move(u->getPosition() + walk);
+					continue;
+				}
+				u->stop();
 			}
-			u->stop();
 		}
 	}
 
@@ -479,6 +513,9 @@ void Neohuman::onPlayerLeft(Player player) {
 }
 
 void Neohuman::onNukeDetect(Position target) {
+	Broodwar->sendText("You may want to know that there is a nuke coming for you at %d %d", target.x, target.y);
+	Broodwar->sendText("Nuke score: %d", unitManager.getNukeScore(target, nullptr));
+
 	// if (target) {
 	// 	Broodwar << "Nuclear Launch Detected at " << target << std::endl;
 	// } else {
