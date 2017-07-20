@@ -127,7 +127,7 @@ namespace Neolib {
 			}
 		}
 
-		if (closestEnemy != enemyUnits.end() && closestDist < fu.speed && !(fu.x == closestEnemy->x && fu.y == closestEnemy->y)) {
+		if (closestEnemy != enemyUnits.end() && closestDist <= fu.speed && !(fu.x == closestEnemy->x && fu.y == closestEnemy->y)) {
 			fu.x = closestEnemy->x;
 			fu.y = closestEnemy->y;
 			closestDist = 0;
@@ -149,7 +149,7 @@ namespace Neolib {
 			didSomething = true;
 			return;
 		}
-		else if(closestEnemy != enemyUnits.end()) {
+		else if(closestEnemy != enemyUnits.end() && closestDist > fu.speed) {
 			int dx = closestEnemy->x - fu.x, dy = closestEnemy->y - fu.y;
 			if (dx || dy) {
 				fu.x += (int)(((float)dx / sqrt(dx*dx + dy*dy)) * fu.speed);
