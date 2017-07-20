@@ -66,6 +66,23 @@ namespace Neolib {
 		if (!damage)
 			return;
 
+#ifdef SSCAIT
+
+		if (damageType == BWAPI::DamageTypes::Concussive) {
+			if(fu.unitSize == BWAPI::UnitSizeTypes::Large)
+				damage = damage / 2;
+			else if(fu.unitSize == BWAPI::UnitSizeTypes::Medium)
+				damage = (damage * 3) / 4;
+		}
+		else if (damageType == BWAPI::DamageTypes::Explosive) {
+			if (fu.unitSize == BWAPI::UnitSizeTypes::Small)
+				damage = damage / 2;
+			else if (fu.unitSize == BWAPI::UnitSizeTypes::Medium)
+				damage = (damage * 3) / 4;
+		}
+
+#else
+
 		switch (damageType) {
 			case BWAPI::DamageTypes::Concussive:
 				switch (fu.unitSize) {
@@ -89,6 +106,8 @@ namespace Neolib {
 				}
 				break;
 		}
+
+#endif
 
 		fu.health -= MAX(1, damage - fu.armor);
 	}
@@ -217,6 +236,34 @@ namespace Neolib {
 		static int nextId = 0;
 		id = nextId++;
 
+#ifdef SSCAIT
+
+		if (ed.lastType == BWAPI::UnitTypes::Protoss_Carrier) {
+			groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
+			groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
+			groundCooldown = 2;
+			groundMaxRange = 32 * 8;
+
+			airDamage = groundDamage;
+			airDamageType = groundDamageType;
+			airCooldown = groundCooldown;
+			airMaxRange = groundMaxRange;
+		}
+		else if (ed.lastType == BWAPI::UnitTypes::Terran_Bunker) {
+			groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Gauss_Rifle);
+			groundCooldown = BWAPI::UnitTypes::Terran_Marine.groundWeapon().damageCooldown() / 4;
+			groundMaxRange = ed.lastPlayer->weaponMaxRange(BWAPI::UnitTypes::Terran_Marine.groundWeapon()) + 32;
+
+			airDamage = groundDamage;
+			airCooldown = groundCooldown;
+			airMaxRange = groundMaxRange;
+		}
+		else if (ed.lastType == BWAPI::UnitTypes::Protoss_Reaver) {
+			groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Scarab);
+		}
+
+#else
+
 		switch (ed.lastType) {
 			case BWAPI::UnitTypes::Protoss_Carrier:
 				groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
@@ -247,6 +294,8 @@ namespace Neolib {
 			default:
 				break;
 		}
+
+#endif
 
 		groundDamage *= 2;
 		airDamage *= 2;
