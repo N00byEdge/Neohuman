@@ -25,7 +25,7 @@ namespace Neolib {
 			mutable int shieldArmor = 0;
 			mutable int maxShields = 0;
 
-			mutable int speed = 0;
+			mutable double speed = 0;
 			mutable bool flying = 0;
 			mutable BWAPI::UnitSizeType unitSize;
 

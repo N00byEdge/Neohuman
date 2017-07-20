@@ -152,8 +152,8 @@ namespace Neolib {
 		else if(closestEnemy != enemyUnits.end() && closestDist > fu.speed) {
 			int dx = closestEnemy->x - fu.x, dy = closestEnemy->y - fu.y;
 			if (dx || dy) {
-				fu.x += (int)(((float)dx / sqrt(dx*dx + dy*dy)) * fu.speed);
-				fu.y += (int)(((float)dy / sqrt(dx*dx + dy*dy)) * fu.speed);
+				fu.x += (int)(dx*(fu.speed / sqrt(dx*dx + dy*dy)));
+				fu.y += (int)(dy*(fu.speed / sqrt(dx*dx + dy*dy)));
 				
 				didSomething = true;
 				return;
@@ -185,7 +185,7 @@ namespace Neolib {
 		x(ed.lastPosition.x),
 		y(ed.lastPosition.y),
 
-		speed((int)ed.lastPlayer->topSpeed(ed.lastType)),
+		speed(ed.lastPlayer->topSpeed(ed.lastType)),
 
 		health(ed.expectedHealth()),
 		maxHealth(ed.lastType.maxHitPoints()),
