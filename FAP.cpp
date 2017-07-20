@@ -220,10 +220,12 @@ namespace Neolib {
 		switch (ed.lastType) {
 			case BWAPI::UnitTypes::Protoss_Carrier:
 				groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
-				groundCooldown = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageCooldown() / 8;
+				groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
+				groundCooldown = 2;
 				groundMaxRange = 32 * 8;
 
 				airDamage = groundDamage;
+				airDamageType = groundDamageType;
 				airCooldown = groundCooldown;
 				airMaxRange = groundMaxRange;
 				break;
