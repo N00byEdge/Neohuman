@@ -359,6 +359,11 @@ namespace Neolib {
 
 #endif
 
+		if (ed.u && ed.u->isStimmed()) {
+			groundCooldown /= 2;
+			airCooldown /= 2;
+		}
+
 		groundDamage *= 2;
 		airDamage *= 2;
 
