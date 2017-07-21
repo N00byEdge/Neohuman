@@ -45,6 +45,7 @@ namespace Neolib {
 			mutable int airMinRange = 0;
 			mutable BWAPI::DamageType airDamageType;
 
+			mutable BWAPI::UnitType unitType;
 			mutable int score = 0;
 
 			mutable int attackCooldownRemaining = 0;

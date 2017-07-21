@@ -230,6 +230,7 @@ namespace Neolib {
 		airMinRange(ed.lastType.airWeapon().minRange()),
 		airDamageType(ed.lastType.airWeapon().damageType()),
 
+		unitType(ed.lastType),
 		score(ed.lastType.destroyScore()) {
 
 		static int nextId = 0;
@@ -315,6 +316,7 @@ namespace Neolib {
 		airDamage = other.airDamage, airCooldown = other.airCooldown, airMaxRange = other.airMaxRange, airMinRange = other.airMinRange, airDamageType = other.airDamageType;
 		score = other.score;
 		attackCooldownRemaining = other.attackCooldownRemaining;
+		unitType = other.unitType;
 
 		return *this;
 	}
