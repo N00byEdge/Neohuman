@@ -46,9 +46,18 @@ namespace Neolib {
 			mutable BWAPI::DamageType airDamageType;
 
 			mutable BWAPI::UnitType unitType;
+			mutable int healTimer = 0;
+			mutable bool isOrganic = false;
+			mutable bool didHealThisFrame = false;
 			mutable int score = 0;
 
 			mutable int attackCooldownRemaining = 0;
+
+#ifdef _DEBUG
+
+			mutable int damageTaken = 0;
+
+#endif
 
 			bool operator< (const FAPUnit &other) const;
 		};
@@ -75,6 +84,7 @@ namespace Neolib {
 			void dealDamage(const FastAPproximation::FAPUnit & fu, int damage, BWAPI::DamageType damageType) const;
 			int dist(const FastAPproximation::FAPUnit & u1, const FastAPproximation::FAPUnit & u2) const;
 			void unitsim(const FAPUnit & fu, std::vector <FAPUnit> &enemyUnits);
+			void medicsim(const FAPUnit & fu, std::vector <FAPUnit> &friendlyUnits);
 			void isimulate();
 
 	};

@@ -119,7 +119,17 @@ namespace Neolib {
 
 #endif
 
+#ifdef _DEBUG
+
+		damage = MAX(1, damage - fu.armor);
+		fu.damageTaken += damage;
+		fu.health -= damage;
+
+#else
+
 		fu.health -= MAX(1, damage - fu.armor);
+
+#endif
 	}
 
 	int FastAPproximation::dist(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
@@ -189,20 +199,61 @@ namespace Neolib {
 		}
 	}
 
+	void FastAPproximation::medicsim(const FAPUnit & fu, std::vector<FAPUnit> &friendlyUnits) {
+		auto closestHealable = friendlyUnits.end();
+		int closestDist;
+
+		for (auto it = friendlyUnits.begin(); it != friendlyUnits.end(); ++it) {
+			if (it->isOrganic && it->health < it->maxHealth && !it->didHealThisFrame) {
+				int d = dist(fu, *it);
+				if (closestHealable == friendlyUnits.end() || d < closestDist) {
+					closestHealable = it;
+					closestDist = d;
+				}
+			}
+		}
+
+		if (closestHealable != friendlyUnits.end()) {
+			fu.x = closestHealable->x;
+			fu.y = closestHealable->y;
+
+			closestHealable->health += (closestHealable->healTimer += 400) / 256;
+			closestHealable->healTimer %= 256;
+
+			if (closestHealable->health > closestHealable->maxHealth)
+				closestHealable->health = closestHealable->maxHealth;
+
+			closestHealable->didHealThisFrame = false;
+		}
+	}
+
 	void FastAPproximation::isimulate() {
 		for (auto &fu : player1)
-			unitsim(fu, player2);
+			if (fu.unitType == BWAPI::UnitTypes::Terran_Medic)
+				medicsim(fu, player1);
+			else
+				unitsim(fu, player2);
+			
 
 		for (auto &fu : player2)
-			unitsim(fu, player1);
+			if (fu.unitType == BWAPI::UnitTypes::Terran_Medic)
+				medicsim(fu, player2);
+			else
+				unitsim(fu, player1);
 
-		for (auto &fu : player1)
+		for (auto &fu : player1) {
 			if (fu.attackCooldownRemaining)
 				--fu.attackCooldownRemaining;
+			if (fu.didHealThisFrame)
+				fu.didHealThisFrame = false;
+		}
 
-		for (auto &fu : player2)
+		for (auto &fu : player2) {
 			if (fu.attackCooldownRemaining)
 				--fu.attackCooldownRemaining;
+			if (fu.didHealThisFrame)
+				fu.didHealThisFrame = false;
+		}
 	}
 
 	FastAPproximation::FAPUnit::FAPUnit(BWAPI::Unit u): FAPUnit(EnemyData(u)) {
@@ -241,6 +292,7 @@ namespace Neolib {
 		airDamageType(ed.lastType.airWeapon().damageType()),
 
 		unitType(ed.lastType),
+		isOrganic(ed.lastType.isOrganic()),
 		score(ed.lastType.destroyScore()) {
 
 		static int nextId = 0;
@@ -328,7 +380,8 @@ namespace Neolib {
 		airDamage = other.airDamage, airCooldown = other.airCooldown, airMaxRange = other.airMaxRange, airMinRange = other.airMinRange, airDamageType = other.airDamageType;
 		score = other.score;
 		attackCooldownRemaining = other.attackCooldownRemaining;
-		unitType = other.unitType;
+		unitType = other.unitType; isOrganic = other.isOrganic;
+		healTimer = other.healTimer; didHealThisFrame = other.didHealThisFrame;
 
 		return *this;
 	}
