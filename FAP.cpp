@@ -314,7 +314,9 @@ namespace Neolib {
 		armor *= 2;
 
 		health *= 2;
+		maxHealth *= 2;
 		shields *= 2;
+		maxShields *= 2;
 	}
 
 	FastAPproximation::FAPUnit &FastAPproximation::FAPUnit::operator=(const FAPUnit & other) {
