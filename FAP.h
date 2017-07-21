@@ -61,7 +61,7 @@ namespace Neolib {
 
 			void simulate(int nFrames = -1);
 
-			std::pair <int, int> getStatus();
+			std::pair <int, int> getStatus() const;
 			std::pair <std::vector <FAPUnit> *, std::vector <FAPUnit> *> getState();
 			void clearState();
 

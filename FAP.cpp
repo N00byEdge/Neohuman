@@ -30,7 +30,7 @@ namespace Neolib {
 		}
 	}
 
-	std::pair <int, int> FastAPproximation::getStatus() {
+	std::pair <int, int> FastAPproximation::getStatus() const {
 		std::pair <int, int> res;
 
 		for (auto & u : player1)
