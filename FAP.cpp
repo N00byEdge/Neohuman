@@ -12,8 +12,18 @@ namespace Neolib {
 		player1.push_back(fu);
 	}
 
+	void FastAPproximation::addIfCombatUnitPlayer1(FAPUnit fu) {
+		if (fu.groundDamage || fu.airDamage || fu.unitType == BWAPI::UnitTypes::Terran_Medic)
+			addUnitPlayer1(fu);
+	}
+
 	void FastAPproximation::addUnitPlayer2(FAPUnit fu) {
 		player2.push_back(fu);
+	}
+
+	void FastAPproximation::addIfCombatUnitPlayer2(FAPUnit fu) {
+		if (fu.groundDamage || fu.airDamage || fu.unitType == BWAPI::UnitTypes::Terran_Medic)
+			addUnitPlayer2(fu);
 	}
 
 	void FastAPproximation::simulate(int nFrames) {

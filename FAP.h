@@ -58,9 +58,11 @@ namespace Neolib {
 			FastAPproximation();
 
 			void addUnitPlayer1(FAPUnit fu);
+			void addIfCombatUnitPlayer1(FAPUnit fu);
 			void addUnitPlayer2(FAPUnit fu);
+			void addIfCombatUnitPlayer2(FAPUnit fu);
 
-			void simulate(int nFrames = -1);
+			void simulate(int nFrames = 96); // = 24*4, 4 seconds on fastest
 
 			std::pair <int, int> getStatus() const;
 			std::pair <std::vector <FAPUnit> *, std::vector <FAPUnit> *> getState();
