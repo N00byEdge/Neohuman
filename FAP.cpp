@@ -170,13 +170,12 @@ namespace Neolib {
 		}
 		else if(closestEnemy != enemyUnits.end() && closestDist > fu.speed) {
 			int dx = closestEnemy->x - fu.x, dy = closestEnemy->y - fu.y;
-			if (dx || dy) {
-				fu.x += (int)(dx*(fu.speed / sqrt(dx*dx + dy*dy)));
-				fu.y += (int)(dy*(fu.speed / sqrt(dx*dx + dy*dy)));
+
+			fu.x += (int)(dx*(fu.speed / sqrt(dx*dx + dy*dy)));
+			fu.y += (int)(dy*(fu.speed / sqrt(dx*dx + dy*dy)));
 				
-				didSomething = true;
-				return;
-			}
+			didSomething = true;
+			return;
 		}
 	}
 
