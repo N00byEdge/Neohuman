@@ -9,7 +9,6 @@
 #include "DrawingManager.h"
 #include "ResourceManager.h"
 #include "MapManager.h"
-#include "CombatSimulator.h"
 #include "BaseManager.h"
 #include "BuildingPlacer.h"
 
