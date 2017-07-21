@@ -241,7 +241,7 @@ namespace Neolib {
 		if (ed.lastType == BWAPI::UnitTypes::Protoss_Carrier) {
 			groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
 			groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
-			groundCooldown = 2;
+			groundCooldown = 5;
 			groundMaxRange = 32 * 8;
 
 			airDamage = groundDamage;
