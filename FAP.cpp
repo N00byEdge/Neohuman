@@ -30,18 +30,18 @@ namespace Neolib {
 		}
 	}
 
-	int FastAPproximation::getStatus() {
-		int score = 0;
+	std::pair <int, int> FastAPproximation::getStatus() {
+		std::pair <int, int> res;
 
 		for (auto & u : player1)
 			if (u.health && u.maxHealth)
-				score += (u.score * u.health) / u.maxHealth;
+				res.first += (u.score * u.health) / u.maxHealth;
 
 		for (auto & u : player2)
 			if (u.health && u.maxHealth)
-				score -= (u.score * u.health) / u.maxHealth;
+				res.second -= (u.score * u.health) / u.maxHealth;
 
-		return score;
+		return res;
 	}
 
 	std::pair<std::vector<FastAPproximation::FAPUnit>*, std::vector<FastAPproximation::FAPUnit>*> FastAPproximation::getState() {
