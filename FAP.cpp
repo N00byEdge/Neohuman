@@ -49,7 +49,7 @@ namespace Neolib {
 
 		for (auto & u : player2)
 			if (u.health && u.maxHealth)
-				res.second -= (u.score * u.health) / u.maxHealth;
+				res.second += (u.score * u.health) / u.maxHealth;
 
 		return res;
 	}
