@@ -138,6 +138,10 @@ namespace Neolib {
 		return (int)sqrt((u1.x - u2.x)*(u1.x - u2.x) + (u1.y - u2.y)*(u1.y - u2.y));
 	}
 
+	bool FastAPproximation::isSuicideUnit(BWAPI::UnitType ut) {
+		return (ut == BWAPI::UnitTypes::Zerg_Scourge || ut == BWAPI::UnitTypes::Zerg_Infested_Terran || ut == BWAPI::UnitTypes::Terran_Vulture_Spider_Mine);
+	}
+
 	void FastAPproximation::unitsim(const FastAPproximation::FAPUnit &fu, std::vector <FastAPproximation::FAPUnit> &enemyUnits) {
 		if (fu.attackCooldownRemaining) {
 			didSomething = true;
@@ -229,19 +233,83 @@ namespace Neolib {
 		}
 	}
 
-	void FastAPproximation::isimulate() {
-		for (auto &fu : player1)
-			if (fu.unitType == BWAPI::UnitTypes::Terran_Medic)
-				medicsim(fu, player1);
-			else
-				unitsim(fu, player2);
-			
+	bool FastAPproximation::suicideSim(const FAPUnit & fu, std::vector<FAPUnit>& enemyUnits) {
+		auto closestEnemy = enemyUnits.end();
+		int closestDist;
 
-		for (auto &fu : player2)
-			if (fu.unitType == BWAPI::UnitTypes::Terran_Medic)
-				medicsim(fu, player2);
-			else
-				unitsim(fu, player1);
+		for (auto enemyIt = enemyUnits.begin(); enemyIt != enemyUnits.end(); ++enemyIt) {
+			if (enemyIt->flying) {
+				if (fu.airDamage) {
+					int d = dist(fu, *enemyIt);
+					if ((closestEnemy == enemyUnits.end() || d < closestDist) && d >= fu.airMinRange) {
+						closestDist = d;
+						closestEnemy = enemyIt;
+					}
+				}
+			}
+			else {
+				if (fu.groundDamage) {
+					int d = dist(fu, *enemyIt);
+					if ((closestEnemy == enemyUnits.end() || d < closestDist) && d >= fu.groundMinRange) {
+						closestDist = d;
+						closestEnemy = enemyIt;
+					}
+				}
+			}
+		}
+
+		if (closestEnemy != enemyUnits.end() && closestDist <= fu.speed && !(fu.x == closestEnemy->x && fu.y == closestEnemy->y)) {
+			if(closestEnemy->flying)
+				dealDamage(*closestEnemy, fu.airDamage, fu.airDamageType);
+			else 
+				dealDamage(*closestEnemy, fu.groundDamage, fu.groundDamageType);
+
+			didSomething = true;
+			return true;
+		}
+		else if (closestEnemy != enemyUnits.end() && closestDist > fu.speed) {
+			int dx = closestEnemy->x - fu.x, dy = closestEnemy->y - fu.y;
+
+			fu.x += (int)(dx*(fu.speed / sqrt(dx*dx + dy*dy)));
+			fu.y += (int)(dy*(fu.speed / sqrt(dx*dx + dy*dy)));
+
+			didSomething = true;
+			return false;
+		}
+	}
+
+	void FastAPproximation::isimulate() {
+		for (auto fu = player1.begin(); fu != player1.end();) {
+			if (isSuicideUnit(fu->unitType)) {
+				bool result = suicideSim(*fu, player2);
+				if (result)
+					fu = player1.erase(fu);
+				else
+					++fu;
+			}
+			else {
+				if (fu->unitType == BWAPI::UnitTypes::Terran_Medic)
+					medicsim(*fu, player1);
+				else
+					unitsim(*fu, player2);
+			}
+		}
+
+		for (auto fu = player2.begin(); fu != player2.end();) {
+			if (isSuicideUnit(fu->unitType)) {
+				bool result = suicideSim(*fu, player1);
+				if (result)
+					fu = player2.erase(fu);
+				else
+					++fu;
+			}
+			else {
+				if (fu->unitType == BWAPI::UnitTypes::Terran_Medic)
+					medicsim(*fu, player2);
+				else
+					unitsim(*fu, player1);
+			}
+		}
 
 		for (auto &fu : player1) {
 			if (fu.attackCooldownRemaining)
