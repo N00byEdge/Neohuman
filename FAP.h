@@ -90,3 +90,5 @@ namespace Neolib {
 	};
 
 }
+
+extern Neolib::FastAPproximation fap;

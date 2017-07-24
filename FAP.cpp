@@ -2,6 +2,8 @@
 
 #include "Util.h"
 
+Neolib::FastAPproximation fap;
+
 namespace Neolib {
 
 	FastAPproximation::FastAPproximation() {
