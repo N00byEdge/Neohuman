@@ -27,6 +27,8 @@ namespace Neolib {
 
 			mutable double speed = 0;
 			mutable bool flying = 0;
+			mutable int elevation = -1;
+
 			mutable BWAPI::UnitSizeType unitSize;
 
 			mutable int groundDamage = 0;

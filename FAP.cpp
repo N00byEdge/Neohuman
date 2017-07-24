@@ -183,8 +183,13 @@ namespace Neolib {
 		if (closestEnemy != enemyUnits.end() && closestDist <= (closestEnemy->flying ? fu.groundMaxRange : fu.airMinRange)) {
 			if (closestEnemy->flying)
 				dealDamage(*closestEnemy, fu.airDamage, fu.airDamageType), fu.attackCooldownRemaining = fu.airCooldown;
-			else
-				dealDamage(*closestEnemy, fu.groundDamage, fu.groundDamageType), fu.attackCooldownRemaining = fu.groundCooldown;
+			else {
+				dealDamage(*closestEnemy, fu.groundDamage, fu.groundDamageType);
+				fu.attackCooldownRemaining = fu.groundCooldown;
+				if (fu.elevation != -1 && closestEnemy->elevation != -1)
+					if (closestEnemy->elevation > fu.elevation)
+						fu.attackCooldownRemaining += fu.groundCooldown;
+			}
 
 			if (closestEnemy->health < 1) {
 				*closestEnemy = enemyUnits.back();
@@ -258,11 +263,14 @@ namespace Neolib {
 			}
 		}
 
-		if (closestEnemy != enemyUnits.end() && closestDist <= fu.speed && !(fu.x == closestEnemy->x && fu.y == closestEnemy->y)) {
+		if (closestEnemy != enemyUnits.end() && closestDist <= fu.speed) {
 			if(closestEnemy->flying)
 				dealDamage(*closestEnemy, fu.airDamage, fu.airDamageType);
 			else 
 				dealDamage(*closestEnemy, fu.groundDamage, fu.groundDamageType);
+
+			if (closestEnemy->health < 1)
+				enemyUnits.erase(closestEnemy);
 
 			didSomething = true;
 			return true;
@@ -274,8 +282,9 @@ namespace Neolib {
 			fu.y += (int)(dy*(fu.speed / sqrt(dx*dx + dy*dy)));
 
 			didSomething = true;
-			return false;
 		}
+
+		return false;
 	}
 
 	void FastAPproximation::isimulate() {
@@ -292,6 +301,7 @@ namespace Neolib {
 					medicsim(*fu, player1);
 				else
 					unitsim(*fu, player2);
+				++fu;
 			}
 		}
 
@@ -308,6 +318,7 @@ namespace Neolib {
 					medicsim(*fu, player2);
 				else
 					unitsim(*fu, player1);
+				++fu;
 			}
 		}
 
@@ -433,6 +444,9 @@ namespace Neolib {
 			groundCooldown /= 2;
 			airCooldown /= 2;
 		}
+
+		if (ed.u && ed.u->isVisible() && !ed.u->isFlying())
+			elevation = BWAPI::Broodwar->getGroundHeight(ed.u->getTilePosition());
 
 		groundDamage *= 2;
 		airDamage *= 2;
