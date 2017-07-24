@@ -471,6 +471,7 @@ namespace Neolib {
 		attackCooldownRemaining = other.attackCooldownRemaining;
 		unitType = other.unitType; isOrganic = other.isOrganic;
 		healTimer = other.healTimer; didHealThisFrame = other.didHealThisFrame;
+		elevation = other.elevation;
 
 		return *this;
 	}
