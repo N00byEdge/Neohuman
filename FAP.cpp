@@ -139,7 +139,7 @@ namespace Neolib {
 	}
 
 	bool FastAPproximation::isSuicideUnit(BWAPI::UnitType ut) {
-		return (ut == BWAPI::UnitTypes::Zerg_Scourge || ut == BWAPI::UnitTypes::Zerg_Infested_Terran || ut == BWAPI::UnitTypes::Terran_Vulture_Spider_Mine);
+		return (ut == BWAPI::UnitTypes::Zerg_Scourge || ut == BWAPI::UnitTypes::Terran_Vulture_Spider_Mine || ut == BWAPI::UnitTypes::Zerg_Infested_Terran);
 	}
 
 	void FastAPproximation::unitsim(const FastAPproximation::FAPUnit &fu, std::vector <FastAPproximation::FAPUnit> &enemyUnits) {
