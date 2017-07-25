@@ -55,14 +55,6 @@ void Neohuman::onStart() {
 	Broodwar->sendText(openingStrings[randint(0, openingStrings.size() - 1)].c_str());
 	timer_onStart.reset();
 
-	/*buildingQueue = Neolib::BuildingQueue();
-	detectionManager = Neolib::DetectionManager();
-	resourceManager = Neolib::ResourceManager();
-	supplyManager = Neolib::SupplyManager();
-	drawingManager = Neolib::DrawingManager();
-	mapManager = Neolib::MapManager();
-	baseManager = Neolib::BaseManager();*/
-
 	playingRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
 	wasRandom = BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Random;
 
@@ -214,30 +206,6 @@ void Neohuman::onFrame() {
 		mapManager.onFrame();
 
 		timer_unitlogic.reset();
-
-		/*for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_SCV)) {
-			auto enemyUnit = unitManager.getClosestVisibleEnemy(u, true);
-			if (enemyUnit.u && u->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
-				u->attack(enemyUnit.u);
-
-			// if our worker is idle
-			if (u->isIdle()) {
-				// Order workers carrying a resource to return them to the center,
-				// otherwise find a mineral patch to harvest.
-				if (u->isCarryingGas() || u->isCarryingMinerals())
-					u->returnCargo();
-
-				else if (!u->getPowerUp() && Broodwar->getMinerals().size()) {
-					// Probably need to set up some better logic for this
-					auto preferredMiningLocation = *(Broodwar->getMinerals().begin());
-					for (auto &m : Broodwar->getMinerals())
-						if (preferredMiningLocation->getPosition().getApproxDistance(u->getPosition()) > m->getPosition().getApproxDistance(u->getPosition()))
-							preferredMiningLocation = m;
-
-					u->gather(preferredMiningLocation);
-				}
-			}
-		}*/
 
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Command_Center)) {
 			if (u->isConstructing())
