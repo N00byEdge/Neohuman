@@ -73,4 +73,19 @@ namespace Neolib {
 
 		return BWAPI::TilePosition(-1, -1);
 	}
+
+	std::set<std::pair<BWAPI::TilePosition, BWAPI::TilePosition>> MapManager::getNoBuildRects() {
+		std::set<std::pair<BWAPI::TilePosition, BWAPI::TilePosition>> rects;
+
+		for (auto &area : BWEM::Map::Instance().Areas()) {
+			for (auto &base : area.Bases()) {
+				std::pair <BWAPI::TilePosition, BWAPI::TilePosition> rect;
+				rect.first = base.Location() - BWAPI::TilePosition(-5, -5);
+				rect.second = base.Location() + BWAPI::UnitTypes::Terran_Command_Center.tileSize() + BWAPI::TilePosition(5, 5);
+			}
+		}
+
+		return rects;
+	}
+
 }

@@ -17,6 +17,8 @@ namespace Neolib {
 
 			const BWAPI::TilePosition getNextBasePosition() const;
 
+			std::set<std::pair <BWAPI::TilePosition, BWAPI::TilePosition>> getNoBuildRects();
+
 		private:
 
 			std::vector <const BWEM::Base*> allBases;

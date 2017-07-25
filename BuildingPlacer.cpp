@@ -2,6 +2,7 @@
 
 #include "BuildingQueue.h"
 #include "BaseManager.h"
+#include "MapManager.h"
 
 Neolib::BuildingPlacer buildingPlacer;
 
@@ -63,6 +64,15 @@ namespace Neolib {
 						for (y = o.designatedLocation.y; y < yEnd; ++y)
 							canBuild[x + y * 256] = false;
 				}
+			}
+
+			for (auto &o : mapManager.getNoBuildRects()) {
+				unsigned x = o.first.x, xEnd = o.second.x;
+				unsigned y = o.first.y, yEnd = o.second.y;
+
+				for (; x < xEnd; ++x)
+					for (unsigned ty = y; ty < yEnd; ++ty)
+						canBuild[x + ty * 256] = false;
 			}
 		}
 
