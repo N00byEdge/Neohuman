@@ -13,7 +13,12 @@ namespace Neolib {
 	void BuildingQueue::onFrame() {
 		for (auto it = buildingQueue.begin(); it != buildingQueue.end(); ++it) {
 			if (it->buildingType.getRace() == BWAPI::Races::Terran && !it->builder) {
-
+				it->builder = baseManager.findClosestBuilder(it->buildingType.whatBuilds().first, (BWAPI::Position)it->designatedLocation);
+				if (it->builder)
+					if (it->buildingUnit)
+						it->builder->rightClick(it->buildingUnit);
+					else
+						it->builder->build(it->buildingType, it->designatedLocation);
 			}
 
 			if (it->builder) {
@@ -22,22 +27,11 @@ namespace Neolib {
 					continue;
 				else if (order == BWAPI::Orders::PlaceBuilding)
 					continue;
-				if (resourceManager.canAfford(it->buildingType)) {
-					if (it->buildingUnit) {
-						it->builder->rightClick(it->buildingUnit);
-					}
-					else {
-						it->builder->build(it->buildingType, it->designatedLocation);
-					}
-				}
-			}
-			else {
-				it->builder = baseManager.findClosestBuilder(it->buildingType.whatBuilds().first, (BWAPI::Position)it->designatedLocation);
-				if (it->builder)
-					if (it->buildingUnit)
-						it->builder->rightClick(it->buildingUnit);
-					else
-						it->builder->build(it->buildingType, it->designatedLocation);
+
+				if (it->buildingUnit)
+					it->builder->rightClick(it->buildingUnit);
+				else
+					it->builder->build(it->buildingType, it->designatedLocation);
 			}
 		}
 	}
@@ -101,11 +95,8 @@ namespace Neolib {
 			if (!u && !(u = baseManager.findBuilder(building))) // Could not a find builder
 				return false;
 			at = buildingPlacer.getBuildLocation(building, u->getTilePosition());
-			if (at == BWAPI::TilePositions::None) {
-				drawingManager.failedLocations.insert({ at, building });
-				BWAPI::Broodwar->pingMinimap((BWAPI::Position)at);
+			if (at == BWAPI::TilePositions::None)
 				return false;
-			}
 		}
 		else
 			if (!u && !(u = baseManager.findClosestBuilder(building, (BWAPI::Position) at))) // Could not a find builder
@@ -133,8 +124,8 @@ namespace Neolib {
 			}
 		}
 
-		//if (u)
-		//	baseManager.takeUnit(u);
+		if (u)
+			baseManager.takeUnit(u);
 
 		if (u->build(building, at)) {
 			ConstructionProject cp;
@@ -146,8 +137,6 @@ namespace Neolib {
 			return true;
 		}
 		else {
-			if (!BWAPI::Broodwar->isVisible(at))
-				u->move((BWAPI::Position)at);
 			drawingManager.failedLocations.insert({ at, building });
 			BWAPI::Broodwar->pingMinimap((BWAPI::Position)at);
 			return false;
