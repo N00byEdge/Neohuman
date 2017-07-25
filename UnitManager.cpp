@@ -3,6 +3,7 @@
 #include "BuildingQueue.h"
 
 #include "CombatSimulator.h"
+#include "SoundDatabase.h"
 
 std::unordered_set <Neolib::EnemyData, Neolib::EnemyData::hash> emptyenemydataset;
 std::unordered_set <BWAPI::Unit> emptyUnitset;
@@ -14,7 +15,7 @@ Neolib::UnitManager unitManager;
 
 int deathMatrixGround[(256 * 4)*(256 * 4)], deathMatrixAir[(256 * 4)*(256 * 4)];
 
-namespace Neolib{
+namespace Neolib {
 
 	EnemyData::EnemyData() {
 
@@ -865,6 +866,10 @@ namespace Neolib{
 	}
 
 	void UnitManager::onUnitDestroy(BWAPI::Unit unit) {
+		if (unit->getPlayer() != BWAPI::Broodwar->self() && unit->getType().isResourceDepot())
+			soundDatabase.playRandomHappySound();
+		if (unit->getPlayer() == BWAPI::Broodwar->self() && unit->getType().isResourceDepot())
+			soundDatabase.playRandomSadSound();
 
 		if (unit->getPlayer()->isEnemy(BWAPI::Broodwar->self())) {
 			knownEnemies.erase(unit);
@@ -923,4 +928,5 @@ namespace Neolib{
 			friendlyUnitsByType[unit->getType()].insert(unit);
 		}
 	}
+
 }
