@@ -87,7 +87,7 @@ namespace Neolib {
 		bool xMax = false, xMin = false, yMax = false, yMin = false;
 		for (int state = 0; !xMax || !xMin || !yMax || !yMin; ++state) {
 			for (unsigned i = 0; i < e - 1; ++i) {
-				if (canPlaceBuilding(ut, suggestedPosition) && BWAPI::Broodwar->canBuildHere(suggestedPosition, ut, nullptr, false))
+				if (canPlaceBuilding(ut, suggestedPosition) && BWAPI::Broodwar->canBuildHere(suggestedPosition, ut, nullptr, true))
 					return suggestedPosition;
 
 				if (suggestedPosition.x < 0)
