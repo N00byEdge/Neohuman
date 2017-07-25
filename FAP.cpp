@@ -162,7 +162,7 @@ namespace Neolib {
 #endif
 	}
 
-	int inline FastAPproximation::dist(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
+	int inline FastAPproximation::distButNotReally(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
 		return (u1.x - u2.x)*(u1.x - u2.x) + (u1.y - u2.y)*(u1.y - u2.y);
 	}
 
@@ -182,7 +182,7 @@ namespace Neolib {
 		for (auto enemyIt = enemyUnits.begin(); enemyIt != enemyUnits.end(); ++ enemyIt) {
 			if (enemyIt->flying) {
 				if (fu.airDamage) {
-					int d = dist(fu, *enemyIt);
+					int d = distButNotReally(fu, *enemyIt);
 					if ((closestEnemy == enemyUnits.end() || d < closestDist) && d >= fu.airMinRange) {
 						closestDist = d;
 						closestEnemy = enemyIt;
@@ -191,7 +191,7 @@ namespace Neolib {
 			}
 			else {
 				if (fu.groundDamage) {
-					int d = dist(fu, *enemyIt);
+					int d = distButNotReally(fu, *enemyIt);
 					if ((closestEnemy == enemyUnits.end() || d < closestDist) && d >= fu.groundMinRange) {
 						closestDist = d;
 						closestEnemy = enemyIt;
@@ -200,7 +200,7 @@ namespace Neolib {
 			}
 		}
 
-		if (closestEnemy != enemyUnits.end() && closestDist <= fu.speed && !(fu.x == closestEnemy->x && fu.y == closestEnemy->y)) {
+		if (closestEnemy != enemyUnits.end() && sqrt(closestDist) <= fu.speed && !(fu.x == closestEnemy->x && fu.y == closestEnemy->y)) {
 			fu.x = closestEnemy->x;
 			fu.y = closestEnemy->y;
 			closestDist = 0;
@@ -229,7 +229,7 @@ namespace Neolib {
 			didSomething = true;
 			return;
 		}
-		else if(closestEnemy != enemyUnits.end() && closestDist > fu.speed) {
+		else if(closestEnemy != enemyUnits.end() && sqrt(closestDist) > fu.speed) {
 			int dx = closestEnemy->x - fu.x, dy = closestEnemy->y - fu.y;
 
 			fu.x += (int)(dx*(fu.speed / sqrt(dx*dx + dy*dy)));
@@ -246,7 +246,7 @@ namespace Neolib {
 
 		for (auto it = friendlyUnits.begin(); it != friendlyUnits.end(); ++it) {
 			if (it->isOrganic && it->health < it->maxHealth && !it->didHealThisFrame) {
-				int d = dist(fu, *it);
+				int d = distButNotReally(fu, *it);
 				if (closestHealable == friendlyUnits.end() || d < closestDist) {
 					closestHealable = it;
 					closestDist = d;
@@ -275,7 +275,7 @@ namespace Neolib {
 		for (auto enemyIt = enemyUnits.begin(); enemyIt != enemyUnits.end(); ++enemyIt) {
 			if (enemyIt->flying) {
 				if (fu.airDamage) {
-					int d = dist(fu, *enemyIt);
+					int d = distButNotReally(fu, *enemyIt);
 					if ((closestEnemy == enemyUnits.end() || d < closestDist) && d >= fu.airMinRange) {
 						closestDist = d;
 						closestEnemy = enemyIt;
@@ -284,7 +284,7 @@ namespace Neolib {
 			}
 			else {
 				if (fu.groundDamage) {
-					int d = dist(fu, *enemyIt);
+					int d = distButNotReally(fu, *enemyIt);
 					if ((closestEnemy == enemyUnits.end() || d < closestDist) && d >= fu.groundMinRange) {
 						closestDist = d;
 						closestEnemy = enemyIt;
@@ -293,7 +293,7 @@ namespace Neolib {
 			}
 		}
 
-		if (closestEnemy != enemyUnits.end() && closestDist <= fu.speed) {
+		if (closestEnemy != enemyUnits.end() && sqrt(closestDist) <= fu.speed) {
 			if(closestEnemy->flying)
 				dealDamage(*closestEnemy, fu.airDamage, fu.airDamageType);
 			else 
@@ -309,7 +309,7 @@ namespace Neolib {
 			didSomething = true;
 			return true;
 		}
-		else if (closestEnemy != enemyUnits.end() && closestDist > fu.speed) {
+		else if (closestEnemy != enemyUnits.end() && sqrt(closestDist) > fu.speed) {
 			int dx = closestEnemy->x - fu.x, dy = closestEnemy->y - fu.y;
 
 			fu.x += (int)(dx*(fu.speed / sqrt(dx*dx + dy*dy)));

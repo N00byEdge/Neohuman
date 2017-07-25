@@ -87,7 +87,7 @@ namespace Neolib {
 
 			bool didSomething;
 			void dealDamage(const FastAPproximation::FAPUnit & fu, int damage, BWAPI::DamageType damageType) const;
-			int dist(const FastAPproximation::FAPUnit & u1, const FastAPproximation::FAPUnit & u2) const;
+			int distButNotReally(const FastAPproximation::FAPUnit & u1, const FastAPproximation::FAPUnit & u2) const;
 			bool isSuicideUnit(BWAPI::UnitType ut);
 			void unitsim(const FAPUnit & fu, std::vector <FAPUnit> &enemyUnits);
 			void medicsim(const FAPUnit & fu, std::vector <FAPUnit> &friendlyUnits);
