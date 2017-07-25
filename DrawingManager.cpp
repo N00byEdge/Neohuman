@@ -105,15 +105,14 @@ namespace Neolib {
 
 		if (s.enableTopInfo) {
 
-			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "FPS: %c%d", BWAPI::Broodwar->getFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getFPS());
-			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Average FPS: %c%f", BWAPI::Broodwar->getAverageFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getAverageFPS());
+			//BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "FPS: %c%d", BWAPI::Broodwar->getFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getFPS());
+			//BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Average FPS: %c%f", BWAPI::Broodwar->getAverageFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getAverageFPS());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Nukes: %c%u Armed %c%u Arming %c%u Unarmed", BWAPI::Text::BrightRed, unitManager.getNumArmedSilos(), BWAPI::Text::Orange, unitManager.getNumArmingSilos(), BWAPI::Text::Yellow, unitManager.getNumUnarmedSilos());
-			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%u marines swarming you", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Marine));
-			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d barracks!", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks));
-			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d APM!", BWAPI::Broodwar->getAPM());
+			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%c%d%c nukes launched", BWAPI::Text::Green, unitManager.getLaunchedNukeCount(), BWAPI::Text::Default);
+			//BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d barracks!", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks));
+			//BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d APM!", BWAPI::Broodwar->getAPM());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Income: %c%d %c%d", BWAPI::Text::Blue, resourceManager.getMinuteApproxIncome().minerals, BWAPI::Text::Green, resourceManager.getMinuteApproxIncome().gas, BWAPI::Text::Default, baseManager.getHomelessWorkers().size());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%u Idle workers", baseManager.getHomelessWorkers().size());
-			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%u Loose workers", baseManager.getLooseWorkers().size());
 
 		}
 
@@ -188,9 +187,6 @@ namespace Neolib {
 
 			for (auto &w : baseManager.getHomelessWorkers())
 				BWAPI::Broodwar->drawTextMap(w->getPosition(), "H");
-
-			for (auto &w : baseManager.getLooseWorkers())
-				BWAPI::Broodwar->drawTextMap(w->getPosition(), "L");
 
 		}
 
@@ -341,6 +337,7 @@ namespace Neolib {
 			for (auto &nd : BWAPI::Broodwar->getNukeDots()) {
 				BWAPI::Broodwar->drawLineMap(nd + BWAPI::Position(-100, -100), nd + BWAPI::Position(100, 100), BWAPI::Colors::Yellow);
 				BWAPI::Broodwar->drawLineMap(nd + BWAPI::Position(-100, 100), nd + BWAPI::Position(100, -100), BWAPI::Colors::Yellow);
+				BWAPI::Broodwar->drawCircleMap(nd, 10 * 32, BWAPI::Colors::Yellow, false);
 			}
 		}
 

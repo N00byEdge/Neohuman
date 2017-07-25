@@ -87,8 +87,10 @@ namespace Neolib {
 			BWAPI::Position lastKnownEnemyPosition(BWAPI::Unit) const;
 
 			int getScore() const;
+			unsigned getLaunchedNukeCount() const;
 
 			void onFrame();
+			void onNukeDetect(BWAPI::Position target);
 			void onUnitDiscover(BWAPI::Unit unit);
 			void onUnitShow(BWAPI::Unit unit);
 			void onUnitHide(BWAPI::Unit unit);
@@ -116,6 +118,9 @@ namespace Neolib {
 			std::map <BWAPI::Unit, std::pair <BWAPI::Unit, int>> lockdownDB;
 
 			bool score;
+			std::map <BWAPI::UnitType, int> multikillDetector;
+
+			unsigned launchedNukeCount = 0;
 	};
 
 }

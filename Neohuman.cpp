@@ -510,8 +510,7 @@ void Neohuman::onPlayerLeft(Player player) {
 }
 
 void Neohuman::onNukeDetect(Position target) {
-	Broodwar->sendText("You may want to know that there is a nuke coming for you at %d %d", target.x, target.y);
-	Broodwar->sendText("Nuke score: %d", unitManager.getNukeScore(target, nullptr));
+	unitManager.onNukeDetect(target);
 
 	// if (target) {
 	// 	Broodwar << "Nuclear Launch Detected at " << target << std::endl;

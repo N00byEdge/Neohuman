@@ -707,9 +707,26 @@ namespace Neolib {
 
 	int UnitManager::getScore() const {
 		return score;
+	unsigned UnitManager::getLaunchedNukeCount() const {
+		return launchedNukeCount;
 	}
 
 	void UnitManager::onFrame() {
+		{
+			int unitsKilledThisFrame = 0;
+			for (auto &ut : multikillDetector)
+				unitsKilledThisFrame += ut.second;
+
+			if (unitsKilledThisFrame > 3) {
+				soundDatabase.playRandomKillSound();
+				BWAPI::Broodwar->sendText("%cMULTIKILL! %d Units killed!", BWAPI::Text::Yellow, unitsKilledThisFrame);
+				for (auto &ut : multikillDetector)
+					BWAPI::Broodwar->sendText("    %c%s: %d", BWAPI::Text::Yellow, noRaceName(ut.first.c_str()), ut.second);
+			}
+
+			multikillDetector.clear();
+		}
+
 		// Update visible enemies
 		for (auto unitIt = visibleEnemies.begin(); unitIt != visibleEnemies.end();) {
 			if (!unitIt->u->isVisible()) {
@@ -812,6 +829,13 @@ namespace Neolib {
 				++it;
 	}
 
+	void UnitManager::onNukeDetect(BWAPI::Position target) {
+		++launchedNukeCount;
+
+		BWAPI::Broodwar->sendText("You may want to know that there is a nuke coming for you at %d %d", target.x, target.y);
+		BWAPI::Broodwar->sendText("Nuke score: %d", getNukeScore(target, nullptr));
+	}
+
 	void UnitManager::onUnitDiscover(BWAPI::Unit unit) {
 		if (unit->getPlayer()->isEnemy(BWAPI::Broodwar->self())) {
 			auto ke = knownEnemies.find(unit);
@@ -858,6 +882,8 @@ namespace Neolib {
 			if (enemyUnitsByType[unit->getType()].empty())
 				enemyUnitsByType.erase(unit->getType());
 			visibleEnemies.erase(unit);
+
+			++multikillDetector[unit->getType()];
 		}
 		else if (unit->getPlayer() == BWAPI::Broodwar->self()) {
 			friendlyUnitsByType[unit->getType()].erase(unit);
