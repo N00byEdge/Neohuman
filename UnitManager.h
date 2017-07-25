@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BWAPI.h"
+#include "Util.h"
 
 namespace Neolib {
 
@@ -8,16 +9,17 @@ namespace Neolib {
 		EnemyData();
 		EnemyData(BWAPI::Unit);
 
-		BWAPI::Unit u;
-		mutable BWAPI::Player lastPlayer;
+		BWAPI::Unit u = nullptr;
+		mutable BWAPI::Player lastPlayer = nullptr;
 		mutable BWAPI::UnitType lastType;
 		mutable BWAPI::Position lastPosition;
 		mutable int lastShields;
 		mutable int lastHealth;
-		mutable int frameLastSeen;
+		mutable int frameLastSeen = 0;
+		mutable int frameLastDetected = 0;
 		mutable int unitID;
-		mutable bool positionInvalidated;
-		mutable bool isCompleted;
+		mutable bool positionInvalidated = true;
+		mutable bool isCompleted = false;
 
 		void updateFromUnit() const;
 		void updateFromUnit(const BWAPI::Unit unit) const;

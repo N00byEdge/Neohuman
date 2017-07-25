@@ -1,8 +1,6 @@
 #include "UnitManager.h"
 
 #include "BuildingQueue.h"
-
-#include "CombatSimulator.h"
 #include "SoundDatabase.h"
 
 std::unordered_set <Neolib::EnemyData, Neolib::EnemyData::hash> emptyenemydataset;
@@ -27,16 +25,7 @@ namespace Neolib {
 	}
 
 	void EnemyData::updateFromUnit() const {
-		frameLastSeen = BWAPI::Broodwar->getFrameCount();
-		lastPosition = u->getPosition();
-		lastType = u->getType();
-		unitID = u->getID();
-		if (!u->isDetected())
-			return;
-		lastHealth = u->getHitPoints();
-		lastPlayer = u->getPlayer();
-		lastShields = u->getShields();
-		isCompleted = u->isCompleted();
+		updateFromUnit(u);
 	}
 
 	void EnemyData::updateFromUnit(const BWAPI::Unit unit) const {
@@ -44,23 +33,24 @@ namespace Neolib {
 		lastType = unit->getType();
 		unitID = unit->getID();
 		lastPosition = unit->getPosition();
+		lastPlayer = unit->getPlayer();
 		if (!unit->isDetected())
 			return;
+		frameLastDetected = BWAPI::Broodwar->getFrameCount();
 		lastHealth = unit->getHitPoints();
-		lastPlayer = unit->getPlayer();
 		lastShields = unit->getShields();
 		isCompleted = unit->isCompleted();
 	}
 
 	int EnemyData::expectedHealth() const {
 		if (lastType.getRace() == BWAPI::Races::Zerg)
-			return MIN(((BWAPI::Broodwar->getFrameCount() - frameLastSeen) * ZERGREGEN) / 256 + lastHealth, lastType.maxHitPoints());
+			return MIN(((BWAPI::Broodwar->getFrameCount() - frameLastDetected) * ZERGREGEN) / 256 + lastHealth, lastType.maxHitPoints());
 		return lastHealth;
 	}
 
 	int EnemyData::expectedShields() const {
 		if (lastType.getRace() == BWAPI::Races::Protoss)
-			return MIN(((BWAPI::Broodwar->getFrameCount() - frameLastSeen) * PROTOSSSHEILDREGEN) / 256 + lastShields, lastType.maxShields());
+			return MIN(((BWAPI::Broodwar->getFrameCount() - frameLastDetected) * PROTOSSSHEILDREGEN) / 256 + lastShields, lastType.maxShields());
 		return lastShields;
 	}
 
@@ -825,18 +815,7 @@ namespace Neolib {
 	void UnitManager::onUnitDiscover(BWAPI::Unit unit) {
 		if (unit->getPlayer()->isEnemy(BWAPI::Broodwar->self())) {
 			auto ke = knownEnemies.find(unit);
-			EnemyData ed;
-			ed.u = unit;
-			ed.frameLastSeen = BWAPI::Broodwar->getFrameCount();
-
-			if (unit->isDetected()) {
-				ed.lastHealth = unit->getHitPoints();
-				ed.lastShields = unit->getShields();
-			}
-
-			ed.lastPosition = unit->getPosition();
-			ed.lastType = unit->getType();
-			ed.positionInvalidated = false;
+			EnemyData ed(unit);
 			if (ke != knownEnemies.end()) {
 				if (ke->lastType != unit->getType())
 					enemyUnitsByType[ke->lastType].erase(unit);
@@ -844,8 +823,10 @@ namespace Neolib {
 
 				enemyUnitsByType[ke->lastType].insert(ed);
 			}
-			else
+			else {
 				knownEnemies.insert(ed);
+				enemyUnitsByType[ed.lastType].insert(ed);
+			}
 
 			invalidatedEnemies.erase(unit);
 			nonVisibleEnemies.erase(unit);
