@@ -169,7 +169,7 @@ void Neohuman::onFrame() {
 				break;
 
 			case 1:
-				if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks) < 20 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot, false, true) && (unitManager.countFriendly(UnitTypes::Terran_Barracks) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || resourceManager.getSpendableResources().minerals >= 550))
+				if ((resourceManager.canAfford(UnitTypes::Terran_Barracks) && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks) < 20 && unitManager.countFriendly(BWAPI::UnitTypes::Terran_Supply_Depot, false, true) && (unitManager.countFriendly(UnitTypes::Terran_Barracks) < unitManager.countUnit(UnitTypes::Terran_SCV, IsGatheringMinerals && IsOwned) / 6) || (resourceManager.getSpendableResources().minerals >= 550 && supplyManager.usedSupply().terran < 350 && supplyManager.availableSupply().terran == 400)))
 					buildingQueue.doBuild(UnitTypes::Terran_Barracks);
 				break;
 
