@@ -25,7 +25,11 @@ namespace Neolib {
 		bool enableNukeOverlay = true;
 		bool enableNukeSpots = true;
 		bool enableCombatSimOverlay = true;
+
 #else
+
+#ifdef SSCAIT
+
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
 		bool enableBWEMOverlay = false;
@@ -41,6 +45,27 @@ namespace Neolib {
 		bool enableNukeOverlay = false;
 		bool enableNukeSpots = true;
 		bool enableCombatSimOverlay = true;
+
+#else
+
+		bool enableTopInfo = true;
+		bool enableResourceOverlay = true;
+		bool enableBWEMOverlay = false;
+		bool enableComsatInfo = true;
+		bool enableListBuildingQueue = true;
+		bool enableSaturationInfo = false;
+		bool enableTimerInfo = false;
+		bool enableEnemyOverlay = false;
+		bool enableDeathMatrix = false;
+		bool enableBaseOverlay = false;
+		bool enableHealthBars = true;
+		bool enableFailedLocations = false;
+		bool enableNukeOverlay = false;
+		bool enableNukeSpots = true;
+		bool enableCombatSimOverlay = true;
+
+#endif
+
 #endif
 	};
 
