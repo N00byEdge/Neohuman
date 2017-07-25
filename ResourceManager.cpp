@@ -73,9 +73,9 @@ namespace Neolib {
 
 	ResourceCount ResourceManager::resourcesReservedForSupply() const {
 		ResourceCount rc;
-		rc.minerals += 100 * (int)ceil(supplyManager.wantedAdditionalSupply().terran / 16);
-		rc.minerals += 100 * (int)ceil(supplyManager.wantedAdditionalSupply().protoss / 16);
-		rc.minerals += 100 * (int)ceil(supplyManager.wantedAdditionalSupply().zerg / 16);
+		rc.minerals += 100 * MAX((int)ceil(supplyManager.wantedAdditionalSupply().terran / 16), 0);
+		rc.minerals += 100 * MAX((int)ceil(supplyManager.wantedAdditionalSupply().protoss / 16), 0);
+		rc.minerals += 100 * MAX((int)ceil(supplyManager.wantedAdditionalSupply().zerg / 16), 0);
 		return rc;
 	}
 
