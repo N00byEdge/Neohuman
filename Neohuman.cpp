@@ -15,6 +15,7 @@
 #include "SoundDatabase.h"
 
 #include <iostream>
+#include <fstream>
 
 using namespace BWAPI;
 using namespace Filter;
@@ -58,7 +59,11 @@ void Neohuman::onStart() {
 	playingRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
 	wasRandom = BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Random;
 
+#ifndef SSCAIT
+
 	Broodwar->enableFlag(Flag::UserInput);
+
+#endif
 
 	// Uncomment the following line and the bot will know about everything through the fog of war (cheat).
 	// Broodwar->enableFlag(Flag::CompleteMapInformation);
@@ -75,7 +80,13 @@ void Neohuman::onStart() {
 	//combatSimulator.init();
 
 	timer_onStart.stop();
+
+#ifdef _DEBUG
+
 	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
+
+#endif
+
 	//combatSimulator.onStart();
 
 	/*
@@ -86,12 +97,29 @@ void Neohuman::onStart() {
 
 void Neohuman::onEnd(bool didWin) {
 	// Called when the game ends
-	if (didWin) {
-
-	} else {
-
+	int wins = 0;
+	int losses = 0;
+	std::ifstream rf("bwapi-data/read/" + Broodwar->enemy()->getName() + ".txt");
+	if (rf) {
+		rf >> wins >> losses;
+		rf.close();
+	}
+	else {
+		rf.open("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
+		if (rf) {
+			rf >> wins >> losses;
+			rf.close();
+		}
 	}
 
+	if (didWin) {
+		++wins;
+	} else {
+		++losses;
+	}
+	std::ofstream of("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
+	if (of)
+		of << wins << " " << losses << "\n";
 }
 
 void Neohuman::onFrame() {
