@@ -1,5 +1,7 @@
 #include "SoundFile.h"
 
+#ifdef WIN32
+
 #include <mmsystem.h>
 #include <conio.h>
 #include <fstream>
@@ -40,5 +42,7 @@ namespace Neolib {
 			PlaySound(buf, hi, SND_MEMORY | SND_ASYNC);
 	}
 }
+
+#endif
 
 

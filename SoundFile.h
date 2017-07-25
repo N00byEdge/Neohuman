@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef WIN32
+
 #include <windows.h>
 
 namespace Neolib {
@@ -20,3 +22,5 @@ namespace Neolib {
 			HINSTANCE hi;
 	};
 }
+
+#endif
