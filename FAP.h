@@ -11,7 +11,7 @@ namespace Neolib {
 		struct FAPUnit {
 			FAPUnit(BWAPI::Unit u);
 			FAPUnit(EnemyData ed);
-			FAPUnit &operator= (const FAPUnit &other);
+			const FAPUnit &operator= (const FAPUnit &other) const;
 
 			int id = 0;
 
@@ -48,6 +48,7 @@ namespace Neolib {
 			mutable BWAPI::DamageType airDamageType;
 
 			mutable BWAPI::UnitType unitType;
+			mutable BWAPI::Player player = nullptr;
 			mutable int healTimer = 0;
 			mutable bool isOrganic = false;
 			mutable bool didHealThisFrame = false;
@@ -90,6 +91,8 @@ namespace Neolib {
 			void medicsim(const FAPUnit & fu, std::vector <FAPUnit> &friendlyUnits);
 			bool suicideSim(const FAPUnit & fu, std::vector <FAPUnit> &enemyUnits);
 			void isimulate();
+			void unitDeath(const FAPUnit & fu, std::vector <FAPUnit> &itsFriendlies);
+			void convertToUnitType(const FAPUnit &fu, BWAPI::UnitType ut);
 
 	};
 

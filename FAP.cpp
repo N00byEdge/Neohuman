@@ -192,8 +192,10 @@ namespace Neolib {
 			}
 
 			if (closestEnemy->health < 1) {
+				auto temp = *closestEnemy;
 				*closestEnemy = enemyUnits.back();
 				enemyUnits.pop_back();
+				unitDeath(temp, enemyUnits);
 			}
 
 			didSomething = true;
@@ -269,8 +271,12 @@ namespace Neolib {
 			else 
 				dealDamage(*closestEnemy, fu.groundDamage, fu.groundDamageType);
 
-			if (closestEnemy->health < 1)
-				enemyUnits.erase(closestEnemy);
+			if (closestEnemy->health < 1) {
+				auto temp = *closestEnemy;
+				*closestEnemy = enemyUnits.back();
+				enemyUnits.pop_back();
+				unitDeath(temp, enemyUnits);
+			}
 
 			didSomething = true;
 			return true;
@@ -337,6 +343,28 @@ namespace Neolib {
 		}
 	}
 
+	void FastAPproximation::unitDeath(const FAPUnit &fu, std::vector<FAPUnit> &itsFriendlies) {
+		if (fu.unitType == BWAPI::UnitTypes::Terran_Bunker) {
+			convertToUnitType(fu, BWAPI::UnitTypes::Terran_Marine);
+
+			for(unsigned i = 0; i < 4; ++ i)
+				itsFriendlies.push_back(fu);
+		}
+	}
+
+	void FastAPproximation::convertToUnitType(const FAPUnit &fu, BWAPI::UnitType ut) {
+		EnemyData ed;
+		ed.lastPosition = { fu.x, fu.y };
+		ed.lastPlayer = fu.player;
+		ed.lastType = ut;
+
+		FAPUnit funew(ed);
+		funew.attackCooldownRemaining = fu.attackCooldownRemaining;
+		funew.elevation = fu.elevation;
+
+		fu.operator=(funew);
+	}
+
 	FastAPproximation::FAPUnit::FAPUnit(BWAPI::Unit u): FAPUnit(EnemyData(u)) {
 
 	}
@@ -374,7 +402,8 @@ namespace Neolib {
 
 		unitType(ed.lastType),
 		isOrganic(ed.lastType.isOrganic()),
-		score(ed.lastType.destroyScore()) {
+		score(ed.lastType.destroyScore()),
+		player(ed.lastPlayer) {
 
 		static int nextId = 0;
 		id = nextId++;
@@ -460,7 +489,7 @@ namespace Neolib {
 		maxShields *= 2;
 	}
 
-	FastAPproximation::FAPUnit &FastAPproximation::FAPUnit::operator=(const FAPUnit & other) {
+	const FastAPproximation::FAPUnit &FastAPproximation::FAPUnit::operator=(const FAPUnit & other) const {
 		x = other.x, y = other.y;
 		health = other.health, maxHealth = other.maxHealth;
 		shields = other.shields, maxShields = other.maxShields;
@@ -472,6 +501,7 @@ namespace Neolib {
 		unitType = other.unitType; isOrganic = other.isOrganic;
 		healTimer = other.healTimer; didHealThisFrame = other.didHealThisFrame;
 		elevation = other.elevation;
+		player = other.player;
 
 		return *this;
 	}
