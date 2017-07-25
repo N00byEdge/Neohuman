@@ -591,7 +591,7 @@ namespace Neolib {
 			skipUnit:;
 		}
 
-		if (pos == BWAPI::Positions::None || bestScore < 600)
+		if (pos == BWAPI::Positions::None || getNukeScore(pos, nullptr) < 2000) // Compare absolute score, no ghost specific
 			return BWAPI::Positions::None;
 		else
 			return pos;
