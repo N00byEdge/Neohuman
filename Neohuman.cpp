@@ -11,6 +11,7 @@
 #include "MapManager.h"
 #include "BaseManager.h"
 #include "BuildingPlacer.h"
+#include "FAP.h"
 #include "SoundDatabase.h"
 
 #include <iostream>
@@ -355,7 +356,7 @@ void Neohuman::onFrame() {
 				if (fleeFrom) {
 					int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && GetType != BWAPI::UnitTypes::Protoss_Interceptor).size() + 1;
 					friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
-					if (enemyCount + 3 > friendlyCount /* u->isUnderAttack()*/) {
+					if (unitManager.getSimResults().shortLosses < 0 && unitManager.getSimResults().postsim.unitCounts.second > 0 /*enemyCount + 3 > friendlyCount*/ /* u->isUnderAttack()*/) {
 						if (fleeFrom != nullptr) {
 							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
 							continue;
@@ -444,7 +445,7 @@ void Neohuman::onFrame() {
 
 				auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
 				if (fleeFrom) {
-					if (u->isUnderAttack()) {
+					if (unitManager.getSimResults().shortLosses < 0 && unitManager.getSimResults().postsim.unitCounts.second > 0/*u->isUnderAttack()*/) {
 						if (fleeFrom != nullptr) {
 							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
 							continue;

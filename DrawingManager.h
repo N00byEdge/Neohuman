@@ -9,6 +9,7 @@ namespace Neolib {
 
 	struct DrawerSettings {
 #ifdef _DEBUG
+
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
 		bool enableBWEMOverlay = false;
@@ -23,6 +24,7 @@ namespace Neolib {
 		bool enableFailedLocations = true;
 		bool enableNukeOverlay = true;
 		bool enableNukeSpots = true;
+		bool enableCombatSimOverlay = true;
 #else
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
@@ -38,6 +40,7 @@ namespace Neolib {
 		bool enableFailedLocations = false;
 		bool enableNukeOverlay = false;
 		bool enableNukeSpots = true;
+		bool enableCombatSimOverlay = true;
 #endif
 	};
 

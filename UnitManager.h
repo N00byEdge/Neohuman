@@ -35,6 +35,15 @@ namespace Neolib {
 		};
 	};
 
+	struct SimResults {
+		struct SimState {
+			std::pair <int, int> scores, unitCounts;
+		};
+
+		SimState presim, shortsim, postsim;
+		int shortLosses;
+	};
+
 	class UnitManager {
 		public:
 			const std::map <BWAPI::UnitType, std::unordered_set <EnemyData, EnemyData::hash>>   &getEnemyUnitsByType() const;
@@ -86,7 +95,7 @@ namespace Neolib {
 
 			BWAPI::Position lastKnownEnemyPosition(BWAPI::Unit) const;
 
-			int getScore() const;
+			SimResults getSimResults();
 			unsigned getLaunchedNukeCount() const;
 
 			void onFrame();
@@ -117,9 +126,10 @@ namespace Neolib {
 
 			std::map <BWAPI::Unit, std::pair <BWAPI::Unit, int>> lockdownDB;
 
-			bool score;
 			std::map <BWAPI::UnitType, int> multikillDetector;
 
+			SimResults sr;
+			
 			unsigned launchedNukeCount = 0;
 	};
 

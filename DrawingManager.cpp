@@ -7,12 +7,13 @@
 #include "BuildingQueue.h"
 #include "MapManager.h"
 #include "BaseManager.h"
+#include "FAP.h"
 
 #include "BWAPI.h"
 #include "bwem.h"
 
-const std::vector <int> columnXStart = { 0, 160, 280, 430, 510 };
-const std::vector <int> columnYStart = { 0, 0, 0, 200, 16 };
+const std::vector <int> columnXStart = { 0, 160, 280, 430, 510, 175 };
+const std::vector <int> columnYStart = { 0, 0, 0, 200, 16, 312 };
 
 #define SHIELDTEXT		(char)BWAPI::Text::Blue
 #define HEALTHTEXT		(char)BWAPI::Text::Green
@@ -339,6 +340,14 @@ namespace Neolib {
 				BWAPI::Broodwar->drawLineMap(nd + BWAPI::Position(-100, 100), nd + BWAPI::Position(100, -100), BWAPI::Colors::Yellow);
 				BWAPI::Broodwar->drawCircleMap(nd, 10 * 32, BWAPI::Colors::Yellow, false);
 			}
+		}
+
+		if (s.enableCombatSimOverlay) {
+			auto res = unitManager.getSimResults();
+			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Combat sim:   %d", res.shortLosses);
+			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Presim  units: %3u %3u Presim scores:  %5d %5d", res.presim.unitCounts.first, res.presim.unitCounts.second, res.presim.scores.first, res.presim.scores.second);
+			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Shrtsim units: %3u %3u Shrtsim scores: %5d %5d", res.shortsim.unitCounts.first, res.shortsim.unitCounts.second, res.shortsim.scores.first, res.shortsim.scores.second);
+			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Postsim units: %3u %3u Postsim scores: %5d %5d", res.postsim.unitCounts.first, res.postsim.unitCounts.second, res.postsim.scores.first, res.postsim.scores.second);
 		}
 
 		// for (unsigned i = 0; i < _allBases.size(); ++ i) {

@@ -2,6 +2,7 @@
 
 #include "BuildingQueue.h"
 #include "SoundDatabase.h"
+#include "FAP.h"
 
 std::unordered_set <Neolib::EnemyData, Neolib::EnemyData::hash> emptyenemydataset;
 std::unordered_set <BWAPI::Unit> emptyUnitset;
@@ -630,7 +631,7 @@ namespace Neolib {
 			val += 980;
 
 		val += deathPerHealth(ed, f->isFlying());
-		val -= ed.lastPosition.getApproxDistance(f->getPosition());
+		val -= ed.lastPosition.getApproxDistance(f->getPosition()) * 10;
 
 		if (!ed.lastType.canProduce() && !reallyHasWeapon(ed.lastType) && isOnFire(ed))
 			val -= 250;
@@ -705,8 +706,10 @@ namespace Neolib {
 		}
 	}
 
-	int UnitManager::getScore() const {
-		return score;
+	SimResults UnitManager::getSimResults() {
+		return sr;
+	}
+
 	unsigned UnitManager::getLaunchedNukeCount() const {
 		return launchedNukeCount;
 	}
@@ -805,22 +808,37 @@ namespace Neolib {
 			addToDeathMatrix(BWAPI::Position(unitIt->lastPosition.x / 8, unitIt->lastPosition.y / 8), unitIt->lastType, unitIt->lastPlayer);
 		*/
 
-		if (BWAPI::Broodwar->getFrameCount() % 128 == 0) {
-#ifdef ENABLE_SPARCRAFT
-			combatSimulator.clear();
-			for (auto &u : friendlyUnits)
-				if (u.first->getType() != BWAPI::UnitTypes::Terran_SCV && SparCraft::System::UnitTypeSupported(u.first->getType()))
-					combatSimulator.addUnitToSimulator(u.first->getID(), u.first->getPosition(), u.first->getType(), false, u.first->getHitPoints(), u.first->getShields());
+		fap = FastAPproximation();
 
-			for (auto &u : visibleEnemies)
-				if (SparCraft::System::UnitTypeSupported(u.lastType))
-					combatSimulator.addUnitToSimulator(u.unitID, u.lastPosition, u.lastType, true, u.expectedHealth(), u.expectedShields());
+		for (auto &u : getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Marine))
+			fap.addIfCombatUnitPlayer1(u);
 
-			for (auto &u : nonVisibleEnemies)
-				if (SparCraft::System::UnitTypeSupported(u.lastType))
-					combatSimulator.addUnitToSimulator(u.unitID, u.lastPosition, u.lastType, true, u.expectedHealth(), u.expectedShields());
-#endif // ENABLE_SPARCRAFT
-		}
+		for (auto &u : getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Ghost))
+			fap.addIfCombatUnitPlayer1(u);
+
+		for (auto &u : getVisibleEnemies())
+			if (!(u.lastType.isWorker() && (u.u && u.u->isAttacking())))
+				fap.addIfCombatUnitPlayer2(u);
+
+		for (auto &u : getNonVisibleEnemies())
+			if (!(u.lastType.isWorker() && (u.u && u.u->isAttacking())))
+				fap.addIfCombatUnitPlayer2(u);
+
+		sr.presim.scores = fap.playerScores();
+		sr.presim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+
+		fap.simulate(24 * 3); // 3 seconds of combat
+
+		sr.shortsim.scores = fap.playerScores();
+		sr.shortsim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+		int theirLosses = sr.presim.scores.second - sr.shortsim.scores.second;
+		int ourLosses = sr.presim.scores.first - sr.shortsim.scores.first;
+		sr.shortLosses = theirLosses - ourLosses;
+
+		fap.simulate(24 * 60); // 60 seconds of combat
+
+		sr.postsim.scores = fap.playerScores();
+		sr.postsim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
 
 		for (auto it = lockdownDB.begin(); it != lockdownDB.end();)
 			if (it->second.second > BWAPI::Broodwar->getFrameCount() + 24 * 3)
