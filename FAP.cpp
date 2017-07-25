@@ -162,8 +162,8 @@ namespace Neolib {
 #endif
 	}
 
-	int FastAPproximation::dist(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
-		return (int)sqrt((u1.x - u2.x)*(u1.x - u2.x) + (u1.y - u2.y)*(u1.y - u2.y));
+	int inline FastAPproximation::dist(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
+		return (u1.x - u2.x)*(u1.x - u2.x) + (u1.y - u2.y)*(u1.y - u2.y);
 	}
 
 	bool FastAPproximation::isSuicideUnit(BWAPI::UnitType ut) {
@@ -504,6 +504,11 @@ namespace Neolib {
 
 		if (ed.u && ed.u->isVisible() && !ed.u->isFlying())
 			elevation = BWAPI::Broodwar->getGroundHeight(ed.u->getTilePosition());
+
+		groundMaxRange *= groundMaxRange;
+		groundMinRange *= groundMinRange;
+		airMaxRange *= airMaxRange;
+		airMinRange *= airMinRange;
 
 		groundDamage *= 2;
 		airDamage *= 2;
