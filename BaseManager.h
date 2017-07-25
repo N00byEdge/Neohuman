@@ -56,13 +56,12 @@ namespace Neolib {
 
 			const std::set <Base> &getAllBases() const;
 			const std::set <BWAPI::Unit> &getHomelessWorkers() const;
-			const std::set <BWAPI::Unit> &getLooseWorkers() const;
 
 		private:
 			std::set <Base> bases;
+			std::map <BWAPI::Unit, const Base *> builders;
 
 			std::set <BWAPI::Unit> homelessWorkers;
-			std::set <BWAPI::Unit> looseWorkers;
 			std::map <BWAPI::Unit, const Base *> workerBaseLookup;
 	};
 }

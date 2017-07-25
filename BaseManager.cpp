@@ -8,7 +8,7 @@ Neolib::BaseManager baseManager;
 
 namespace Neolib {
 
-	Base::Base(BWAPI::Unit rd): resourceDepot(rd), race(rd->getType().getRace()) {
+	Base::Base(BWAPI::Unit rd) : resourceDepot(rd), race(rd->getType().getRace()) {
 		for (auto &b : mapManager.getAllBases())
 			if (b->Location() == rd->getTilePosition())
 				BWEMBase = b;
@@ -20,7 +20,7 @@ namespace Neolib {
 					for (auto &b : mapManager.getAllBases())
 						if (ABS(b->Location().x - sl.x) + ABS(b->Location().y - sl.y) < 10)
 							BWEMBase = b;
-		
+
 
 		if (BWEMBase == nullptr) {
 			BWAPI::Broodwar->sendText("Unable to find BWEM base");
@@ -30,14 +30,14 @@ namespace Neolib {
 		mainPos = BWEMBase->Location();
 
 		for (auto &m : BWEMBase->Minerals())
-			if(m->Unit()->exists())
+			if (m->Unit()->exists())
 				mineralMiners[m->Unit()];
 
 		for (auto &gg : BWEMBase->Geysers())
 			for (auto &ut : unitManager.getFriendlyUnitsByType())
 				if (ut.first.isRefinery())
 					for (auto &b : ut.second)
-						if(b->getTilePosition() == gg->TopLeft())
+						if (b->getTilePosition() == gg->TopLeft())
 							gasMiners[b];
 	}
 
@@ -105,7 +105,7 @@ namespace Neolib {
 
 	std::pair<BWAPI::TilePosition, BWAPI::TilePosition> Base::getNoBuildRegion() const {
 		int minX = resourceDepot->getTilePosition().x, maxX = minX + resourceDepot->getType().tileWidth(), minY = resourceDepot->getTilePosition().y, maxY = minY + resourceDepot->getType().tileHeight();
-		
+
 		for (auto &mf : mineralMiners) {
 			MINE(minX, mf.first->getTilePosition().x);
 			MINE(minY, mf.first->getTilePosition().y);
@@ -119,7 +119,7 @@ namespace Neolib {
 			MAXE(maxX, gg->BottomRight().x + 1);
 			MAXE(maxY, gg->BottomRight().y + 1);
 		}
-		
+
 		return { BWAPI::TilePosition(minX, minY), BWAPI::TilePosition(maxX, maxY) };
 	}
 
@@ -156,6 +156,13 @@ namespace Neolib {
 
 			// If this is a base
 			if (it != bases.end()) {
+				for (auto it = workerBaseLookup.begin(); it != workerBaseLookup.end();) {
+					if (it->second->resourceDepot == unit)
+						it = workerBaseLookup.erase(it);
+					else
+						++it;
+				}
+
 				// Make workers idle
 				for (auto &mf : it->mineralMiners) {
 					for (auto &w : mf.second) {
@@ -164,6 +171,19 @@ namespace Neolib {
 					}
 				}
 
+				for (auto &mf : it->gasMiners) {
+					for (auto &w : mf.second) {
+						homelessWorkers.insert(w);
+						workerBaseLookup.erase(w);
+					}
+				}
+
+				for (auto it2 = builders.begin(); it2 != builders.end();)
+					if (it2->second == &(*it))
+						it2 = builders.erase(it2);
+					else
+						++it2;
+
 				bases.erase(it);
 			}
 		}
@@ -171,7 +191,7 @@ namespace Neolib {
 		// Check if worker died
 		if (unit->getType().isWorker() && unit->getPlayer() == BWAPI::Broodwar->self()) {
 			homelessWorkers.erase(unit);
-			looseWorkers.erase(unit);
+			builders.erase(unit);
 			// If managed, cleanup
 			auto bpIt = workerBaseLookup.find(unit);
 
@@ -187,7 +207,7 @@ namespace Neolib {
 					if (gasIt != gg.second.end())
 						gg.second.erase(gasIt);
 				}
-				
+
 				workerBaseLookup.erase(bpIt);
 			}
 		}
@@ -243,9 +263,13 @@ namespace Neolib {
 				it = homelessWorkers.erase(it);
 				continue;
 			}
-			
+
 			++it;
 		}
+
+		for (auto &b : builders)
+			if (b.first->isUnderAttack())
+				b.second->redAlert = BWAPI::Broodwar->getFrameCount();
 
 		for (auto &b : bases) {
 			if (b.resourceDepot->isUnderAttack())
@@ -261,77 +285,93 @@ namespace Neolib {
 					if (w->isUnderAttack())
 						b.redAlert = BWAPI::Broodwar->getFrameCount();
 
+
 			if (b.redAlert != -1) {
 				if (b.redAlert < BWAPI::Broodwar->getFrameCount() - 32)
 					b.redAlert = -1;
 			}
 		}
 
-		for(auto &b : bases) {
-			if (b.redAlert == -1) {
-				for (auto &mf : b.mineralMiners) {
-					for (auto &w : mf.second) {
-						if (w->isConstructing())
-							continue;
-						if ((w->isCarryingMinerals() || w->isCarryingGas()) && (w->getOrder() != BWAPI::Orders::ReturnGas && w->getOrder() != BWAPI::Orders::ReturnMinerals))
-							w->returnCargo();
-						else if (!(w->isCarryingMinerals() || w->isCarryingGas()) && w->getOrderTarget() != mf.first)
-							w->gather(mf.first);
-					}
-				}
+		for (auto &b : bases) {
+			for (auto &mf : b.mineralMiners)
+				for (auto w = mf.second.begin(); w != mf.second.end();) {
+					auto bit = builders.find(*w);
 
-				for (auto &gg : b.gasMiners) {
-					for (auto &w : gg.second) {
-						if (w->isConstructing())
-							continue;
-						if ((w->isCarryingMinerals() || w->isCarryingGas()) && w->getOrderTarget() != b.resourceDepot)
-							w->returnCargo();
-						else if (!(w->isCarryingMinerals() || w->isCarryingGas()) && w->getOrderTarget() != gg.first)
-							w->gather(gg.first);
-					}
-				}
-			}
+					if (bit != builders.end() || (*w)->isConstructing())
+						w = mf.second.erase(w);
 
-			for(auto &mf : b.mineralMiners)
-				for (auto &w : mf.second) {
-					auto enemyUnit = unitManager.getClosestVisibleEnemy(w, BWAPI::Filter::IsDetected, true);
-					if (b.redAlert != -1 && enemyUnit.u && w->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
-						w->attack(enemyUnit.u);
 					else {
-						if (w->isConstructing())
-							continue;
-						if ((w->isCarryingMinerals() || w->isCarryingGas()) && (w->getOrder() != BWAPI::Orders::ReturnGas && w->getOrder() != BWAPI::Orders::ReturnMinerals))
-							w->returnCargo();
-						else if (!(w->isCarryingMinerals() || w->isCarryingGas()) && w->getOrderTarget() != mf.first)
-							w->gather(mf.first);
+						auto enemyUnit = unitManager.getClosestVisibleEnemy(*w, BWAPI::Filter::IsDetected, true);
+						if (b.redAlert != -1 && enemyUnit.u && (*w)->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
+							(*w)->attack(enemyUnit.u);
+						else {
+							if (((*w)->isCarryingMinerals() || (*w)->isCarryingGas()) && ((*w)->getOrder() != BWAPI::Orders::ReturnGas && (*w)->getOrder() != BWAPI::Orders::ReturnMinerals))
+								(*w)->returnCargo();
+							else if (!((*w)->isCarryingMinerals() || (*w)->isCarryingGas()) && (*w)->getOrderTarget() != mf.first)
+								(*w)->gather(mf.first);
+						}
+
+						++w;
 					}
 				}
 
 			for (auto &gg : b.gasMiners)
-				for (auto &w : gg.second) {
-					auto enemyUnit = unitManager.getClosestVisibleEnemy(w, BWAPI::Filter::IsDetected, true);
-					if (b.redAlert != -1 && enemyUnit.u && w->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
-						w->attack(enemyUnit.u);
+				for (auto w = gg.second.begin(); w != gg.second.end();) {
+					auto bit = builders.find(*w);
+
+					if (bit != builders.end() || (*w)->isConstructing())
+						w = gg.second.erase(w);
+
 					else {
-						if (w->isConstructing())
-							continue;
-						if ((w->isCarryingMinerals() || w->isCarryingGas()) && w->getOrderTarget() != b.resourceDepot)
-							w->returnCargo();
-						else if (!(w->isCarryingMinerals() || w->isCarryingGas()) && w->getOrderTarget() != gg.first)
-							w->gather(gg.first);
+						auto enemyUnit = unitManager.getClosestVisibleEnemy(*w, BWAPI::Filter::IsDetected, true);
+						if (b.redAlert != -1 && enemyUnit.u && (*w)->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
+							(*w)->attack(enemyUnit.u);
+						else {
+							if (((*w)->isCarryingMinerals() || (*w)->isCarryingGas()) && (*w)->getOrderTarget() != b.resourceDepot)
+								(*w)->returnCargo();
+							else if (!((*w)->isCarryingMinerals() || (*w)->isCarryingGas()) && (*w)->getOrderTarget() != gg.first)
+								(*w)->gather(gg.first);
+						}
+
+						++w;
 					}
 				}
 		}
 	}
 
 	void BaseManager::takeUnit(BWAPI::Unit unit) {
-		looseWorkers.insert(unit);
-		onUnitDestroy(unit);
+		auto it = homelessWorkers.find(unit);
+		if (it != homelessWorkers.end()) {
+			homelessWorkers.erase(unit);
+			return;
+		}
+
+		auto baseIt = workerBaseLookup.find(unit);
+
+		if (baseIt != workerBaseLookup.end()) {
+			for (auto &mf : baseIt->second->mineralMiners) {
+				auto it = mf.second.find(unit);
+				if (it != mf.second.end()) {
+					mf.second.erase(it);
+					builders[unit] = &(*baseIt->second);
+					return;
+				}
+			}
+
+			for (auto &mf : baseIt->second->gasMiners) {
+				auto it = mf.second.find(unit);
+				if (it != mf.second.end()) {
+					mf.second.erase(it);
+					builders[unit] = &(*baseIt->second);
+					return;
+				}
+			}
+		}
 	}
 
 	void BaseManager::giveBackUnit(BWAPI::Unit unit) {
-		looseWorkers.erase(unit);
-		onUnitComplete(unit);
+		builders.erase(unit);
+		homelessWorkers.insert(unit);
 	}
 
 	BWAPI::Unit BaseManager::findBuilder(BWAPI::UnitType builderType) {
@@ -556,10 +596,6 @@ namespace Neolib {
 
 	const std::set<BWAPI::Unit> &BaseManager::getHomelessWorkers() const {
 		return homelessWorkers;
-	}
-
-	const std::set<BWAPI::Unit>& BaseManager::getLooseWorkers() const {
-		return looseWorkers;
 	}
 
 }
