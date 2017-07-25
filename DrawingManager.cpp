@@ -244,7 +244,8 @@ namespace Neolib {
 
 		if (s.enableHealthBars) {
 			for (auto &u : BWAPI::Broodwar->self()->getUnits())
-				drawBars(u->getPosition(), u->getType(), u->getHitPoints(), u->getShields(), u->getEnergy(), u->getLoadedUnits().size(), u->getResources(), 5000, u->getType().isSpellcaster());
+				if(u->isVisible())
+					drawBars(u->getPosition(), u->getType(), u->getHitPoints(), u->getShields(), u->getEnergy(), u->getLoadedUnits().size(), u->getResources(), 5000, u->getType().isSpellcaster());
 
 			for (auto &b : baseManager.getAllBases())
 				for (auto &mf : b.mineralMiners)
@@ -300,10 +301,13 @@ namespace Neolib {
 					BWAPI::Broodwar->drawTextMap(b.resourceDepot->getPosition() - offset, "Income: %c%u %c%u", BWAPI::Text::Blue, b.calculateIncome().minerals, BWAPI::Text::Green, b.calculateIncome().gas);
 				else
 					BWAPI::Broodwar->drawTextMap(b.resourceDepot->getPosition() - offset, "%cRED ALERT!", BWAPI::Text::Red);
+				
 				for (auto &m : b.mineralMiners) {
 					drawBuildingBox(m.first->getTilePosition(), BWAPI::UnitTypes::Resource_Mineral_Field, BWAPI::Colors::Blue);
 					BWAPI::Broodwar->drawTextMap(m.first->getPosition() - BWAPI::Position(10, 5), "%u/2", m.second.size());
 					for (auto &w : m.second) {
+						if (!w->isVisible())
+							continue;
 						BWAPI::Broodwar->drawLineMap(w->getPosition(), m.first->getPosition(), BWAPI::Colors::Orange);
 						BWAPI::Broodwar->drawLineMap(w->getPosition(), b.resourceDepot->getPosition(), BWAPI::Colors::Orange);
 					}
@@ -313,6 +317,8 @@ namespace Neolib {
 					drawBuildingBox(g.first->getTilePosition(), BWAPI::UnitTypes::Resource_Vespene_Geyser, BWAPI::Colors::Green);
 					BWAPI::Broodwar->drawTextMap(g.first->getPosition() - BWAPI::Position(14, 10), "%u/3", g.second.size());
 					for (auto &w : g.second) {
+						if (!w->isVisible())
+							continue;
 						BWAPI::Broodwar->drawLineMap(w->getPosition(), g.first->getPosition(), BWAPI::Colors::Red);
 						BWAPI::Broodwar->drawLineMap(w->getPosition(), b.resourceDepot->getPosition(), BWAPI::Colors::Red);
 					}
