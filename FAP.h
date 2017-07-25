@@ -76,7 +76,9 @@ namespace Neolib {
 
 			void simulate(int nFrames = 96); // = 24*4, 4 seconds on fastest
 
-			std::pair <int, int> getStatus() const;
+			std::pair <int, int> playerScores() const;
+			std::pair <int, int> playerScoresUnits() const;
+			std::pair <int, int> playerScoresBuildings() const;
 			std::pair <std::vector <FAPUnit> *, std::vector <FAPUnit> *> getState();
 			void clearState();
 

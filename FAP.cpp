@@ -42,7 +42,7 @@ namespace Neolib {
 		}
 	}
 
-	std::pair <int, int> FastAPproximation::getStatus() const {
+	std::pair <int, int> FastAPproximation::playerScores() const {
 		std::pair <int, int> res;
 
 		for (auto & u : player1)
@@ -51,6 +51,34 @@ namespace Neolib {
 
 		for (auto & u : player2)
 			if (u.health && u.maxHealth)
+				res.second += (u.score * u.health) / (u.maxHealth * 2);
+
+		return res;
+	}
+
+	std::pair <int, int> FastAPproximation::playerScoresUnits() const {
+		std::pair <int, int> res;
+
+		for (auto & u : player1)
+			if (u.health && u.maxHealth && !u.unitType.isBuilding())
+				res.first += (u.score * u.health) / (u.maxHealth * 2);
+
+		for (auto & u : player2)
+			if (u.health && u.maxHealth && !u.unitType.isBuilding())
+				res.second += (u.score * u.health) / (u.maxHealth * 2);
+
+		return res;
+	}
+
+	std::pair <int, int> FastAPproximation::playerScoresBuildings() const {
+		std::pair <int, int> res;
+
+		for (auto & u : player1)
+			if (u.health && u.maxHealth && u.unitType.isBuilding())
+				res.first += (u.score * u.health) / (u.maxHealth * 2);
+
+		for (auto & u : player2)
+			if (u.health && u.maxHealth && u.unitType.isBuilding())
 				res.second += (u.score * u.health) / (u.maxHealth * 2);
 
 		return res;
