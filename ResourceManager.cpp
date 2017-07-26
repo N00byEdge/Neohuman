@@ -94,7 +94,8 @@ namespace Neolib {
 	}
 	
 	bool ResourceManager::canAfford(ResourceCount rc) const {
-		return rc <= getSpendableResources();
+		auto spendable = getSpendableResources();
+		return rc <= spendable;
 	}
 }
 
