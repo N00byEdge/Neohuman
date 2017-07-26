@@ -4,7 +4,11 @@
 
 #include "Neohuman.h"
 
+#ifdef WIN32
 std::mt19937_64 mt(std::chrono::system_clock::now().time_since_epoch().count());
+#else
+std::mt19937_64 mt(std::chrono::steady_clock::now().time_since_epoch().count());
+#endif
 
 template <int scale>
 bool operator< (BWAPI::Point<int, scale> lhs, BWAPI::Point<int, scale> rhs) {
