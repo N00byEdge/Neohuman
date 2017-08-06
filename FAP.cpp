@@ -110,9 +110,9 @@ namespace Neolib {
 
 		if (damageType == BWAPI::DamageTypes::Concussive) {
 			if(fu.unitSize == BWAPI::UnitSizeTypes::Large)
-				damage = damage / 2;
+				damage = damage / 4;
 			else if(fu.unitSize == BWAPI::UnitSizeTypes::Medium)
-				damage = (damage * 3) / 4;
+				damage = damage / 2;
 		}
 		else if (damageType == BWAPI::DamageTypes::Explosive) {
 			if (fu.unitSize == BWAPI::UnitSizeTypes::Small)
@@ -127,10 +127,10 @@ namespace Neolib {
 			case BWAPI::DamageTypes::Concussive:
 				switch (fu.unitSize) {
 					case BWAPI::UnitSizeTypes::Large:
-						damage = damage / 2;
+						damage = damage / 4;
 						break;
 					case BWAPI::UnitSizeTypes::Medium:
-						damage = (damage * 3) / 4;
+						damage = damage / 2;
 						break;
 				}
 				break;
