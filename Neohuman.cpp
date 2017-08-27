@@ -360,7 +360,7 @@ void Neohuman::onFrame() {
 					}
 				}
 
-				if (u->getGroundWeaponCooldown())
+				if (u->getGroundWeaponCooldown() > Broodwar->getRemainingLatencyFrames())
 					continue;
 
 				std::shared_ptr <EnemyData> enm = unitManager.getBestTarget(u);
@@ -449,7 +449,7 @@ void Neohuman::onFrame() {
 					}
 				}
 
-				if (u->getGroundWeaponCooldown())
+				if (u->getGroundWeaponCooldown() > Broodwar->getRemainingLatencyFrames())
 					continue;
 
 				std::shared_ptr <EnemyData> enm = unitManager.getBestTarget(u);
