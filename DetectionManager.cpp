@@ -17,7 +17,7 @@ namespace Neolib {
 
 		BWAPI::Unit highestEnergy = nullptr;
 		for (auto & u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station))
-			if (!highestEnergy || u->getEnergy() > highestEnergy->getEnergy())
+			if (u->isCompleted() && (!highestEnergy || u->getEnergy() > highestEnergy->getEnergy()))
 				highestEnergy = u;
 
 		if (highestEnergy == nullptr)
@@ -29,6 +29,16 @@ namespace Neolib {
 		}
 
 		return false;
+	}
+
+	int DetectionManager::highestComsatEnergy() {
+		int energyHigh = 0;
+
+		for (auto & u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station))
+			if (u->isCompleted() && u->getEnergy() > energyHigh)
+				energyHigh = u->getEnergy();
+
+		return energyHigh;
 	}
 
 }

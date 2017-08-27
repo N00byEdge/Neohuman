@@ -9,6 +9,7 @@ namespace Neolib {
 	class DetectionManager {
 		public:
 			bool requestDetection(BWAPI::Position p);
+			int highestComsatEnergy();
 		private:
 			int scanLastUsed = -5;
 	};

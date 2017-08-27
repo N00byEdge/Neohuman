@@ -56,7 +56,7 @@ namespace Neolib {
 				if (ob.BWEMBase == b)
 					goto skiplocation;
 
-			if (!BWAPI::Broodwar->isExplored(b->Location()))
+			if (!BWAPI::Broodwar->isExplored(b->Location()) && detectionManager.highestComsatEnergy() >= 100)
 				detectionManager.requestDetection((BWAPI::Position)b->Location());
 			if (BWAPI::Broodwar->canBuildHere(b->Location(), BWAPI::UnitTypes::Terran_Command_Center, nullptr, true)) {
 				for (auto &eu : unitManager.getVisibleEnemies())
@@ -71,7 +71,7 @@ namespace Neolib {
 			}
 		}
 
-		return BWAPI::TilePosition(-1, -1);
+		return BWAPI::TilePositions::None;
 	}
 
 	std::set<std::pair<BWAPI::TilePosition, BWAPI::TilePosition>> MapManager::getNoBuildRects() {
