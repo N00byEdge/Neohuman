@@ -208,35 +208,35 @@ namespace Neolib {
 			//BWAPI::Broodwar->sendText("Sizes: %u, %u", unitManager.getKnownEnemies().size(), unitManager.getEnemyUnitsByType().size());
 
 			for (auto &u : unitManager.getVisibleEnemies()) {
-				drawUnitBox(u.lastPosition, u.lastType, ENEMYCOLOR);
-				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
+				drawUnitBox(u->lastPosition, u->lastType, ENEMYCOLOR);
+				BWAPI::Broodwar->drawTextMap(u->lastPosition + BWAPI::Position(u->lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u->lastType.c_str()));
 			}
 
 			for (auto &u : unitManager.getNonVisibleEnemies()) {
-				drawUnitBox(u.lastPosition, u.lastType, ENEMYCOLOR);
-				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
+				drawUnitBox(u->lastPosition, u->lastType, ENEMYCOLOR);
+				BWAPI::Broodwar->drawTextMap(u->lastPosition + BWAPI::Position(u->lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u->lastType.c_str()));
 			}
 
 			for (auto &u : unitManager.getInvalidatedEnemies()) {
-				drawUnitBox(u.lastPosition, u.lastType, INVALIDENEMYCLR);
-				BWAPI::Broodwar->drawTextMap(u.lastPosition + BWAPI::Position(u.lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u.lastType.c_str()));
+				drawUnitBox(u->lastPosition, u->lastType, INVALIDENEMYCLR);
+				BWAPI::Broodwar->drawTextMap(u->lastPosition + BWAPI::Position(u->lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u->lastType.c_str()));
 			}
 
 			for (auto &ut : unitManager.getEnemyUnitsByType())
 				BWAPI::Broodwar->drawTextScreen(columnXStart[2], getNextColumnY(nextColumnY[2]), "%s: %u", noRaceName(ut.first.c_str()), ut.second.size());
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Marine)) {
-				Neolib::EnemyData u2 = unitManager.getBestTarget(u);
-				if (u2.u)
-					BWAPI::Broodwar->drawLineMap(u->getPosition(), u2.lastPosition, BWAPI::Colors::Red);
+				std::shared_ptr <EnemyData> u2 = unitManager.getBestTarget(u);
+				if (u2)
+					BWAPI::Broodwar->drawLineMap(u->getPosition(), u2->lastPosition, BWAPI::Colors::Red);
 				else
 					BWAPI::Broodwar->drawTextMap(u->getPosition(), "?");
 			}
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Ghost)) {
-				Neolib::EnemyData u2 = unitManager.getBestTarget(u);
-				if (u2.u)
-					BWAPI::Broodwar->drawLineMap(u->getPosition(), u2.lastPosition, BWAPI::Colors::Red);
+				std::shared_ptr <EnemyData> u2 = unitManager.getBestTarget(u);
+				if (u2)
+					BWAPI::Broodwar->drawLineMap(u->getPosition(), u2->lastPosition, BWAPI::Colors::Red);
 				else
 					BWAPI::Broodwar->drawTextMap(u->getPosition(), "?");
 			}
@@ -252,11 +252,9 @@ namespace Neolib {
 					drawBars(mf.first->getPosition(), mf.first->getType(), 0, 0, 0, 0, mf.first->getResources(), mf.first->getInitialResources(), false);
 
 			for (auto &u : unitManager.getVisibleEnemies())
-				drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
+				drawBars(u->lastPosition, u->lastType, u->expectedHealth(), u->expectedShields(), 0, 0, 0, 0, false);
 			for (auto &u : unitManager.getNonVisibleEnemies())
-				drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
-			for (auto &u : unitManager.getInvalidatedEnemies())
-				drawBars(u.lastPosition, u.lastType, u.expectedHealth(), u.expectedShields(), 0, 0, 0, 0, false);
+				drawBars(u->lastPosition, u->lastType, u->expectedHealth(), u->expectedShields(), 0, 0, 0, 0, false);
 		}
 
 		if (s.enableDeathMatrix) {

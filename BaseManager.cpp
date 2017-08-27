@@ -302,8 +302,8 @@ namespace Neolib {
 
 					else {
 						auto enemyUnit = unitManager.getClosestVisibleEnemy(*w, BWAPI::Filter::IsDetected, true);
-						if (b.redAlert != -1 && enemyUnit.u && (*w)->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
-							(*w)->attack(enemyUnit.u);
+						if (b.redAlert != -1 && enemyUnit.get() && (*w)->getDistance(enemyUnit->u) <= WORKERAGGRORADIUS)
+							(*w)->attack(enemyUnit->u);
 						else {
 							if (((*w)->isCarryingMinerals() || (*w)->isCarryingGas()) && ((*w)->getOrder() != BWAPI::Orders::ReturnGas && (*w)->getOrder() != BWAPI::Orders::ReturnMinerals))
 								(*w)->returnCargo();
@@ -324,8 +324,8 @@ namespace Neolib {
 
 					else {
 						auto enemyUnit = unitManager.getClosestVisibleEnemy(*w, BWAPI::Filter::IsDetected, true);
-						if (b.redAlert != -1 && enemyUnit.u && (*w)->getDistance(enemyUnit.u) <= WORKERAGGRORADIUS)
-							(*w)->attack(enemyUnit.u);
+						if (b.redAlert != -1 && enemyUnit.get() && (*w)->getDistance(enemyUnit->u) <= WORKERAGGRORADIUS)
+							(*w)->attack(enemyUnit->u);
 						else {
 							if (((*w)->isCarryingMinerals() || (*w)->isCarryingGas()) && (*w)->getOrderTarget() != b.resourceDepot)
 								(*w)->returnCargo();

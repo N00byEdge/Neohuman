@@ -352,7 +352,7 @@ void Neohuman::onFrame() {
 				if (fleeFrom) {
 					int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && GetType != BWAPI::UnitTypes::Protoss_Interceptor).size() + 1;
 					friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
-					if (unitManager.getSimResults().shortLosses < 0 && unitManager.getSimResults().postsim.unitCounts.second > 0 /*enemyCount + 3 > friendlyCount*/ /* u->isUnderAttack()*/) {
+					if (!squadManager.shouldAttack(unitManager.getSimResults())) {
 						if (fleeFrom != nullptr) {
 							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
 							continue;
@@ -363,26 +363,26 @@ void Neohuman::onFrame() {
 				if (u->getGroundWeaponCooldown())
 					continue;
 
-				EnemyData enm = unitManager.getBestTarget(u);
-				if (enm.u) {
-					if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
-						if (!enm.u->isVisible())
-							detectionManager.requestDetection(enm.lastPosition);
-						else if (!enm.u->isDetected())
-							detectionManager.requestDetection(enm.lastPosition);
+				std::shared_ptr <EnemyData> enm = unitManager.getBestTarget(u);
+				if (enm) {
+					if (u->getDistance(enm->lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+						if (!enm->u->isVisible())
+							detectionManager.requestDetection(enm->lastPosition);
+						else if (!enm->u->isDetected())
+							detectionManager.requestDetection(enm->lastPosition);
 
-						if (enm.u->isVisible() && enm.u->isDetected()) {
+						if (enm->u->isVisible() && enm->u->isDetected()) {
 							if (!u->isStimmed() && Broodwar->self()->isResearchAvailable(TechTypes::Stim_Packs) && u->getHitPoints() < 20)
 								u->useTech(TechTypes::Stim_Packs);
-							u->attack(enm.u);
+							u->attack(enm->u);
 							continue;
 						}
 					}
 					else {
-						if (enm.u->isVisible())
-							u->attack(enm.u);
+						if (enm->u->isVisible())
+							u->attack(enm->u);
 						else
-							u->move(enm.lastPosition);
+							u->move(enm->lastPosition);
 						continue;
 					}
 				}
@@ -441,7 +441,7 @@ void Neohuman::onFrame() {
 
 				auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
 				if (fleeFrom) {
-					if (unitManager.getSimResults().shortLosses < 0 && unitManager.getSimResults().postsim.unitCounts.second > 0/*u->isUnderAttack()*/) {
+					if (!squadManager.shouldAttack(unitManager.getSimResults())) {
 						if (fleeFrom != nullptr) {
 							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());
 							continue;
@@ -452,24 +452,24 @@ void Neohuman::onFrame() {
 				if (u->getGroundWeaponCooldown())
 					continue;
 
-				EnemyData enm = unitManager.getBestTarget(u);
-				if (enm.u) {
-					if (u->getDistance(enm.lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
-						if (!enm.u->isVisible())
-							detectionManager.requestDetection(enm.lastPosition);
-						else if (!enm.u->isDetected())
-							detectionManager.requestDetection(enm.lastPosition);
+				std::shared_ptr <EnemyData> enm = unitManager.getBestTarget(u);
+				if (enm) {
+					if (u->getDistance(enm->lastPosition) <= BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+						if (!enm->u->isVisible())
+							detectionManager.requestDetection(enm->lastPosition);
+						else if (!enm->u->isDetected())
+							detectionManager.requestDetection(enm->lastPosition);
 
-						if (enm.u->isVisible() && enm.u->isDetected()) {
-							u->attack(enm.u);
+						if (enm->u->isVisible() && enm->u->isDetected()) {
+							u->attack(enm->u);
 							continue;
 						}
 					}
 					else {
-						if (enm.u->isVisible())
-							u->attack(enm.u);
+						if (enm->u->isVisible())
+							u->attack(enm->u);
 						else
-							u->move(enm.lastPosition);
+							u->move(enm->lastPosition);
 						continue;
 					}
 				}
