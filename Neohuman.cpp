@@ -424,7 +424,7 @@ void Neohuman::onFrame() {
 			}
 
 			if (!scaredAF) {
-				if (unitManager.getNumArmedSilos() && (u->getEnergy() >= 75 || (u->getEnergy() >= 25 && u->isCloaked()))) {
+				if (unitManager.getNumArmedSilos() && (u->getEnergy() >= 50 || (u->getEnergy() >= 25 && u->isCloaked()))) {
 					auto nukePos = unitManager.getBestNuke(u);
 					if (nukePos != BWAPI::Positions::None) {
 						u->cloak();
