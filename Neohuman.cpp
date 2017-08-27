@@ -552,6 +552,7 @@ void Neohuman::onUnitMorph(Unit unit) {
 
 void Neohuman::onUnitRenegade(Unit unit) {
 	unitManager.onUnitRenegade(unit);
+	baseManager.onUnitRenegade(unit);
 }
 
 void Neohuman::onSaveGame(std::string gameName) {

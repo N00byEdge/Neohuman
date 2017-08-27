@@ -236,6 +236,10 @@ namespace Neolib {
 		}
 	}
 
+	void BaseManager::onUnitRenegade(BWAPI::Unit unit) {
+		return onUnitDestroy(unit);
+	}
+
 	void BaseManager::onUnitDiscover(BWAPI::Unit unit) {
 		if (unit->getType().isMineralField())
 			for (auto &b : bases)

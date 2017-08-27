@@ -42,6 +42,7 @@ namespace Neolib {
 
 			void onUnitComplete(BWAPI::Unit unit);
 			void onUnitDestroy(BWAPI::Unit unit);
+			void onUnitRenegade(BWAPI::Unit unit);
 			void onUnitDiscover(BWAPI::Unit unit);
 			void onFrame();
 
