@@ -151,7 +151,7 @@ namespace Neolib {
 
 	void BaseManager::onUnitDestroy(BWAPI::Unit unit) {
 		// Check if base died
-		if (unit->getType().isResourceDepot() && unit->getPlayer() == BWAPI::Broodwar->self()) {
+		if (unit->getType().isResourceDepot()) {
 			auto it = bases.find(unit);
 
 			// If this is a base
@@ -189,7 +189,7 @@ namespace Neolib {
 		}
 
 		// Check if worker died
-		if (unit->getType().isWorker() && unit->getPlayer() == BWAPI::Broodwar->self()) {
+		if (unit->getType().isWorker()) {
 			homelessWorkers.erase(unit);
 			builders.erase(unit);
 			// If managed, cleanup
@@ -213,7 +213,7 @@ namespace Neolib {
 		}
 
 		// Check if mineral field/gas died
-		if (unit->getType().isMineralField() || (unit->getType().isRefinery() && unit->getPlayer() == BWAPI::Broodwar->self())) {
+		if (unit->getType().isMineralField() || unit->getType().isRefinery()) {
 			for (auto &b : bases) {
 				auto minIt = b.mineralMiners.find(unit);
 				if (minIt != b.mineralMiners.end()) {
