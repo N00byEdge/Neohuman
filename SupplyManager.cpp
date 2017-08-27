@@ -99,7 +99,13 @@ namespace Neolib {
 	}
 
 	SupplyCount SupplyManager::wantedAdditionalSupply() {
-		return usedSupply() + wantedSupplyOverhead() - availableSupply() - buildingQueue.getQueuedSupply(false);
+		auto s = usedSupply() + wantedSupplyOverhead() - availableSupply() - buildingQueue.getQueuedSupply(false);
+
+		if (s.terran + usedSupply().terran   >= 400) s.terran  = 400 - availableSupply().terran  - buildingQueue.getQueuedSupply(false).terran;
+		if (s.protoss + usedSupply().protoss >= 400) s.protoss = 400 - availableSupply().protoss - buildingQueue.getQueuedSupply(false).protoss;
+		if (s.zerg + usedSupply().zerg       >= 400) s.zerg    = 400 - availableSupply().zerg    - buildingQueue.getQueuedSupply(false).zerg;
+
+		return s;
 	}
 
 }
