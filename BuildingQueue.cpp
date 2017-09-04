@@ -14,11 +14,14 @@ namespace Neolib {
 		for (auto it = buildingQueue.begin(); it != buildingQueue.end(); ++it) {
 			if (it->buildingType.getRace() == BWAPI::Races::Terran && (!it->builder || !it->builder->exists())) {
 				it->builder = baseManager.findClosestBuilder(it->buildingType.whatBuilds().first, (BWAPI::Position)it->designatedLocation);
-				if (it->builder)
+				if (it->builder) {
 					if (it->buildingUnit)
 						it->builder->rightClick(it->buildingUnit);
 					else
 						it->builder->build(it->buildingType, it->designatedLocation);
+
+					baseManager.takeUnit(it->builder);
+				}
 			}
 
 			if (it->builder) {
