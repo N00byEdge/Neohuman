@@ -1,7 +1,6 @@
 #include "Neohuman.h"
 
 #include "Util.h"
-#include "Triple.h"
 #include "SupplyManager.h"
 #include "UnitManager.h"
 #include "DrawingManager.h"
