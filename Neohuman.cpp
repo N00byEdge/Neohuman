@@ -433,7 +433,7 @@ void Neohuman::onFrame() {
 					}
 				}
 
-				auto lockdownTarget = u->getClosestUnit(IsEnemy && LockdownTime < 50 && IsMechanical && !IsWorker && !IsInvincible && IsDetected && GetType != BWAPI::UnitTypes::Protoss_Interceptor, 8 * 32 + 50);
+				auto lockdownTarget = u->getClosestUnit(IsEnemy && LockdownTime < 50 && IsMechanical && !IsWorker && !IsInvincible && IsDetected && GetType != BWAPI::UnitTypes::Protoss_Interceptor && GetType != BWAPI::UnitTypes::Terran_Vulture, 8 * 32 + 50);
 				if (lockdownTarget && unitManager.isAllowedToLockdown(lockdownTarget, u) && u->canUseTech(BWAPI::TechTypes::Lockdown, lockdownTarget)) {
 					u->useTech(BWAPI::TechTypes::Lockdown, lockdownTarget), unitManager.reserveLockdown(lockdownTarget, u);
 					continue;
