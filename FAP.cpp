@@ -258,7 +258,7 @@ namespace Neolib {
 			fu.x = closestHealable->x;
 			fu.y = closestHealable->y;
 
-			closestHealable->health += (closestHealable->healTimer += 400) / 256;
+			closestHealable->health += (closestHealable->healTimer += 300) / 256;
 			closestHealable->healTimer %= 256;
 
 			if (closestHealable->health > closestHealable->maxHealth)
