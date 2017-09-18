@@ -15,6 +15,8 @@ namespace Neolib {
 	}
 
 	void FastAPproximation::addIfCombatUnitPlayer1(FAPUnit fu) {
+		if (fu.unitType == BWAPI::UnitTypes::Protoss_Interceptor)
+			return;
 		if (fu.groundDamage || fu.airDamage || fu.unitType == BWAPI::UnitTypes::Terran_Medic)
 			addUnitPlayer1(fu);
 	}

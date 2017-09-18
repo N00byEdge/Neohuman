@@ -13,6 +13,7 @@
 #include "BuildingPlacer.h"
 #include "FAP.h"
 #include "SoundDatabase.h"
+#include "SquadManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -62,6 +63,8 @@ void Neohuman::onStart() {
 #ifndef SSCAIT
 
 	Broodwar->enableFlag(Flag::UserInput);
+	Broodwar->setFrameSkip(50);
+	//Broodwar->setLocalSpeed(0);
 
 #endif
 
@@ -337,6 +340,9 @@ void Neohuman::onFrame() {
 			if (marineN++ % 2 == marineFrame)
 				continue;
 
+			if (squadManager.isInSquad(u))
+				continue;
+
 			bool scaredAF = false;
 
 			for (auto &nd : BWAPI::Broodwar->getNukeDots()) {
@@ -407,8 +413,13 @@ void Neohuman::onFrame() {
 			}
 		}
 
+		squadManager.onFrame();
+
 		for (auto &u : unitManager.getFriendlyUnitsByType(UnitTypes::Terran_Ghost)) {
 			if (marineN++ % 2 == marineFrame)
+				continue;
+
+			if (squadManager.isInSquad(u))
 				continue;
 
 			if (u->isUnderAttack() && u->getEnergy() >= 200)

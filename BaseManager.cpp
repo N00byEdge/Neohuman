@@ -490,15 +490,7 @@ namespace Neolib {
 					continue;
 				}
 
-				else if (mostAttractiveMineral && mf.second.size() < 2 && mf.second.size() < mineralMinersAt) {
-					mostAttractiveMineral = mf.first;
-					mostAttractiveBase = &b;
-					mineralMinersAt = mf.second.size();
-					distanceTo = dist;
-					resourcesAt = mf.first->getResources();
-					continue;
-				}
-				else if (mostAttractiveMineral && mf.second.size() > mineralMinersAt)
+				else if (mf.second.size() > 1)
 					continue;
 
 				else if (mostAttractiveMineral && dist < distanceTo) {
@@ -509,6 +501,19 @@ namespace Neolib {
 					resourcesAt = mf.first->getResources();
 					continue;
 				}
+
+				else if (mostAttractiveMineral && mf.second.size() < mineralMinersAt) {
+					mostAttractiveMineral = mf.first;
+					mostAttractiveBase = &b;
+					mineralMinersAt = mf.second.size();
+					distanceTo = dist;
+					resourcesAt = mf.first->getResources();
+					continue;
+				}
+
+				else if (mostAttractiveMineral && mf.second.size() > mineralMinersAt)
+					continue;
+
 				else if (mostAttractiveMineral && distanceTo > dist)
 					continue;
 
