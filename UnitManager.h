@@ -74,34 +74,19 @@ namespace Neolib {
 
 			std::shared_ptr<EnemyData> getEnemyData(BWAPI::Unit ptr);
 
-			std::shared_ptr<EnemyData> getBestTarget(BWAPI::Unit from);
-			int getNukeScore(BWAPI::Position pos, BWAPI::Unit from) const;
-			BWAPI::Position getBestNuke(BWAPI::Unit from) const;
-
-			static int deathPerHealth(EnemyData *ed, bool flyingTarget);
-			static int targetPriority(BWAPI::Unit f, EnemyData *ed);
 			static bool isEnemy(BWAPI::Unit u);
 			static bool isOwn(BWAPI::Unit u);
 			static bool isNeutral(BWAPI::Unit u);
 
-			int countUnit    (BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, const BWAPI::UnitFilter &filter = nullptr, bool countQueued = true) const;
-			int countFriendly(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false, bool countQueued = true) const;
+			int countUnit    (BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, const BWAPI::UnitFilter &filter = nullptr) const;
+			int countFriendly(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false) const;
 			int countEnemy   (BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false) const;
-
-			bool isAllowedToLockdown(BWAPI::Unit target, BWAPI::Unit own) const;
-			void reserveLockdown(BWAPI::Unit target, BWAPI::Unit own);
 
 			unsigned getNumArmedSilos() const;
 			unsigned getNumArmingSilos() const;
 			unsigned getNumUnarmedSilos() const;
 
 			static bool isOnFire(EnemyData building);
-			static int unitDeathGround(BWAPI::UnitType ut);
-			static int unitDeathAir(BWAPI::UnitType ut);
-			static int unitDeath(BWAPI::UnitType ut);
-			static int deathPerHealth(BWAPI::UnitType ut, int health);
-			static int deathPerHealth(BWAPI::Unit unit);
-			static void addToDeathMatrix(BWAPI::Position pos, BWAPI::UnitType ut, BWAPI::Player p);
 			static bool reallyHasWeapon(const BWAPI::UnitType &unitType);
 
 			SimResults getSimResults();

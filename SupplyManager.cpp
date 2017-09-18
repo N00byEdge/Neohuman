@@ -1,7 +1,6 @@
 #include "SupplyManager.h"
 
 #include "Neohuman.h"
-#include "BuildingQueue.h"
 #include "Util.h"
 
 Neolib::SupplyManager supplyManager;
@@ -82,30 +81,4 @@ namespace Neolib {
 						   BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Terran),
 						   BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Zerg));
 	}
-
-	SupplyCount SupplyManager::wantedSupplyOverhead() {
-		SupplyCount wantedOverhead;
-
-		if (BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Protoss) || BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Protoss))
-			wantedOverhead.protoss = 2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Protoss) - 12) / 6, 0);
-
-		if (BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Terran)  || BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Terran))
-			wantedOverhead.terran =  2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Terran) - 12) / 6, 0);
-
-		if (BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Zerg)    || BWAPI::Broodwar->self()->supplyTotal(BWAPI::Races::Zerg))
-			wantedOverhead.zerg =    2 + MAX((BWAPI::Broodwar->self()->supplyUsed(BWAPI::Races::Zerg) - 12) / 6, 0);
-
-		return wantedOverhead;
-	}
-
-	SupplyCount SupplyManager::wantedAdditionalSupply() {
-		auto s = usedSupply() + wantedSupplyOverhead() - availableSupply() - buildingQueue.getQueuedSupply(false);
-
-		if (s.terran + usedSupply().terran   >= 400) s.terran  = 400 - availableSupply().terran  - buildingQueue.getQueuedSupply(false).terran;
-		if (s.protoss + usedSupply().protoss >= 400) s.protoss = 400 - availableSupply().protoss - buildingQueue.getQueuedSupply(false).protoss;
-		if (s.zerg + usedSupply().zerg       >= 400) s.zerg    = 400 - availableSupply().zerg    - buildingQueue.getQueuedSupply(false).zerg;
-
-		return s;
-	}
-
 }

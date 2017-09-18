@@ -33,16 +33,12 @@ namespace Neolib {
 
 			mutable int groundDamage = 0;
 			mutable int groundCooldown = 0;
-			/*mutable int groundInnerRadius = 0;
-			mutable int groundOuterRadius = 0;*/
 			mutable int groundMaxRange = 0;
 			mutable int groundMinRange = 0;
 			mutable BWAPI::DamageType groundDamageType;
 
 			mutable int airDamage = 0;
 			mutable int airCooldown = 0;
-			/*mutable int airInnerRadius = 0;
-			mutable int airOuterRadius = 0;*/
 			mutable int airMaxRange = 0;
 			mutable int airMinRange = 0;
 			mutable BWAPI::DamageType airDamageType;

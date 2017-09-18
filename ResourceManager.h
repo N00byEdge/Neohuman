@@ -21,21 +21,8 @@ namespace Neolib {
 
 		int minerals, gas;
 	};
-
-	class ResourceManager {
-		public:
-			ResourceCount getSpendableResources() const;
-			ResourceCount resourcesReservedForSupply() const;
-
-			ResourceCount getMinuteApproxIncome() const;
-			
-			bool canAfford(ResourceCount) const;
-	};
-
 }
 
 bool operator<= (Neolib::ResourceCount &lhs, Neolib::ResourceCount &rhs);
 bool operator>= (Neolib::ResourceCount &lhs, Neolib::ResourceCount &rhs);
 bool operator== (Neolib::ResourceCount &lhs, Neolib::ResourceCount &rhs);
-
-extern Neolib::ResourceManager resourceManager;

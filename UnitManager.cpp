@@ -1,10 +1,7 @@
 #include "UnitManager.h"
 
-#include "BuildingQueue.h"
 #include "SoundDatabase.h"
 #include "FAP.h"
-
-#include "SquadManager.h"
 
 std::set <std::shared_ptr<Neolib::EnemyData>> emptyEnemyDataSet;
 std::set <BWAPI::Unit> emptyUnitset;
@@ -81,11 +78,7 @@ namespace Neolib {
 		return std::hash <BWAPI::Unit>()(ed.u);
 	}
 
-	// const std::unordered_set <EnemyData> &UnitManager::getKnownEnemies() const {
-	// 	return knownEnemies;
-	// }
-
-	int UnitManager::countUnit(BWAPI::UnitType t, const BWAPI::UnitFilter &filter, bool countQueued) const {
+	int UnitManager::countUnit(BWAPI::UnitType t, const BWAPI::UnitFilter &filter) const {
 		if (!BWAPI::Broodwar->getAllUnits().size())
 			return 0;
 
@@ -94,16 +87,11 @@ namespace Neolib {
 		for (auto u : BWAPI::Broodwar->getAllUnits())
 			if (t == u->getType() && (filter)(u))
 				c++;
-		
-		if (countQueued)
-			for (auto &o : buildingQueue.buildingsQueued())
-				if (o.buildingType == t)
-					c++;
 
 		return c;
 	}
 
-	int UnitManager::countFriendly(BWAPI::UnitType t, bool onlyWithWeapons, bool countQueued) const {
+	int UnitManager::countFriendly(BWAPI::UnitType t, bool onlyWithWeapons) const {
 		int sum = 0;
 
 		if (t == BWAPI::UnitTypes::AllUnits) {
@@ -119,15 +107,6 @@ namespace Neolib {
 		else
 			if (friendlyUnitsByType.count(t))
 				sum = friendlyUnitsByType.at(t).size();
-
-		if (countQueued) {
-			if (t == BWAPI::UnitTypes::AllUnits)
-				sum += buildingQueue.buildingsQueued().size();
-			else
-				for (auto &bo : buildingQueue.buildingsQueued())
-					if (bo.buildingType == t)
-						++sum;
-		}
 
 		return sum;
 	}
@@ -149,15 +128,6 @@ namespace Neolib {
 			sum = enemyUnitsByType.at(t).size();
 
 		return sum;
-	}
-
-	bool UnitManager::isAllowedToLockdown(BWAPI::Unit target, BWAPI::Unit own) const {
-		auto it = lockdownDB.find(target);
-		return it == lockdownDB.end() || it->second.first == own;
-	}
-
-	void UnitManager::reserveLockdown(BWAPI::Unit target, BWAPI::Unit own) {
-		lockdownDB[target] = { own, BWAPI::Broodwar->getFrameCount() };
 	}
 
 	unsigned UnitManager::getNumArmedSilos() const {
@@ -533,112 +503,6 @@ namespace Neolib {
 		else return it->second;
 	}
 
-	std::shared_ptr<EnemyData> UnitManager::getBestTarget(BWAPI::Unit from) {
-		int bestVal;
-		std::shared_ptr<EnemyData> ret;
-
-		for (auto &u : visibleEnemies) {
-			int val = targetPriority(from, u.get());
-			if (!ret || val > bestVal) {
-				bestVal = val;
-				ret = u;
-			}
-		}
-
-		for (auto &u : nonVisibleEnemies) {
-			int val = targetPriority(from, u.get());
-			if (!ret || val > bestVal) {
-				bestVal = val;
-				ret = u;
-			}
-		}
-
-		return ret;
-	}
-
-	int UnitManager::getNukeScore(BWAPI::Position pos, BWAPI::Unit from) const {
-		int sum = 0;
-
-		for (auto u : visibleEnemies)
-			if(u->lastPosition.getDistance(pos) < 10 * 32)
-				sum += u->lastType.destroyScore();
-
-		for (auto u : nonVisibleEnemies)
-			if (u->lastPosition.getDistance(pos) < 10 * 32)
-				sum += u->lastType.destroyScore();
-
-		for (auto u : BWAPI::Broodwar->self()->getUnits())
-			if(u->getType().isBuilding() && u->getPosition().getDistance(pos) < 10 * 32)
-				sum -= u->getType().destroyScore();
-
-		if (from)
-			sum -= from->getDistance(pos);
-
-		return sum;
-	}
-
-	BWAPI::Position UnitManager::getBestNuke(BWAPI::Unit from) const {
-		BWAPI::Position pos = BWAPI::Positions::None;
-		int bestScore;
-
-		for (auto possibleTarget : visibleEnemies) {
-			int score = getNukeScore(possibleTarget->lastPosition, from);
-
-			for(auto &nd: BWAPI::Broodwar->getNukeDots())
-				if (nd.getApproxDistance(possibleTarget->lastPosition) < 32 * 10)
-					goto skipUnit;
-
-			if (pos == BWAPI::Positions::None || score > bestScore) {
-				pos = possibleTarget->lastPosition;
-				bestScore = score;
-			}
-
-			skipUnit:;
-		}
-
-		if (pos == BWAPI::Positions::None || getNukeScore(pos, nullptr) < 2000) // Compare absolute score, no ghost specific
-			return BWAPI::Positions::None;
-		else
-			return pos;
-	}
-
-	int UnitManager::deathPerHealth(EnemyData *ed, bool flyingTarget) {
-		int death = flyingTarget ? unitDeathAir(ed->lastType) : unitDeathGround(ed->lastType);
-		if (!death || ed->expectedHealth() + ed->expectedShields() + ed->u->getDefenseMatrixPoints() == 0) return 0;
-		return (death * 100) / (ed->expectedHealth() + ed->expectedShields());
-	}
-
-	int UnitManager::targetPriority(BWAPI::Unit f, EnemyData *ed) {
-		if (ed->lastType.isInvincible())
-			return -100000000;
-
-		int val = 0;
-
-		if (ed->lastType == BWAPI::UnitTypes::Zerg_Egg || BWAPI::UnitTypes::Zerg_Larva)
-			val -= 100;
-
-		if (reallyHasWeapon(ed->lastType))
-			val += 1000;
-
-		if (ed->lastType == BWAPI::UnitTypes::Terran_Medic) {
-			if (ed->lastHealth == 0)
-				val += 1010;
-			else
-				val += 1010 + (unitDeathAir(BWAPI::UnitTypes::Terran_Marine) * 100) / ed->lastHealth;
-		}
-
-		if ((ed->lastType.canProduce() && !ed->lastType.requiresPsi()) || ed->lastType == BWAPI::UnitTypes::Protoss_Pylon)
-			val += 980;
-
-		val += deathPerHealth(ed, f->isFlying());
-		val -= ed->lastPosition.getApproxDistance(f->getPosition()) * 10;
-
-		if (!ed->lastType.canProduce() && !reallyHasWeapon(ed->lastType) && isOnFire(*ed))
-			val -= 250;
-
-		return val;
-	}
-
 	bool UnitManager::isEnemy(BWAPI::Unit u) {
 		return BWAPI::Broodwar->self()->isEnemy(u->getPlayer());
 	}
@@ -659,54 +523,6 @@ namespace Neolib {
 		return building.lastType.isBuilding() && building.isCompleted && building.lastType.getRace() == BWAPI::Races::Terran && building.lastHealth < building.lastType.maxHitPoints() / 3;
 	}
 
-	inline int UnitManager::unitDeathGround(BWAPI::UnitType ut) {
-		if (ut.groundWeapon() == BWAPI::WeaponTypes::None) return 0;
-		return ut.groundWeapon().damageAmount() * ut.groundWeapon().damageFactor() * 40 / ut.groundWeapon().damageCooldown();
-	}
-
-	inline int UnitManager::unitDeathAir(BWAPI::UnitType ut) {
-		if (ut.airWeapon() == BWAPI::WeaponTypes::None) return 0;
-		return ut.airWeapon().damageAmount() * ut.airWeapon().damageFactor() * 40 / ut.airWeapon().damageCooldown();
-	}
-
-	inline int UnitManager::unitDeath(BWAPI::UnitType ut) {
-		return (unitDeathAir(ut) + unitDeathGround(ut))/2;
-	}
-
-	inline int UnitManager::deathPerHealth(BWAPI::UnitType ut, int health) {
-		return unitDeath(ut) / health;
-	}
-
-	inline int UnitManager::deathPerHealth(BWAPI::Unit unit) {
-		return deathPerHealth(unit->getType(), unit->getHitPoints());
-	}
-
-	inline void UnitManager::addToDeathMatrix(BWAPI::Position pos, BWAPI::UnitType ut, BWAPI::Player p) {
-		const int mapH = BWAPI::Broodwar->mapHeight() * 4, mapW = BWAPI::Broodwar->mapWidth() * 4;
-		if (ut.groundWeapon()) {
-			const int range = p->weaponMaxRange(ut.groundWeapon()) / 8;
-			const int death = unitDeathGround(ut);
-			const int mx = pos.x + range > mapW ? mapW : pos.x + range;
-			for (int dx = pos.x - range < 0 ? -pos.x : -range; dx <= mx; ++dx) {
-				const int yw = (int)ceil(sqrt(range * range - dx * dx));
-				const int minY = MAX(pos.y - yw, 0), maxY = MIN(pos.y + yw, mapH);
-				for (int y = minY; y <= maxY; ++y)
-					deathMatrixGround[y*deathMatrixSideLen + pos.x + dx] += death;
-			}
-		}
-
-		if (ut.airWeapon()) {
-			const int range = p->weaponMaxRange(ut.groundWeapon()) / 8;
-			const int death = unitDeathAir(ut);
-			const int mx = pos.x + range > mapW ? mapW : pos.x + range;
-			for (int dx = pos.x - range < 0 ? -pos.x : -range; dx <= mx; ++dx) {
-				const int yw = (int)ceil(sqrt(range * range - dx * dx));
-				const int minY = MAX(pos.y - yw, 0), maxY = MIN(pos.y + yw, mapH);
-				for (int y = minY; y <= maxY; ++y)
-					deathMatrixAir[y*deathMatrixSideLen + pos.x + dx] += death;
-			}
-		}
-	}
 
 	SimResults UnitManager::getSimResults() {
 		return sr;
@@ -726,7 +542,6 @@ namespace Neolib {
 			if (BWAPI::Broodwar->isVisible(BWAPI::TilePosition((*it)->lastPosition))) {
 				(*it)->positionInvalidated = true;
 				invalidatedEnemies.insert(*it);
-				squadManager.onEnemyLose(*it);
 				it = nonVisibleEnemies.erase(it);
 			}
 			else ++it;
@@ -746,7 +561,6 @@ namespace Neolib {
 		++launchedNukeCount;
 
 		BWAPI::Broodwar->sendText("You may want to know that there is a nuke coming for you at %d %d", target.x, target.y);
-		BWAPI::Broodwar->sendText("Nuke score: %d", getNukeScore(target, nullptr));
 	}
 
 	void UnitManager::onUnitDiscover(BWAPI::Unit unit) {
@@ -807,7 +621,6 @@ namespace Neolib {
 			enemyUnitsByType[unit->getType()].erase(ed);
 			visibleEnemies.erase(ed);
 			deadEnemies.insert(ed);
-			squadManager.onEnemyLose(ed);
 
 			++multikillDetector[unit->getType()];
 		}

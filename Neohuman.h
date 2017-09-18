@@ -33,7 +33,7 @@ class Neohuman : public BWAPI::AIModule {
 		bool wasRandom;
 		BWAPI::Race playingRace;
 
-		Neolib::Timer timer_drawinfo, timer_managequeue, timer_buildbuildings, timer_unitlogic, timer_marinelogic, timer_total;
+		Neolib::Timer timer_drawinfo, timer_NN, timer_total;
 };
 
 extern Neohuman* neoInstance;

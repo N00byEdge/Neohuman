@@ -22,12 +22,9 @@ namespace Neolib {
 		public:
 			SupplyCount usedSupply();
 			SupplyCount availableSupply();
-			SupplyCount wantedSupplyOverhead();
-			SupplyCount wantedAdditionalSupply();
 	};
 
 	int mainSupply(SupplyCount);
-
 }
 
 extern Neolib::SupplyManager supplyManager;

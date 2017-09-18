@@ -1,7 +1,5 @@
 #include "BuildingPlacer.h"
 
-#include "BuildingQueue.h"
-#include "BaseManager.h"
 #include "MapManager.h"
 
 Neolib::BuildingPlacer buildingPlacer;
@@ -50,37 +48,6 @@ namespace Neolib {
 					for (y = b->getTilePosition().y; y < yEnd; ++y)
 						canBuild[x + y * 256] = false;
 			}
-
-			for (auto &o : buildingQueue.buildingsQueued()) {
-				if (o.buildingType.isBuilding()) {
-					unsigned x = o.designatedLocation.x, xEnd = o.designatedLocation.x + o.buildingType.tileWidth();
-					unsigned y = o.designatedLocation.y, yEnd = o.designatedLocation.y + o.buildingType.tileHeight();
-
-					// Buildings with addons
-					if (o.buildingType == BWAPI::UnitTypes::Terran_Factory || o.buildingType == BWAPI::UnitTypes::Terran_Starport || o.buildingType == BWAPI::UnitTypes::Terran_Science_Facility || o.buildingType == BWAPI::UnitTypes::Terran_Command_Center)
-						xEnd += 2;
-
-					for (; x < xEnd; ++x)
-						for (y = o.designatedLocation.y; y < yEnd; ++y)
-							canBuild[x + y * 256] = false;
-				}
-			}
-
-			for (auto &o : mapManager.getNoBuildRects()) {
-				unsigned x = o.first.x, xEnd = o.second.x;
-				unsigned y = o.first.y, yEnd = o.second.y;
-
-				for (; x < xEnd; ++x)
-					for (unsigned ty = y; ty < yEnd; ++ty)
-						canBuild[x + ty * 256] = false;
-			}
-		}
-
-		for (auto &b : baseManager.getAllBases()) {
-			auto nbs = b.getNoBuildRegion();
-			for (int x = nbs.first.x; x < nbs.second.x; ++x)
-				for (int y = nbs.first.y; y < nbs.second.y; ++y)
-					canBuild[x + y * 256] = false;
 		}
 
 		unsigned e = 1;
