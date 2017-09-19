@@ -31,7 +31,14 @@ struct ModularNN {
 	private:
 		const unsigned inputSize, outputSize;
 		float **weights;
+	};
+
+	struct LSTM : public Layer {
+		LSTM(std::istream &);
+		virtual fv run(fv &input) override;
+
 	private:
+		float **Wmx, **Wmh, **Whx, **Whm, **Wix, **Wim, **Wox, **Wom, **Wfc, **Wfm;
 	};
 
 	// ModularNN static functions
