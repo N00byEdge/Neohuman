@@ -63,8 +63,11 @@ void ModularNN::applyActivationFunction<ModularNN::ActivationFunction::Softmax>(
 template <ModularNN::ActivationFunction actf>
 fv ModularNN::StandardLayer<actf>::run(fv &in) {
 	fv output(outputSize);
+
 	mulWeightsVec(weights, in.data(), output.data(), inputSize, outputSize);
 	applyActivationFunction<actf>(output);
+
+	return output;
 }
 
 void ModularNN::mulWeightsVec(float const * const *weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize) {

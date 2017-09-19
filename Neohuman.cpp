@@ -9,6 +9,7 @@
 #include "BuildingPlacer.h"
 #include "FAP.h"
 #include "SoundDatabase.h"
+#include "ModularNN.h"
 
 #include <iostream>
 #include <fstream>
@@ -52,43 +53,24 @@ void Neohuman::onStart() {
 	Broodwar->sendText(openingStrings[randint(0, openingStrings.size() - 1)].c_str());
 	timer_onStart.reset();
 
-	playingRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
-	wasRandom = BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Random;
-
-#ifndef SSCAIT
-
-	Broodwar->enableFlag(Flag::UserInput);
-
-#endif
-
-	// Uncomment the following line and the bot will know about everything through the fog of war (cheat).
-	// Broodwar->enableFlag(Flag::CompleteMapInformation);
-
 	Broodwar->setCommandOptimizationLevel(2);
-
-	if (!Broodwar->isReplay()) {
-		//if (Broodwar->enemy())
-			//Broodwar << "The matchup is me (" << Broodwar->self()->getRace() << ") vs " << Broodwar->enemy()->getRace() << std::endl;
-	}
 
 	mapManager.init();
 	buildingPlacer.init();
-	//combatSimulator.init();
 
 	timer_onStart.stop();
+
+	ModularNN testNN(std::ifstream("Test.nn"));
+	auto v = testNN.run(fv{});
+	Broodwar->sendText("Neural network output: ");
+	for (auto &val : v)
+		Broodwar->sendText("%f ", val);
 
 #ifdef _DEBUG
 
 	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
 
 #endif
-
-	//combatSimulator.onStart();
-
-	/*
-	Broodwar->sendText("power overwhelming");
-	Broodwar->sendText("black sheep wall");
-	//*/
 }
 
 void Neohuman::onEnd(bool didWin) {

@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <vector>
+#include <random>
 
 #include "Neohuman.h"
 
@@ -16,6 +17,9 @@
 
 #define SATRUATION_RADIUS 300
 #define WORKERAGGRORADIUS 100
+
+
+extern std::mt19937_64 mt;
 
 template <int scale>
 bool operator< (BWAPI::Point<int, scale> lhs, BWAPI::Point<int, scale> rhs);
