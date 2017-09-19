@@ -29,10 +29,6 @@ class Neohuman : public BWAPI::AIModule {
 		virtual void onSaveGame(std::string gameName);
 		virtual void onUnitComplete(BWAPI::Unit unit);
 
-		// Things
-		bool wasRandom;
-		BWAPI::Race playingRace;
-
 		Neolib::Timer timer_drawinfo, timer_NN, timer_total;
 };
 
