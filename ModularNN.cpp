@@ -2,14 +2,6 @@
 
 #include <cmath>
 #include <sstream>
-#include <random>
-#include <chrono>
-
-#ifdef WIN32
-std::mt19937_64 mt(std::chrono::system_clock::now().time_since_epoch().count());
-#else
-std::mt19937_64 mt(std::chrono::steady_clock::now().time_since_epoch().count());
-#endif
 
 template <typename T>
 T read(std::istream &is) {
@@ -22,11 +14,22 @@ template<ModularNN::ActivationFunction actFunc>
 inline ModularNN::StandardLayer<actFunc>::StandardLayer(std::istream &is) :
 	inputSize(read<unsigned>(is)),
 	outputSize(read<unsigned>(is)),
-	weights(new float[inputSize + 1][outputSize]) {
+	weights(new float *[inputSize + 1]) {
 
-	for (int i = 0; i <= inputSize; ++i)
-		for (int j = 0; j < outputSize; ++j)
+	for (unsigned i = 0; i <= inputSize; ++i)
+		weights[i] = new float[outputSize];
+
+	for (unsigned i = 0; i <= inputSize; ++i)
+		for (unsigned j = 0; j < outputSize; ++j)
 			is >> weights[i][j];
+}
+
+template<ModularNN::ActivationFunction actFunc>
+ModularNN::StandardLayer<actFunc>::~StandardLayer() {
+	for (unsigned i = 0; i <= inputSize; ++i)
+		delete[] weights[i];
+
+	delete[] weights;
 }
 
 template<>
@@ -60,11 +63,11 @@ void ModularNN::applyActivationFunction<ModularNN::ActivationFunction::Softmax>(
 template <ModularNN::ActivationFunction actf>
 fv ModularNN::StandardLayer<actf>::run(fv &in) {
 	fv output(outputSize);
-	mulWeightsVec(weights, in, output.data(), inputSize, outputSize);
+	mulWeightsVec(weights, in.data(), output.data(), inputSize, outputSize);
 	applyActivationFunction<actf>(output);
 }
 
-void ModularNN::mulWeightsVec(float const **weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize) {
+void ModularNN::mulWeightsVec(float const * const *weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize) {
 	for (unsigned i = 0; i <= inSize; ++i) // + 1 for bias
 		for (unsigned o = 0; o < outSize; ++o)
 			dest[o] += weights[i][o] * vec[i];
@@ -73,9 +76,9 @@ void ModularNN::mulWeightsVec(float const **weights, float const *vec, float *de
 ModularNN::ModularNN(std::istream &is) {
 	std::string line;
 	while (getline(is, line)) {
-		auto layer = readLayer(std::stringstream(line));
+		auto layer = std::move(readLayer(std::stringstream(line)));
 		if (layer)
-			layers.push_back(layer);
+			layers.push_back(std::move(layer));
 	}
 }
 

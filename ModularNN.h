@@ -25,15 +25,17 @@ struct ModularNN {
 	template <ActivationFunction actFunc>
 	struct StandardLayer : public Layer {
 		StandardLayer(std::istream &);
+		~StandardLayer();
 		virtual fv run(fv &input) override;
 
+	private:
 		const unsigned inputSize, outputSize;
-		const std::unique_ptr<float[][]> weights;
+		float **weights;
 	private:
 	};
 
 	// ModularNN static functions
-	static void mulWeightsVec(float const **weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize);
+	static void mulWeightsVec(float const * const *weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize);
 
 	// ModularNN functions
 	ModularNN(std::istream &is);
