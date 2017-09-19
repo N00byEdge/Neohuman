@@ -68,9 +68,12 @@ fv ModularNN::StandardLayer<actf>::run(fv &in) {
 }
 
 void ModularNN::mulWeightsVec(float const * const *weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize) {
-	for (unsigned i = 0; i <= inSize; ++i) // + 1 for bias
+	for (unsigned i = 0; i < inSize; ++i)
 		for (unsigned o = 0; o < outSize; ++o)
 			dest[o] += weights[i][o] * vec[i];
+
+	for (unsigned o = 0; o < outSize; ++o) // bias
+		dest[o] += weights[inSize][o];
 }
 
 ModularNN::ModularNN(std::istream &is) {
