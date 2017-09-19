@@ -21,6 +21,8 @@ struct ModularNN {
 
 	template <ActivationFunction actFunc>
 	static void applyActivationFunction(fv &v);
+	template <ActivationFunction actFunc>
+	static void applyActivationFunction(float *const data, const unsigned size);
 
 	template <ActivationFunction actFunc>
 	struct StandardLayer : public Layer {
@@ -30,19 +32,32 @@ struct ModularNN {
 
 	private:
 		const unsigned inputSize, outputSize;
-		float **weights;
+		float *const *const weights;
 	};
 
 	struct LSTM : public Layer {
 		LSTM(std::istream &);
+		~LSTM();
 		virtual fv run(fv &input) override;
 
 	private:
-		float **Wmx, **Wmh, **Whx, **Whm, **Wix, **Wim, **Wox, **Wom, **Wfc, **Wfm;
+		// Sizes
+		const unsigned inputSize, outputSize, mSize;
+
+		// Weight matrices
+		float *const *const Wmx, *const *const Wmh, *const *const Whx, *const *const Whm, *const *const Wix, *const *const Wim, *const *const Wox, *const *const Wom, *const *const Wfx, *const *const Wfm;
+
+		// Biases
+		float *const bm, *const bhr, *const bi, *const bo, *const bf, *const bc, *const bh;
+
+		// State
+		float *const hState, *const cState;
 	};
 
 	// ModularNN static functions
-	static void mulWeightsVec(float const * const *weights, float const *vec, float *dest, const unsigned inSize, const unsigned outSize);
+	static void mulMatrixVec(float const * const * const mat, float const * const vec, float * const dest, const unsigned inSize, const unsigned outSize);
+	static void mulWeightsVec(float const * const * const weights, float const * const vec, float * const dest, const unsigned inSize, const unsigned outSize);
+	static void addVectors(float *const target, float const *const source, const unsigned count);
 
 	// ModularNN functions
 	ModularNN(std::istream &is);
