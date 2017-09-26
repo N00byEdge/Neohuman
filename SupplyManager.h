@@ -1,5 +1,7 @@
 #pragma once
 
+#include <BWAPI.h>
+
 namespace Neolib {
 
 	struct SupplyCount {
@@ -14,6 +16,8 @@ namespace Neolib {
 		SupplyCount &operator*=(const int factor);
 		SupplyCount  operator/ (const int divisor) const;
 		SupplyCount &operator/=(const int divisor);
+
+		int operator()(BWAPI::Race);
 
 		int protoss, terran, zerg;
 	};

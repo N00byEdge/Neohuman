@@ -10,6 +10,7 @@ struct ModularNN {
 	// NN related definitions
 	struct Layer {
 		virtual fv run(fv &input) = 0;
+		virtual void write(std::ostream &) = 0;
 	};
 
 	enum class ActivationFunction {
@@ -26,19 +27,25 @@ struct ModularNN {
 
 	template <ActivationFunction actFunc>
 	struct StandardLayer : public Layer {
+		StandardLayer(unsigned inputSize, unsigned outputSize);
 		StandardLayer(std::istream &);
 		~StandardLayer();
 		virtual fv run(fv &input) override;
+		virtual void write(std::ostream &) override;
 
 	private:
+		void genWeights();
+		void writeWeights(std::ostream &);
 		const unsigned inputSize, outputSize;
 		float *const *const weights;
 	};
 
 	struct LSTM : public Layer {
+		LSTM(unsigned inputSize, unsigned outputSize, unsigned mSize);
 		LSTM(std::istream &);
 		~LSTM();
 		virtual fv run(fv &input) override;
+		virtual void write(std::ostream &) override;
 
 	private:
 		// Sizes

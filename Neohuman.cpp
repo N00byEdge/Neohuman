@@ -10,6 +10,7 @@
 #include "FAP.h"
 #include "SoundDatabase.h"
 #include "ModularNN.h"
+#include "AIManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -60,17 +61,19 @@ void Neohuman::onStart() {
 
 	timer_onStart.stop();
 
-	ModularNN testNN(std::ifstream("Test.nn"));
-	auto v = testNN.run(fv{});
-	Broodwar->sendText("Neural network output: ");
-	for (auto &val : v)
-		Broodwar->sendText("%f ", val);
+#ifndef SSCAIT
+
+	BWAPI::Broodwar->setLocalSpeed(0);
+	BWAPI::Broodwar->setFrameSkip(100);
+
+#endif
 
 #ifdef _DEBUG
 
 	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
 
 #endif
+
 }
 
 void Neohuman::onEnd(bool didWin) {
@@ -102,7 +105,6 @@ void Neohuman::onEnd(bool didWin) {
 
 void Neohuman::onFrame() {
 	timer_total.reset();
-	unitManager.onFrame();
 
 	static int lastFramePaused = -5;
 	static const std::vector <std::string> pauseStrings = {
@@ -123,6 +125,7 @@ void Neohuman::onFrame() {
 
 	if (!(Broodwar->isPaused() || Broodwar->isReplay())) {
 		unitManager.onFrame();
+		aiManager.onFrame();
 
 		// Do all the game logic
 	}

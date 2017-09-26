@@ -19,6 +19,11 @@ inline float **makeWeights(const unsigned inSize, const unsigned outSize) {
 }
 
 template<ModularNN::ActivationFunction actFunc>
+ModularNN::StandardLayer<actFunc>::StandardLayer(unsigned inputSize, unsigned outputSize) : inputSize(inputSize), outputSize(outputSize) {
+	genWeights();
+}
+
+template<ModularNN::ActivationFunction actFunc>
 inline ModularNN::StandardLayer<actFunc>::StandardLayer(std::istream &is) :
 	inputSize(read<unsigned>(is)),
 	outputSize(read<unsigned>(is)),
@@ -78,6 +83,43 @@ fv ModularNN::StandardLayer<actf>::run(fv &in) {
 	applyActivationFunction<actf>(output);
 
 	return output;
+}
+
+template<>
+void ModularNN::StandardLayer<ModularNN::ActivationFunction::ReLU>::write(std::ostream &os) {
+	os << "ReLU";
+	writeWeights(os);
+}
+
+template<>
+void ModularNN::StandardLayer<ModularNN::ActivationFunction::Sigmoid>::write(std::ostream &os) {
+	os << "Sigmoid";
+	writeWeights(os);
+}
+
+template<>
+void ModularNN::StandardLayer<ModularNN::ActivationFunction::Softmax>::write(std::ostream &os) {
+	os << "Softmax";
+	writeWeights(os);
+}
+
+template<>
+void ModularNN::StandardLayer<ModularNN::ActivationFunction::Tanh>::write(std::ostream &os) {
+	os << "Tanh";
+	writeWeights(os);
+}
+
+template<>
+void ModularNN::StandardLayer<ModularNN::ActivationFunction::ReLU>::genWeights() {
+
+}
+
+template<ModularNN::ActivationFunction actFunc>
+void ModularNN::StandardLayer<actFunc>::writeWeights(std::ostream &os) {
+	for (auto &wv : weights)
+		for (auto &w : wv)
+			os << " " << w;
+	os << "\n";
 }
 
 void ModularNN::mulMatrixVec(float const * const * const mat, float const * const vec, float * const dest, const unsigned inSize, const unsigned outSize) {
@@ -252,4 +294,7 @@ fv ModularNN::LSTM::run(fv &input) {
 	applyActivationFunction<ModularNN::ActivationFunction::Tanh>(hState, outputSize);
 
 	return fv(hState, hState + outputSize);
+}
+
+void ModularNN::LSTM::write(std::ostream &) {
 }

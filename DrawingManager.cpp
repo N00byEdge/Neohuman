@@ -141,6 +141,7 @@ namespace Neolib {
 		if (s.enableTopInfo) {
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "FPS: %c%d", BWAPI::Broodwar->getFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getFPS());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Average FPS: %c%f", BWAPI::Broodwar->getAverageFPS() >= 30 ? BWAPI::Text::Green : BWAPI::Text::Red, BWAPI::Broodwar->getAverageFPS());
+			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Frame: %d", BWAPI::Broodwar->getFrameCount());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Nukes: %c%u Armed %c%u Arming %c%u Unarmed", BWAPI::Text::BrightRed, unitManager.getNumArmedSilos(), BWAPI::Text::Orange, unitManager.getNumArmingSilos(), BWAPI::Text::Yellow, unitManager.getNumUnarmedSilos());
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%c%d%c nukes launched", BWAPI::Text::Green, unitManager.getLaunchedNukeCount(), BWAPI::Text::Default);
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d barracks!", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks));

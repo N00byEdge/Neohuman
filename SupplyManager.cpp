@@ -59,6 +59,20 @@ namespace Neolib {
 		return *this;
 	}
 
+	int SupplyCount::operator()(BWAPI::Race r) {
+		switch (r) {
+
+		case BWAPI::Races::Protoss:
+			return protoss;
+		case BWAPI::Races::Terran:
+			return terran;
+		case BWAPI::Races::Zerg:
+			return zerg;
+		}
+
+		return 0;
+	}
+
 	int mainSupply(SupplyCount sc) {
 		if (BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Protoss)
 			return sc.protoss;
