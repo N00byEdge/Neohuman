@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "SupplyManager.h"
+#include "Util.h"
 
 Neolib::AIManager aiManager;
 
@@ -18,9 +19,9 @@ int failedTargetUnits, attemptedTargetUnits;
 constexpr int unitIDSize = 16, abilityIDSize = 1;
 
 constexpr int commandSize =
+	1 +				// Unit x location
+	1 +				// Unit y location
 	1 +				// Advance to next frame?
-	unitIDSize +	// Source unit id
-	unitIDSize +	// target unit id
 	abilityIDSize +	// Ability id
 	abilityIDSize + // Ability argument
 	1 +				// x location
@@ -28,9 +29,10 @@ constexpr int commandSize =
 	1 +				// didTargetGround
 	0;
 
+std::uniform_real_distribution<float> dist(0, 1);
 
 bool parseBit(float f) {
-	return f >= 0.5f;
+	return f > dist(mt);
 }
 
 float genBit(bool b) {
@@ -103,11 +105,9 @@ void appendUnitData(std::vector <float> &v, BWAPI::Unit u = nullptr) {
 	append(v, genBit(u != nullptr));
 	append(v, genBit((u != nullptr) && u->getPlayer()->isEnemy(BWAPI::Broodwar->self())));
 	append(v, genBit((u != nullptr) && u->getPlayer() == BWAPI::Broodwar->self()));
-	append(v, genBits<unitIDSize>(u == nullptr ? -1 : u->getID()));
 	append(v, genBits<abilityIDSize>(u == nullptr ? -1 : u->getOrder().getID()));
 	append(v, (u == nullptr ? 0.0f : (float)u->getOrderTargetPosition().x / (256 * 32)));
 	append(v, (u == nullptr ? 0.0f : (float)u->getOrderTargetPosition().y / (256 * 32)));
-	append(v, genBits<unitIDSize>(u == nullptr ? -1 : u->getOrderTarget() ? u->getOrderTarget()->getID() : -1));
 	append(v, genBits<abilityIDSize>(u == nullptr ? -1 : u->getType().getID()));
 	append(v, u == nullptr ? 0.0f : (float)u->getHitPoints() / u->getType().maxHitPoints());
 	append(v, u == nullptr ? 0.0f : (float)u->getShields() / u->getType().maxShields());
@@ -125,37 +125,29 @@ void appendUnitData(std::vector <float> &v, BWAPI::Unit u = nullptr) {
 }
 
 bool parseAndExecuteAction(std::vector <float> &command) {
-	if (splice<1>(command)[0] > 0.5f)
-		return false;
+	//if (parseBit(splice<1>(command)[0]))
+		//return false;
 
-	auto unitID = parseBits<unitIDSize>(splice<unitIDSize>(command));
-	auto targetID = parseBits<unitIDSize>(splice<unitIDSize>(command));
+	auto unitX = splice<1>(command)[0] * (256 * 32);
+	auto unitY = splice<1>(command)[0] * (256 * 32);
 	auto abilityID = parseBits<abilityIDSize>(splice<abilityIDSize>(command));
 	auto abilityArg = parseBits<abilityIDSize>(splice<abilityIDSize>(command));
 	auto abilityTargetX = splice<1>(command)[0];
 	auto abilityTargetY = splice<1>(command)[0];
-	auto didTargetGround = splice<1>(command)[0] > 0.5f;
-
-	auto u = BWAPI::Broodwar->getUnit(unitID);
+	auto didTargetGround = parseBit(splice<1>(command)[0]);
 
 	++ attemptedSourceUnits;
-	if (u == nullptr)
-		++failedSourceUnits;
 
+	auto u = BWAPI::Broodwar->getClosestUnit(BWAPI::Position((int)unitX, (int)unitY), BWAPI::Filter::IsOwned && !BWAPI::Filter::IsBuilding);
+	auto targetUnit = BWAPI::Broodwar->getClosestUnit(BWAPI::Position((int)abilityTargetX, (int)abilityTargetY));
 	auto targetPosition = BWAPI::Position((int)(abilityTargetX * 32.0f * 256.0f), (int)(abilityTargetY * 32.0f * 256.0f));
-	auto targetUnit = BWAPI::Broodwar->getUnit(targetID);
-
-	if (!didTargetGround)
-		++attemptedTargetUnits;
-	if (!didTargetGround && targetUnit == nullptr)
-		++failedTargetUnits;
 
 	if (u != nullptr) {
 		if (abilityID == 0) { // Attack
 			if (didTargetGround)
 				u->attack(targetPosition);
 			else if (targetUnit != nullptr)
-					u->attack(targetUnit);
+				u->attack(targetUnit);
 		}
 		else if (abilityID == 1) { // Move
 			u->move(targetPosition);
@@ -168,6 +160,7 @@ bool parseAndExecuteAction(std::vector <float> &command) {
 namespace Neolib {
 	void AIManager::onFrame() {
 		static ModularNN model(std::ifstream("bwapi-data/AI/model.nn"));
+
 		std::vector <float> nnFrameData;
 		setStaticFrameData(nnFrameData);
 
@@ -183,8 +176,12 @@ namespace Neolib {
 		appendUnitData(nnFrameData);
 		std::vector <float> output(commandSize);
 
-		for (int i = 0; i < 400; ++i) { // Max commands per frame
+		for (int i = 0; i < 20; ++i) { // Max commands per frame
 			output = model.run(nnFrameData);
+			std::string s = "";
+			for (auto &v : output)
+				s += std::to_string(v) + " ";
+			BWAPI::Broodwar->sendText(s.c_str());
 			if (!parseAndExecuteAction(output))
 				break;
 		}
