@@ -30,6 +30,7 @@ class Neohuman : public BWAPI::AIModule {
 		virtual void onUnitComplete(BWAPI::Unit unit);
 
 		Neolib::Timer timer_drawinfo, timer_NN, timer_total;
+		int currI;
 };
 
 extern Neohuman* neoInstance;

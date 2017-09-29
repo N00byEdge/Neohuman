@@ -16,7 +16,7 @@ int enemyRace;
 int failedSourceUnits, attemptedSourceUnits;
 int failedTargetUnits, attemptedTargetUnits;
 
-constexpr int unitIDSize = 16, abilityIDSize = 1;
+constexpr int unitIDSize = 16, abilityIDSize = 2;
 
 constexpr int commandSize =
 	1 +				// Unit x location
@@ -110,7 +110,7 @@ void appendUnitData(std::vector <float> &v, BWAPI::Unit u = nullptr) {
 	append(v, (u == nullptr ? 0.0f : (float)u->getOrderTargetPosition().y / (256 * 32)));
 	append(v, genBits<abilityIDSize>(u == nullptr ? -1 : u->getType().getID()));
 	append(v, u == nullptr ? 0.0f : (float)u->getHitPoints() / u->getType().maxHitPoints());
-	append(v, u == nullptr ? 0.0f : (float)u->getShields() / u->getType().maxShields());
+	append(v, u == nullptr ? 0.0f : (u->getType().maxShields() ? (float)u->getShields() / u->getType().maxShields() : 0.0f));
 	append(v, u == nullptr ? 0.0f : (float)u->getEnergy() / 250);
 	append(v, u == nullptr ? 0.0f : (float)std::max(u->getGroundWeaponCooldown(), u->getAirWeaponCooldown()) / BWAPI::UnitTypes::Zerg_Devourer.airWeapon().damageCooldown());
 	append(v, u == nullptr ? 0.0f : (float)u->getAngle() / (2.0f * 3.1415f));
@@ -122,6 +122,8 @@ void appendUnitData(std::vector <float> &v, BWAPI::Unit u = nullptr) {
 	append(v, u == nullptr ? 0.0f : genBit(u->isDetected()));
 	append(v, u == nullptr ? 0.0f : genBit(u->isBurrowed()));
 	append(v, u == nullptr ? 0.0f : genBit(u->isFlying()));
+	append(v, genBit(u != nullptr && u->isCarryingMinerals()));
+	append(v, genBit(u != nullptr && u->isCarryingGas()));
 }
 
 bool parseAndExecuteAction(std::vector <float> &command) {
@@ -144,13 +146,29 @@ bool parseAndExecuteAction(std::vector <float> &command) {
 
 	if (u != nullptr) {
 		if (abilityID == 0) { // Attack
-			if (didTargetGround)
+			if (didTargetGround) {
+				BWAPI::Broodwar->drawLineMap(u->getPosition(), targetPosition, BWAPI::Colors::Orange);
 				u->attack(targetPosition);
-			else if (targetUnit != nullptr)
+			}
+			else if (targetUnit != nullptr) {
+				BWAPI::Broodwar->drawLineMap(u->getPosition(), targetUnit->getPosition(), BWAPI::Colors::Red);
 				u->attack(targetUnit);
+			}
 		}
 		else if (abilityID == 1) { // Move
+			BWAPI::Broodwar->drawLineMap(u->getPosition(), targetPosition, BWAPI::Colors::Green);
 			u->move(targetPosition);
+		}
+		else if (abilityID == 2 && targetUnit != nullptr) { // Gather
+			BWAPI::Broodwar->drawLineMap(u->getPosition(), targetUnit->getPosition(), BWAPI::Colors::Cyan);
+			u->gather(targetUnit);
+		}
+		else if (abilityID == 3) { // Return cargo
+			BWAPI::Broodwar->drawCircleMap(u->getPosition(), 10, BWAPI::Colors::Cyan, false);
+			u->returnCargo();
+		}
+		else if (abilityID == 4) {
+
 		}
 	}
 
@@ -159,7 +177,27 @@ bool parseAndExecuteAction(std::vector <float> &command) {
 
 namespace Neolib {
 	void AIManager::onFrame() {
-		static ModularNN model(std::ifstream("bwapi-data/AI/model.nn"));
+		static ModularNN model([&]() {
+#ifndef SSCAIT
+			int i = 0;
+			std::ifstream ifs("current.txt");
+			if (ifs.is_open())
+				ifs >> i;
+			ifs.close();
+
+			neoInstance->currI = i;
+
+			std::ifstream model("bwapi-data/AI/" + std::to_string(i++));
+			std::ofstream("current.txt") << i;
+
+			if (!model.is_open())
+				exit(0);
+			return model;
+#else
+			return std::ifstream("bwapi-data/AI/model.nn");
+#endif
+		}
+		());
 
 		std::vector <float> nnFrameData;
 		setStaticFrameData(nnFrameData);
@@ -176,12 +214,12 @@ namespace Neolib {
 		appendUnitData(nnFrameData);
 		std::vector <float> output(commandSize);
 
-		for (int i = 0; i < 20; ++i) { // Max commands per frame
+		for (int i = 0; i < 40; ++i) { // Max commands per frame
 			output = model.run(nnFrameData);
-			std::string s = "";
-			for (auto &v : output)
-				s += std::to_string(v) + " ";
-			BWAPI::Broodwar->sendText(s.c_str());
+			//std::string s = "";
+			//for (auto &v : output)
+				//s += std::to_string(v) + " ";
+			//BWAPI::Broodwar->sendText(s.c_str());
 			if (!parseAndExecuteAction(output))
 				break;
 		}

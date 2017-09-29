@@ -64,7 +64,12 @@ void Neohuman::onStart() {
 #ifndef SSCAIT
 
 	BWAPI::Broodwar->setLocalSpeed(0);
+
+#ifndef _DEBUG
+
 	BWAPI::Broodwar->setFrameSkip(100);
+
+#endif
 
 #endif
 
@@ -101,10 +106,18 @@ void Neohuman::onEnd(bool didWin) {
 	std::ofstream of("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
 	if (of)
 		of << wins << " " << losses << "\n";
+	std::ofstream of2("fitness" + std::to_string(currI) + ".txt");
+	if (of2)
+		of2 << BWAPI::Broodwar->self()->minerals() + BWAPI::Broodwar->self()->spentMinerals() - 50;
+	of.close();
+	of2.close();
 }
 
 void Neohuman::onFrame() {
 	timer_total.reset();
+
+	if (BWAPI::Broodwar->getFrameCount() > 24 * 60 * 3) // 3 minutes
+		BWAPI::Broodwar->leaveGame();
 
 	static int lastFramePaused = -5;
 	static const std::vector <std::string> pauseStrings = {

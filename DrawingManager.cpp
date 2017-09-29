@@ -146,6 +146,7 @@ namespace Neolib {
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%c%d%c nukes launched", BWAPI::Text::Green, unitManager.getLaunchedNukeCount(), BWAPI::Text::Default);
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d barracks!", unitManager.countFriendly(BWAPI::UnitTypes::Terran_Barracks));
 			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "I have %d APM!", BWAPI::Broodwar->getAPM());
+			BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "Model #%d", neoInstance->currI);
 		}
 
 		if (s.enableBWEMOverlay) {
