@@ -138,14 +138,12 @@ bool parseAndExecuteAction(std::vector <float> &command) {
 	auto abilityTargetY = splice<1>(command)[0];
 	auto didTargetGround = parseBit(splice<1>(command)[0]);
 
-	++ attemptedSourceUnits;
-
 	auto u = BWAPI::Broodwar->getClosestUnit(BWAPI::Position((int)unitX, (int)unitY), BWAPI::Filter::IsOwned && !BWAPI::Filter::IsBuilding);
-	auto targetUnit = BWAPI::Broodwar->getClosestUnit(BWAPI::Position((int)abilityTargetX, (int)abilityTargetY));
 	auto targetPosition = BWAPI::Position((int)(abilityTargetX * 32.0f * 256.0f), (int)(abilityTargetY * 32.0f * 256.0f));
 
 	if (u != nullptr) {
 		if (abilityID == 0) { // Attack
+			auto targetUnit = BWAPI::Broodwar->getClosestUnit(BWAPI::Position((int)abilityTargetX, (int)abilityTargetY));
 			if (didTargetGround) {
 				BWAPI::Broodwar->drawLineMap(u->getPosition(), targetPosition, BWAPI::Colors::Orange);
 				u->attack(targetPosition);
@@ -159,9 +157,12 @@ bool parseAndExecuteAction(std::vector <float> &command) {
 			BWAPI::Broodwar->drawLineMap(u->getPosition(), targetPosition, BWAPI::Colors::Green);
 			u->move(targetPosition);
 		}
-		else if (abilityID == 2 && targetUnit != nullptr) { // Gather
-			BWAPI::Broodwar->drawLineMap(u->getPosition(), targetUnit->getPosition(), BWAPI::Colors::Cyan);
-			u->gather(targetUnit);
+		else if (abilityID == 2) { // Gather
+			auto targetUnit = BWAPI::Broodwar->getClosestUnit(BWAPI::Position((int)abilityTargetX, (int)abilityTargetY), BWAPI::Filter::IsMineralField || BWAPI::Filter::IsRefinery);
+			if (targetUnit != nullptr) {
+				BWAPI::Broodwar->drawLineMap(u->getPosition(), targetUnit->getPosition(), BWAPI::Colors::Cyan);
+				u->gather(targetUnit);
+			}
 		}
 		else if (abilityID == 3) { // Return cargo
 			BWAPI::Broodwar->drawCircleMap(u->getPosition(), 10, BWAPI::Colors::Cyan, false);
@@ -184,11 +185,11 @@ namespace Neolib {
 			if (ifs.is_open())
 				ifs >> i;
 			ifs.close();
+			std::ofstream("current.txt") << i + 1;
 
 			neoInstance->currI = i;
 
 			std::ifstream model("bwapi-data/AI/" + std::to_string(i++));
-			std::ofstream("current.txt") << i;
 
 			if (!model.is_open())
 				exit(0);
@@ -214,7 +215,7 @@ namespace Neolib {
 		appendUnitData(nnFrameData);
 		std::vector <float> output(commandSize);
 
-		for (int i = 0; i < 40; ++i) { // Max commands per frame
+		for (int i = 0; i < 40 && BWAPI::Broodwar->getFrameCount() != 0; ++i) { // Max commands per frame
 			output = model.run(nnFrameData);
 			//std::string s = "";
 			//for (auto &v : output)

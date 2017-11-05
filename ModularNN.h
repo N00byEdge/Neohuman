@@ -6,11 +6,12 @@
 
 using fv = std::vector <float>;
 
-constexpr float I = 0.1f;
+constexpr float I = 0.01f;
 
 struct ModularNN {
 	// NN related definitions
 	struct Layer {
+		virtual ~Layer() { }
 		virtual fv run(fv &input) = 0;
 		virtual void write(std::ostream &) = 0;
 	};
@@ -29,9 +30,9 @@ struct ModularNN {
 
 	template <ActivationFunction actFunc>
 	struct StandardLayer : public Layer {
+		virtual ~StandardLayer() { }
 		StandardLayer(unsigned inputSize, unsigned outputSize);
 		StandardLayer(std::istream &);
-		~StandardLayer();
 		virtual fv run(fv &input) override;
 		virtual void write(std::ostream &) override;
 
