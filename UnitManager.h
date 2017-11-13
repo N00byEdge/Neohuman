@@ -10,6 +10,7 @@ namespace Neolib {
 	struct EnemyData {
 		EnemyData();
 		EnemyData(BWAPI::Unit);
+		EnemyData(BWAPI::UnitType);
 
 		BWAPI::Unit u = nullptr;
 		mutable BWAPI::Player lastPlayer = nullptr;

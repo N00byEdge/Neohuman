@@ -49,7 +49,6 @@ namespace Neolib {
 
 			mutable BWAPI::UnitType unitType;
 			mutable BWAPI::Player player = nullptr;
-			mutable int healTimer = 0;
 			mutable bool isOrganic = false;
 			mutable bool didHealThisFrame = false;
 			mutable int score = 0;

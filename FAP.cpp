@@ -93,18 +93,21 @@ namespace Neolib {
 	}
 
 	void FastAPproximation::dealDamage(const FastAPproximation::FAPUnit &fu, int damage, BWAPI::DamageType damageType) const {
-		if (fu.shields >= damage - fu.shieldArmor) {
-			fu.shields -= damage - fu.shieldArmor;
+		damage <<= 8;
+		int remainingShields = fu.shields - damage + (fu.shieldArmor << 8);
+		if (remainingShields > 0) {
+			fu.shields = remainingShields;
 			return;
 		}
 		else if(fu.shields) {
-			damage -= (fu.shields + fu.shieldArmor);
+			damage -= fu.shields + (fu.shieldArmor << 8);
 			fu.shields = 0;
 		}
 
-
 		if (!damage)
 			return;
+
+		damage -= fu.armor << 8;
 
 #ifdef SSCAIT
 
@@ -149,17 +152,15 @@ namespace Neolib {
 
 #endif
 
+		damage = MAX(128, damage);
+
 #ifdef _DEBUG
 
-		damage = MAX(1, damage - fu.armor);
 		fu.damageTaken += damage;
-		fu.health -= damage;
-
-#else
-
-		fu.health -= MAX(1, damage - fu.armor);
 
 #endif
+
+		fu.health -= damage;
 	}
 
 	int inline FastAPproximation::distButNotReally(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
@@ -258,13 +259,12 @@ namespace Neolib {
 			fu.x = closestHealable->x;
 			fu.y = closestHealable->y;
 
-			closestHealable->health += (closestHealable->healTimer += 300) / 256;
-			closestHealable->healTimer %= 256;
+			closestHealable->health += 150;
 
 			if (closestHealable->health > closestHealable->maxHealth)
 				closestHealable->health = closestHealable->maxHealth;
 
-			closestHealable->didHealThisFrame = false;
+			closestHealable->didHealThisFrame = true;
 		}
 	}
 
@@ -361,6 +361,18 @@ namespace Neolib {
 				--fu.attackCooldownRemaining;
 			if (fu.didHealThisFrame)
 				fu.didHealThisFrame = false;
+			if (fu.unitType.getRace() == BWAPI::Races::Zerg) {
+				if (fu.health < fu.maxHealth)
+					fu.health += 4;
+				if (fu.health > fu.maxHealth)
+					fu.health = fu.maxHealth;
+			}
+			else if (fu.unitType.getRace() == BWAPI::Races::Protoss) {
+				if (fu.shields < fu.maxShields)
+					fu.shields += 7;
+				if (fu.shields > fu.maxShields)
+					fu.shields = fu.maxShields;
+			}
 		}
 
 		for (auto &fu : player2) {
@@ -368,6 +380,18 @@ namespace Neolib {
 				--fu.attackCooldownRemaining;
 			if (fu.didHealThisFrame)
 				fu.didHealThisFrame = false;
+			if (fu.unitType.getRace() == BWAPI::Races::Zerg) {
+				if (fu.health < fu.maxHealth)
+					fu.health += 4;
+				if (fu.health > fu.maxHealth)
+					fu.health = fu.maxHealth;
+			}
+			else if (fu.unitType.getRace() == BWAPI::Races::Protoss) {
+				if (fu.shields < fu.maxShields)
+					fu.shields += 7;
+				if (fu.shields > fu.maxShields)
+					fu.shields = fu.maxShields;
+			}
 		}
 	}
 
@@ -510,16 +534,10 @@ namespace Neolib {
 		airMaxRange *= airMaxRange;
 		airMinRange *= airMinRange;
 
-		groundDamage *= 2;
-		airDamage *= 2;
-
-		shieldArmor *= 2;
-		armor *= 2;
-
-		health *= 2;
-		maxHealth *= 2;
-		shields *= 2;
-		maxShields *= 2;
+		health <<= 8;
+		maxHealth <<= 8;
+		shields <<= 8;
+		maxShields <<= 8;
 	}
 
 	const FastAPproximation::FAPUnit &FastAPproximation::FAPUnit::operator=(const FAPUnit & other) const {
@@ -532,7 +550,7 @@ namespace Neolib {
 		score = other.score;
 		attackCooldownRemaining = other.attackCooldownRemaining;
 		unitType = other.unitType; isOrganic = other.isOrganic;
-		healTimer = other.healTimer; didHealThisFrame = other.didHealThisFrame;
+		didHealThisFrame = other.didHealThisFrame;
 		elevation = other.elevation;
 		player = other.player;
 
