@@ -24,6 +24,10 @@ namespace Neolib {
 			initFromUnit();
 	}
 
+	EnemyData::EnemyData(BWAPI::UnitType ut) : u(nullptr), lastType(ut), lastPlayer(BWAPI::Broodwar->self()), lastPosition({}), lastHealth(ut.maxHitPoints()), lastShields(ut.maxShields()) {
+		
+	}
+
 	void EnemyData::initFromUnit() const {
 		lastType = u->getType();
 		lastPlayer = u->getPlayer();
