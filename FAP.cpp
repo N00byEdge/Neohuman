@@ -461,47 +461,49 @@ namespace Neolib {
 		id = nextId++;
 
 #ifdef SSCAIT
-
-		if (ed.lastType == BWAPI::UnitTypes::Protoss_Carrier) {
-			groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
-			groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
-			groundCooldown = 5;
-			groundMaxRange = 32 * 8;
-
-			airDamage = groundDamage;
-			airDamageType = groundDamageType;
-			airCooldown = groundCooldown;
-			airMaxRange = groundMaxRange;
-		}
-		else if (ed.lastType == BWAPI::UnitTypes::Terran_Bunker) {
-			groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Gauss_Rifle);
-			groundCooldown = BWAPI::UnitTypes::Terran_Marine.groundWeapon().damageCooldown() / 4;
-			groundMaxRange = ed.lastPlayer->weaponMaxRange(BWAPI::UnitTypes::Terran_Marine.groundWeapon()) + 32;
-
-			airDamage = groundDamage;
-			airCooldown = groundCooldown;
-			airMaxRange = groundMaxRange;
-		}
-		else if (ed.lastType == BWAPI::UnitTypes::Protoss_Reaver) {
-			groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Scarab);
-		}
-
+#define BEGINUNIT(u) if (ed.lastType == (u)) 
+#define ENDUNIT 
 #else
+#define BEGINUNIT(u) case (u):
+#define ENDUNIT break;
+#endif
 
+#ifndef SSCAIT
 		switch (ed.lastType) {
-			case BWAPI::UnitTypes::Protoss_Carrier:
+#endif // !SSCAIT
+
+			BEGINUNIT(BWAPI::UnitTypes::Protoss_Carrier) {
 				groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
+
+				if (ed.u && ed.u->isVisible()) {
+					auto interceptorCount = ed.u->getInterceptorCount();
+					if (interceptorCount) {
+						groundCooldown = (int)round(37.0f / interceptorCount);
+					}
+					else {
+						groundDamage = 0;
+						groundCooldown = 5;
+					}
+				}
+				else {
+					if (ed.lastPlayer) {
+						groundCooldown = (int)round(37.0f / (ed.lastPlayer->getUpgradeLevel(BWAPI::UpgradeTypes::Carrier_Capacity) ? 8 : 4));
+					}
+					else {
+						groundCooldown = (int)round(37.0f / 8);
+					}
+				}
+
 				groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
-				groundCooldown = 5;
 				groundMaxRange = 32 * 8;
 
 				airDamage = groundDamage;
 				airDamageType = groundDamageType;
 				airCooldown = groundCooldown;
 				airMaxRange = groundMaxRange;
-				break;
+			} ENDUNIT
 
-			case BWAPI::UnitTypes::Terran_Bunker:
+			BEGINUNIT(BWAPI::UnitTypes::Terran_Bunker) {
 				groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Gauss_Rifle);
 				groundCooldown = BWAPI::UnitTypes::Terran_Marine.groundWeapon().damageCooldown() / 4;
 				groundMaxRange = ed.lastPlayer->weaponMaxRange(BWAPI::UnitTypes::Terran_Marine.groundWeapon()) + 32;
@@ -509,17 +511,15 @@ namespace Neolib {
 				airDamage = groundDamage;
 				airCooldown = groundCooldown;
 				airMaxRange = groundMaxRange;
-				break;
+			} ENDUNIT
 
-			case BWAPI::UnitTypes::Protoss_Reaver:
+			BEGINUNIT(BWAPI::UnitTypes::Protoss_Reaver) {
 				groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Scarab);
-				break;
+			} ENDUNIT
 
-			default:
-				break;
+#ifndef SSCAIT
 		}
-
-#endif
+#endif // !SSCAIT
 
 		if (ed.u && ed.u->isStimmed()) {
 			groundCooldown /= 2;
