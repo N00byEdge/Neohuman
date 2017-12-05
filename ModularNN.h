@@ -6,12 +6,12 @@
 
 using fv = std::vector <float>;
 
-constexpr float I = 0.01f;
+constexpr float I = 1e-1f;
 
 struct ModularNN {
 	// NN related definitions
 	struct Layer {
-		virtual ~Layer() { }
+		virtual ~Layer() = default;
 		virtual fv run(fv &input) = 0;
 		virtual void write(std::ostream &) = 0;
 	};
@@ -30,7 +30,7 @@ struct ModularNN {
 
 	template <ActivationFunction actFunc>
 	struct StandardLayer : public Layer {
-		virtual ~StandardLayer() { }
+		virtual ~StandardLayer() = default;
 		StandardLayer(unsigned inputSize, unsigned outputSize);
 		StandardLayer(std::istream &);
 		virtual fv run(fv &input) override;
@@ -40,28 +40,33 @@ struct ModularNN {
 		void genWeights();
 		void writeWeights(std::ostream &);
 		const unsigned inputSize, outputSize;
-		float *const weights;
+		std::vector <float> weights;
 	};
 
 	struct LSTM : public Layer {
 		LSTM(unsigned inputSize, unsigned outputSize, unsigned mSize);
 		LSTM(std::istream &);
-		~LSTM();
+		~LSTM() = default;
 		virtual fv run(fv &input) override;
 		virtual void write(std::ostream &) override;
 
 	private:
+		void resizeWeights();
+
 		// Sizes
 		const unsigned inputSize, outputSize, mSize;
 
 		// Weight matrices
-		float *const Wmx, *const Wmh, *const Whx, *const Whm, *const Wix, *const Wim, *const Wox, *const Wom, *const Wfx, *const Wfm;
+		std::vector <float> Wmx, Wmh, Whx, Whm, Wix, Wim, Wox, Wom, Wfx, Wfm;
+		//float *const Wmx, *const Wmh, *const Whx, *const Whm, *const Wix, *const Wim, *const Wox, *const Wom, *const Wfx, *const Wfm;
 
 		// Biases
-		float *const bm, *const bhr, *const bi, *const bo, *const bf, *const bc, *const bh;
+		std::vector <float> bm, bhr, bi, bo, bf, bc, bh;
+		//float *const bm, *const bhr, *const bi, *const bo, *const bf, *const bc, *const bh;
 
 		// State
-		float *const hState, *const cState;
+		std::vector <float> hState, cState;
+		//float *const hState, *const cState;
 	};
 
 	// ModularNN static functions
@@ -75,7 +80,9 @@ struct ModularNN {
 
 	// ModularNN functions
 	ModularNN(std::vector <std::unique_ptr<Layer>> &layers);
+	ModularNN(ModularNN &&stealLayersFrom);
 	ModularNN(std::istream &is);
+	~ModularNN() = default;
 	fv run(fv input);
 	void write(std::ostream &os);
 	ModularNN genDivNN();
