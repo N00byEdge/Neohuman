@@ -12,6 +12,8 @@ namespace Neolib {
 
 			void onFrame();
 
+			int getGroundDistance(BWAPI::Position start, BWAPI::Position end);
+
 			const std::vector <const BWEM::Base*> getAllBases() const;
 			const std::set    <const BWEM::Base*> getUnexploredBases() const;
 
