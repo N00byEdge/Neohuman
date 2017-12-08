@@ -257,13 +257,13 @@ namespace Neolib {
 				wantedWorkers += b.additionalWantedWorkers(), numWorkers += b.numWorkers();
 
 			if (wantedWorkers.gas && (numWorkers.minerals > numWorkers.gas / 3 || !wantedWorkers.minerals)) {
-				assignToGas(*it);
+				assignTo<AssignmentType::Minerals>(*it);
 				it = homelessWorkers.erase(it);
 				continue;
 			}
 
 			if (wantedWorkers.minerals) {
-				assignToMinerals(*it);
+				assignTo<AssignmentType::Gas>(*it);
 				it = homelessWorkers.erase(it);
 				continue;
 			}
@@ -463,139 +463,72 @@ namespace Neolib {
 		return findBuilder(builderType);
 	}
 
-	void BaseManager::assignToMinerals(BWAPI::Unit unit) {
-		//workerBaseLookup[unit] = base;
-		BWAPI::Unit mostAttractiveMineral = nullptr;
-		const Base *mostAttractiveBase = nullptr;
-		unsigned mineralMinersAt;
-		unsigned distanceTo;
-		int resourcesAt;
-
-		for (auto &b : bases) {
+	template <BaseManager::AssignmentType assignment, unsigned maxWorkers>
+	void BaseManager::assignTo(BWAPI::Unit unit) {
+		// Clear worker for previous work
+		for (auto &b : baseManager.getAllBases()) {
 			for (auto &mf : b.mineralMiners)
 				mf.second.erase(unit);
 			for (auto &mf : b.gasMiners)
 				mf.second.erase(unit);
 		}
 
-		for (auto &b : bases) {
-			for (auto &mf : b.mineralMiners) {
-				unsigned dist = mf.first->getDistance(b.resourceDepot);
-				if (mf.second.size() < 2 && mostAttractiveMineral == nullptr) {
-					mostAttractiveMineral = mf.first;
-					mostAttractiveBase = &b;
-					mineralMinersAt = (int)mf.second.size();
-					distanceTo = dist;
-					resourcesAt = mf.first->getResources();
+		std::remove_reference_t<decltype(*Base::mineralMiners.begin())> *bestResourceContainer;
+		Base const *bestBase = nullptr;
+		unsigned bestResources;
+		unsigned bestDistance;
+		unsigned bestWorkers;
+
+		const auto select = [&](const Base &b, const auto resourceContainer, unsigned resources, unsigned distance, unsigned workers) {
+			bestResourceContainer = resourceContainer;
+			bestBase = &b;
+			bestResources = resources;
+			bestDistance = distance;
+			bestWorkers = workers;
+		};
+
+		for (auto &b : baseManager.getAllBases()) {
+			auto &resource = assignment == AssignmentType::Minerals ? b.mineralMiners : b.gasMiners;
+
+			for (auto &resourceContainer : resource) {
+				decltype(bestResources) resources = static_cast<unsigned>(resourceContainer.first->getResources());
+				decltype(bestDistance) distance = static_cast<unsigned>(resourceContainer.first->getDistance(b.resourceDepot));
+				decltype(bestWorkers) workers = static_cast<unsigned>(resourceContainer.second.size());
+				
+				if (workers < maxWorkers && !bestResourceContainer) {
+					select(b, &resourceContainer, resources, distance, workers);
 					continue;
 				}
 
-				else if (mf.second.size() > 1)
+				else if (workers > 1)
 					continue;
 
-				else if (mostAttractiveMineral && dist < distanceTo) {
-					mostAttractiveMineral = mf.first;
-					mostAttractiveBase = &b;
-					mineralMinersAt = (int)mf.second.size();
-					distanceTo = dist;
-					resourcesAt = mf.first->getResources();
+				else if (bestResourceContainer && distance < bestDistance) {
+					select(b, &resourceContainer, resources, distance, workers);
 					continue;
 				}
 
-				else if (mostAttractiveMineral && mf.second.size() < mineralMinersAt) {
-					mostAttractiveMineral = mf.first;
-					mostAttractiveBase = &b;
-					mineralMinersAt = (int)mf.second.size();
-					distanceTo = dist;
-					resourcesAt = mf.first->getResources();
+				else if (bestResourceContainer && workers < bestWorkers && distance == bestDistance) {
+					select(b, &resourceContainer, resources, distance, workers);
 					continue;
 				}
 
-				else if (mostAttractiveMineral && mf.second.size() > mineralMinersAt)
+				else if (bestResourceContainer && workers > bestWorkers)
 					continue;
 
-				else if (mostAttractiveMineral && distanceTo > dist)
+				else if (bestResourceContainer && bestDistance > distance)
 					continue;
 
-				else if (mostAttractiveMineral && mf.first->getResources() > resourcesAt) {
-					mostAttractiveMineral = mf.first;
-					mostAttractiveBase = &b;
-					mineralMinersAt = (int)mf.second.size();
-					distanceTo = dist;
-					resourcesAt = mf.first->getResources();
-					continue;
-				}
-			}
-		}
-
-		if (mostAttractiveMineral != nullptr) {
-			mostAttractiveBase->mineralMiners[mostAttractiveMineral].insert(unit);
-			workerBaseLookup[unit] = mostAttractiveBase;
-		}
-	}
-
-	void BaseManager::assignToGas(BWAPI::Unit unit) {
-		BWAPI::Unit mostAttractiveGas = nullptr;
-		const Base *mostAttractiveBase = nullptr;
-		unsigned gasMinersAt;
-		unsigned distanceTo;
-		int resourcesAt;
-
-		for (auto &b : bases) {
-			for (auto &mf : b.mineralMiners)
-				mf.second.erase(unit);
-			for (auto &mf : b.gasMiners)
-				mf.second.erase(unit);
-		}
-
-		for (auto &b : bases) {
-			for (auto &gg : b.gasMiners) {
-				unsigned dist = gg.first->getDistance(b.resourceDepot);
-				if (gg.second.size() < 3 && mostAttractiveGas == nullptr) {
-					mostAttractiveGas = gg.first;
-					mostAttractiveBase = &b;
-					gasMinersAt = (int)gg.second.size();
-					distanceTo = dist;
-					resourcesAt = gg.first->getResources();
-					continue;
-				}
-
-				else if (gg.second.size() < 3 && gg.second.size() < gasMinersAt) {
-					mostAttractiveGas = gg.first;
-					mostAttractiveBase = &b;
-					gasMinersAt = (int)gg.second.size();
-					distanceTo = dist;
-					resourcesAt = gg.first->getResources();
-					continue;
-				}
-				else if (mostAttractiveGas && gg.second.size() > gasMinersAt)
-					continue;
-
-				else if (mostAttractiveGas && dist < distanceTo) {
-					mostAttractiveGas = gg.first;
-					mostAttractiveBase = &b;
-					gasMinersAt = (int)gg.second.size();
-					distanceTo = dist;
-					resourcesAt = gg.first->getResources();
-					continue;
-				}
-				else if (mostAttractiveGas && distanceTo > dist)
-					continue;
-
-				else if (mostAttractiveGas && gg.first->getResources() > resourcesAt) {
-					mostAttractiveGas = gg.first;
-					mostAttractiveBase = &b;
-					gasMinersAt = (int)gg.second.size();
-					distanceTo = dist;
-					resourcesAt = gg.first->getResources();
+				else if (bestResourceContainer && resources > bestResources) {
+					select(b, &resourceContainer, resources, distance, workers);
 					continue;
 				}
 			}
 		}
 
-		if (mostAttractiveGas != nullptr) {
-			mostAttractiveBase->gasMiners[mostAttractiveGas].insert(unit);
-			workerBaseLookup[unit] = mostAttractiveBase;
+		if (bestResourceContainer) {
+			workerBaseLookup[unit] = bestBase;
+			bestResourceContainer->second.insert(unit);
 		}
 	}
 
