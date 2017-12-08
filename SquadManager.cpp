@@ -26,7 +26,7 @@ namespace Neolib {
 			ysum += u->lastPosition.y;
 		}
 
-		pos = BWAPI::Position(xsum / units.size(), ysum / units.size());
+		pos = BWAPI::Position(xsum / (int)units.size(), ysum / (int)units.size());
 
 		for (auto &u : units)
 			radius1 += (pos.x - u->lastPosition.x) * (pos.x - u->lastPosition.x) +
@@ -56,7 +56,7 @@ namespace Neolib {
 			ysum += u->getPosition().y;
 		}
 
-		pos = BWAPI::Position(xsum / units.size(), ysum / units.size());
+		pos = BWAPI::Position(xsum / (int)units.size(), ysum / (int)units.size());
 
 		for (auto &u : units)
 			radius1 += (pos.x - u->getPosition().x) * (pos.x - u->getPosition().x) +
@@ -132,12 +132,12 @@ namespace Neolib {
 					fap.addIfCombatUnitPlayer2(*u);
 
 			fs->simres.presim.scores = fap.playerScores();
-			fs->simres.presim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+			fs->simres.presim.unitCounts = { (int)fap.getState().first->size(), (int)fap.getState().second->size() };
 
 			fap.simulate(24 * 4); // Short sim
 
 			fs->simres.shortsim.scores = fap.playerScores();
-			fs->simres.shortsim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+			fs->simres.shortsim.unitCounts = { (int)fap.getState().first->size(), (int)fap.getState().second->size() };
 			int theirLosses = fs->simres.presim.scores.second - fs->simres.shortsim.scores.second;
 			int ourLosses = fs->simres.presim.scores.first - fs->simres.shortsim.scores.first;
 			fs->simres.shortLosses = theirLosses - ourLosses;
@@ -145,7 +145,7 @@ namespace Neolib {
 			fap.simulate(24 * 56); // The rest of the sim
 
 			fs->simres.postsim.scores = fap.playerScores();
-			fs->simres.postsim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+			fs->simres.postsim.unitCounts = { (int)fap.getState().first->size(), (int)fap.getState().second->size() };
 		}
 
 		// Squad merging

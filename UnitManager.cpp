@@ -116,19 +116,19 @@ namespace Neolib {
 			if (onlyWithWeapons)
 				for (auto &ut : friendlyUnitsByType)
 					if (reallyHasWeapon(ut.first))
-						sum += ut.second.size();
+						sum += (int)ut.second.size();
 				else
 					for (auto &ut : friendlyUnitsByType)
-						sum += ut.second.size();
+						sum += (int)ut.second.size();
 		}
 
 		else
 			if (friendlyUnitsByType.count(t))
-				sum = friendlyUnitsByType.at(t).size();
+				sum = (int)friendlyUnitsByType.at(t).size();
 
 		if (countQueued) {
 			if (t == BWAPI::UnitTypes::AllUnits)
-				sum += buildingQueue.buildingsQueued().size();
+				sum += (int)buildingQueue.buildingsQueued().size();
 			else
 				for (auto &bo : buildingQueue.buildingsQueued())
 					if (bo.buildingType == t)
@@ -145,14 +145,14 @@ namespace Neolib {
 			if (onlyWithWeapons)
 				for (auto &ut : enemyUnitsByType)
 					if (ut.first.groundWeapon() || ut.first.airWeapon())
-						sum += ut.second.size();
+						sum += (int)ut.second.size();
 					else
 						for (auto &ut : enemyUnitsByType)
-							sum += ut.second.size();
+							sum += (int)ut.second.size();
 		}
 
 		else
-			sum = enemyUnitsByType.at(t).size();
+			sum = (int)enemyUnitsByType.at(t).size();
 
 		return sum;
 	}
@@ -895,12 +895,12 @@ namespace Neolib {
 				fap.addIfCombatUnitPlayer2(*u);
 
 		sr.presim.scores = fap.playerScores();
-		sr.presim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+		sr.presim.unitCounts = { (int)fap.getState().first->size(), (int)fap.getState().second->size() };
 
 		fap.simulate(24 * 3); // 3 seconds of combat
 
 		sr.shortsim.scores = fap.playerScores();
-		sr.shortsim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+		sr.shortsim.unitCounts = { (int)fap.getState().first->size(), (int)fap.getState().second->size() };
 		int theirLosses = sr.presim.scores.second - sr.shortsim.scores.second;
 		int ourLosses = sr.presim.scores.first - sr.shortsim.scores.first;
 		sr.shortLosses = theirLosses - ourLosses;
@@ -908,7 +908,7 @@ namespace Neolib {
 		fap.simulate(24 * 60); // 60 seconds of combat
 
 		sr.postsim.scores = fap.playerScores();
-		sr.postsim.unitCounts = { fap.getState().first->size(), fap.getState().second->size() };
+		sr.postsim.unitCounts = { (int)fap.getState().first->size(), (int)fap.getState().second->size() };
 	}
 
 	void UnitManager::doMultikillDetector() {

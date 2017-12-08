@@ -14,7 +14,7 @@ namespace Neolib {
 		virtual void addUnit(BWAPI::Unit) = 0;
 		virtual void removeUnit(BWAPI::Unit) = 0;
 		virtual void updatePosition() = 0;
-		virtual unsigned numUnits() = 0;
+		virtual unsigned long long numUnits() = 0;
 		BWAPI::Position pos;
 		int radius1;
 		int radius2;
@@ -28,7 +28,7 @@ namespace Neolib {
 		virtual void addUnit(BWAPI::Unit) override;
 		virtual void removeUnit(BWAPI::Unit) override;
 		virtual void updatePosition() override;
-		virtual unsigned numUnits() override { return units.size(); }
+		virtual unsigned long long numUnits() override { return units.size(); }
 		void squadWasRemoved(FriendlySquad *sq) { engagedSquads.erase(sq); }
 		std::set <std::shared_ptr<EnemyData>> units;
 
@@ -41,7 +41,7 @@ namespace Neolib {
 		virtual void addUnit(BWAPI::Unit) override;
 		virtual void removeUnit(BWAPI::Unit) override;
 		virtual void updatePosition() override;
-		virtual unsigned numUnits() override { return units.size(); }
+		virtual unsigned long long numUnits() override { return units.size(); }
 		void squadWasRemoved(EnemySquad *sq) { engagedSquads.erase(sq); }
 		std::set <BWAPI::Unit> units;
 

@@ -48,11 +48,11 @@ namespace Neolib {
 
 		for (auto cpp : BWEM::Map::Instance().GetPath(start, end)) {
 			auto center = BWAPI::Position{ cpp->Center() };
-			dist += start.getDistance(center);
+			dist += (int)start.getDistance(center);
 			start = center;
 		}
 
-		return dist += start.getDistance(end);
+		return dist += (int)start.getDistance(end);
 	}
 
 	const std::vector <const BWEM::Base*> MapManager::getAllBases() const {

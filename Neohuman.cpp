@@ -54,7 +54,7 @@ void Neohuman::onStart() {
 	};
 
 	Broodwar->sendText("Hey, %s, yo momma so ", Broodwar->enemy()->getName().c_str());
-	Broodwar->sendText(openingStrings[randint(0, openingStrings.size() - 1)].c_str());
+	Broodwar->sendText(openingStrings[randint(0, (int)openingStrings.size() - 1)].c_str());
 	timer_onStart.reset();
 
 	playingRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
@@ -354,8 +354,8 @@ void Neohuman::onFrame() {
 				auto fleeFrom = u->getClosestUnit(IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker), 300);
 				int friendlyCount;
 				if (fleeFrom) {
-					int enemyCount = fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && GetType != BWAPI::UnitTypes::Protoss_Interceptor).size() + 1;
-					friendlyCount = fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
+					int enemyCount = (int)fleeFrom->getUnitsInRadius(300, IsEnemy && (CanAttack || GetType == UnitTypes::Terran_Bunker) && GetType != BWAPI::UnitTypes::Protoss_Interceptor).size() + 1;
+					friendlyCount = (int)fleeFrom->getUnitsInRadius(400, IsOwned && !IsBuilding && !IsWorker).size();
 					if (!squadManager.shouldAttack(unitManager.getSimResults())) {
 						if (fleeFrom != nullptr) {
 							u->move(u->getPosition() + u->getPosition() - fleeFrom->getPosition());

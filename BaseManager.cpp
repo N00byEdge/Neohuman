@@ -45,11 +45,11 @@ namespace Neolib {
 		ResourceCount sum;
 		for (auto &m : mineralMiners)
 			if (m.second.size() < 2)
-				sum.minerals += 2 - m.second.size();
+				sum.minerals += 2 - (int)m.second.size();
 
 		for (auto &g : gasMiners)
 			if (g.second.size() < 3)
-				sum.gas += 3 - g.second.size();
+				sum.gas += 3 - (int)g.second.size();
 
 		return sum;
 	}
@@ -58,10 +58,10 @@ namespace Neolib {
 		ResourceCount num;
 
 		for (auto &m : mineralMiners)
-			num.minerals += m.second.size();
+			num.minerals += (int)m.second.size();
 
 		for (auto &g : gasMiners)
-			num.gas += g.second.size();
+			num.gas += (int)g.second.size();
 
 		return num;
 	}
@@ -84,9 +84,9 @@ namespace Neolib {
 
 		for (auto &gg : gasMiners)
 			if (gg.first->getResources())
-				income.gas += 103 * MIN(gg.second.size(), 3);
+				income.gas += 103 * MIN((int)gg.second.size(), 3);
 			else
-				income.gas += 26 * MIN(gg.second.size(), 3);
+				income.gas += 26 * MIN((int)gg.second.size(), 3);
 
 		if (race == BWAPI::Races::Protoss)
 			return ResourceCount((int)(1.055f * income.minerals), income.gas);
@@ -399,7 +399,7 @@ namespace Neolib {
 							for (auto &u : min.second) {
 								if (!u->isCarryingMinerals()) {
 									preferredUnit = *(min.second.begin());
-									workersAtBestPatch = min.second.size();
+									workersAtBestPatch = (int)min.second.size();
 									continue;
 								}
 							}
@@ -409,7 +409,7 @@ namespace Neolib {
 							for (auto &u : min.second) {
 								if (!u->isCarryingMinerals()) {
 									preferredUnit = *(min.second.begin());
-									workersAtBestPatch = min.second.size();
+									workersAtBestPatch = (int)min.second.size();
 									continue;
 								}
 							}
@@ -433,7 +433,7 @@ namespace Neolib {
 							for (auto &u : min.second) {
 								if (u->isCarryingMinerals()) {
 									preferredUnit = *(min.second.begin());
-									workersAtBestPatch = min.second.size();
+									workersAtBestPatch = (int)min.second.size();
 									continue;
 								}
 							}
@@ -443,7 +443,7 @@ namespace Neolib {
 							for (auto &u : min.second) {
 								if (u->isCarryingMinerals()) {
 									preferredUnit = *(min.second.begin());
-									workersAtBestPatch = min.second.size();
+									workersAtBestPatch = (int)min.second.size();
 									continue;
 								}
 							}
@@ -484,27 +484,28 @@ namespace Neolib {
 				if (mf.second.size() < 2 && mostAttractiveMineral == nullptr) {
 					mostAttractiveMineral = mf.first;
 					mostAttractiveBase = &b;
-					mineralMinersAt = mf.second.size();
+					mineralMinersAt = (int)mf.second.size();
 					distanceTo = dist;
 					resourcesAt = mf.first->getResources();
 					continue;
 				}
 
-				else if (mostAttractiveMineral && mf.second.size() < 2 && mf.second.size() < mineralMinersAt) {
-					mostAttractiveMineral = mf.first;
-					mostAttractiveBase = &b;
-					mineralMinersAt = mf.second.size();
-					distanceTo = dist;
-					resourcesAt = mf.first->getResources();
-					continue;
-				}
-				else if (mostAttractiveMineral && mf.second.size() > mineralMinersAt)
+				else if (mf.second.size() > 1)
 					continue;
 
 				else if (mostAttractiveMineral && dist < distanceTo) {
 					mostAttractiveMineral = mf.first;
 					mostAttractiveBase = &b;
-					mineralMinersAt = mf.second.size();
+					mineralMinersAt = (int)mf.second.size();
+					distanceTo = dist;
+					resourcesAt = mf.first->getResources();
+					continue;
+				}
+
+				else if (mostAttractiveMineral && mf.second.size() < mineralMinersAt) {
+					mostAttractiveMineral = mf.first;
+					mostAttractiveBase = &b;
+					mineralMinersAt = (int)mf.second.size();
 					distanceTo = dist;
 					resourcesAt = mf.first->getResources();
 					continue;
@@ -515,7 +516,7 @@ namespace Neolib {
 				else if (mostAttractiveMineral && mf.first->getResources() > resourcesAt) {
 					mostAttractiveMineral = mf.first;
 					mostAttractiveBase = &b;
-					mineralMinersAt = mf.second.size();
+					mineralMinersAt = (int)mf.second.size();
 					distanceTo = dist;
 					resourcesAt = mf.first->getResources();
 					continue;
@@ -549,7 +550,7 @@ namespace Neolib {
 				if (gg.second.size() < 3 && mostAttractiveGas == nullptr) {
 					mostAttractiveGas = gg.first;
 					mostAttractiveBase = &b;
-					gasMinersAt = gg.second.size();
+					gasMinersAt = (int)gg.second.size();
 					distanceTo = dist;
 					resourcesAt = gg.first->getResources();
 					continue;
@@ -558,7 +559,7 @@ namespace Neolib {
 				else if (gg.second.size() < 3 && gg.second.size() < gasMinersAt) {
 					mostAttractiveGas = gg.first;
 					mostAttractiveBase = &b;
-					gasMinersAt = gg.second.size();
+					gasMinersAt = (int)gg.second.size();
 					distanceTo = dist;
 					resourcesAt = gg.first->getResources();
 					continue;
@@ -569,7 +570,7 @@ namespace Neolib {
 				else if (mostAttractiveGas && dist < distanceTo) {
 					mostAttractiveGas = gg.first;
 					mostAttractiveBase = &b;
-					gasMinersAt = gg.second.size();
+					gasMinersAt = (int)gg.second.size();
 					distanceTo = dist;
 					resourcesAt = gg.first->getResources();
 					continue;
@@ -580,7 +581,7 @@ namespace Neolib {
 				else if (mostAttractiveGas && gg.first->getResources() > resourcesAt) {
 					mostAttractiveGas = gg.first;
 					mostAttractiveBase = &b;
-					gasMinersAt = gg.second.size();
+					gasMinersAt = (int)gg.second.size();
 					distanceTo = dist;
 					resourcesAt = gg.first->getResources();
 					continue;

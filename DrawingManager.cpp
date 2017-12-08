@@ -302,7 +302,7 @@ namespace Neolib {
 		if (s.enableHealthBars) {
 			for (auto &u : BWAPI::Broodwar->self()->getUnits())
 				if(u->isVisible())
-					drawBars(u->getPosition(), u->getType(), u->getHitPoints(), u->getShields(), u->getEnergy(), u->getLoadedUnits().size(), u->getResources(), 5000, u->getType().isSpellcaster());
+					drawBars(u->getPosition(), u->getType(), u->getHitPoints(), u->getShields(), u->getEnergy(), (int)u->getLoadedUnits().size(), u->getResources(), 5000, u->getType().isSpellcaster());
 
 			for (auto &b : baseManager.getAllBases())
 				for (auto &mf : b.mineralMiners)
