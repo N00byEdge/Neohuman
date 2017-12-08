@@ -109,8 +109,6 @@ namespace Neolib {
 
 		damage -= fu.armor << 8;
 
-#ifdef SSCAIT
-
 		if (damageType == BWAPI::DamageTypes::Concussive) {
 			if(fu.unitSize == BWAPI::UnitSizeTypes::Large)
 				damage = damage / 4;
@@ -124,43 +122,7 @@ namespace Neolib {
 				damage = (damage * 3) / 4;
 		}
 
-#else
-
-		switch (damageType) {
-			case BWAPI::DamageTypes::Concussive:
-				switch (fu.unitSize) {
-					case BWAPI::UnitSizeTypes::Large:
-						damage = damage / 4;
-						break;
-					case BWAPI::UnitSizeTypes::Medium:
-						damage = damage / 2;
-						break;
-				}
-				break;
-
-			case BWAPI::DamageTypes::Explosive:
-				switch (fu.unitSize) {
-					case BWAPI::UnitSizeTypes::Small:
-						damage = damage / 2;
-						break;
-					case BWAPI::UnitSizeTypes::Medium:
-						damage = (damage * 3) / 4;
-						break;
-				}
-				break;
-		}
-
-#endif
-
-		damage = MAX(128, damage);
-
-#ifdef _DEBUG
-
-		fu.damageTaken += damage;
-
-#endif
-
-		fu.health -= damage;
+		fu.health -= MAX(128, damage);
 	}
 
 	int inline FastAPproximation::distButNotReally(const FastAPproximation::FAPUnit &u1, const FastAPproximation::FAPUnit &u2) const {
@@ -438,16 +400,12 @@ namespace Neolib {
 
 		groundDamage(ed.lastPlayer->damage(ed.lastType.groundWeapon())),
 		groundCooldown(ed.lastType.groundWeapon().damageFactor() && ed.lastType.maxGroundHits() ? ed.lastPlayer->weaponDamageCooldown(ed.lastType) / (ed.lastType.groundWeapon().damageFactor() * ed.lastType.maxGroundHits()) : 0),
-		//groundInnerRadius(ed.lastType.groundWeapon().innerSplashRadius()),
-		//groundOuterRadius(ed.lastType.groundWeapon().outerSplashRadius()),
 		groundMaxRange(ed.lastPlayer->weaponMaxRange(ed.lastType.groundWeapon())),
 		groundMinRange(ed.lastType.groundWeapon().minRange()), 
 		groundDamageType(ed.lastType.groundWeapon().damageType()),
 
 		airDamage(ed.lastPlayer->damage(ed.lastType.airWeapon())), 
 		airCooldown(ed.lastType.airWeapon().damageFactor() && ed.lastType.maxAirHits() ? ed.lastType.airWeapon().damageCooldown() / (ed.lastType.airWeapon().damageFactor() * ed.lastType.maxAirHits()) : 0),
-		//airInnerRadius(ed.lastType.airWeapon().innerSplashRadius()),
-		//airOuterRadius(ed.lastType.airWeapon().outerSplashRadius()),
 		airMaxRange(ed.lastPlayer->weaponMaxRange(ed.lastType.airWeapon())),
 		airMinRange(ed.lastType.airWeapon().minRange()),
 		airDamageType(ed.lastType.airWeapon().damageType()),
@@ -460,66 +418,52 @@ namespace Neolib {
 		static int nextId = 0;
 		id = nextId++;
 
-#ifdef SSCAIT
-#define BEGINUNIT(u) if (ed.lastType == (u)) 
-#define ENDUNIT 
-#else
-#define BEGINUNIT(u) case (u):
-#define ENDUNIT break;
-#endif
-
-#ifndef SSCAIT
 		switch (ed.lastType) {
-#endif // !SSCAIT
+		case BWAPI::UnitTypes::Protoss_Carrier:
+			groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
 
-			BEGINUNIT(BWAPI::UnitTypes::Protoss_Carrier) {
-				groundDamage = ed.lastPlayer->damage(BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon());
-
-				if (ed.u && ed.u->isVisible()) {
-					auto interceptorCount = ed.u->getInterceptorCount();
-					if (interceptorCount) {
-						groundCooldown = (int)round(37.0f / interceptorCount);
-					}
-					else {
-						groundDamage = 0;
-						groundCooldown = 5;
-					}
+			if (ed.u && ed.u->isVisible()) {
+				auto interceptorCount = ed.u->getInterceptorCount();
+				if (interceptorCount) {
+					groundCooldown = (int)round(37.0f / interceptorCount);
 				}
 				else {
-					if (ed.lastPlayer) {
-						groundCooldown = (int)round(37.0f / (ed.lastPlayer->getUpgradeLevel(BWAPI::UpgradeTypes::Carrier_Capacity) ? 8 : 4));
-					}
-					else {
-						groundCooldown = (int)round(37.0f / 8);
-					}
+					groundDamage = 0;
+					groundCooldown = 5;
 				}
+			}
+			else {
+				if (ed.lastPlayer) {
+					groundCooldown = (int)round(37.0f / (ed.lastPlayer->getUpgradeLevel(BWAPI::UpgradeTypes::Carrier_Capacity) ? 8 : 4));
+				}
+				else {
+					groundCooldown = (int)round(37.0f / 8);
+				}
+			}
 
-				groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
-				groundMaxRange = 32 * 8;
+			groundDamageType = BWAPI::UnitTypes::Protoss_Interceptor.groundWeapon().damageType();
+			groundMaxRange = 32 * 8;
 
-				airDamage = groundDamage;
-				airDamageType = groundDamageType;
-				airCooldown = groundCooldown;
-				airMaxRange = groundMaxRange;
-			} ENDUNIT
+			airDamage = groundDamage;
+			airDamageType = groundDamageType;
+			airCooldown = groundCooldown;
+			airMaxRange = groundMaxRange;
+			break;
 
-			BEGINUNIT(BWAPI::UnitTypes::Terran_Bunker) {
-				groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Gauss_Rifle);
-				groundCooldown = BWAPI::UnitTypes::Terran_Marine.groundWeapon().damageCooldown() / 4;
-				groundMaxRange = ed.lastPlayer->weaponMaxRange(BWAPI::UnitTypes::Terran_Marine.groundWeapon()) + 32;
+		case BWAPI::UnitTypes::Terran_Bunker:
+			groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Gauss_Rifle);
+			groundCooldown = BWAPI::UnitTypes::Terran_Marine.groundWeapon().damageCooldown() / 4;
+			groundMaxRange = ed.lastPlayer->weaponMaxRange(BWAPI::UnitTypes::Terran_Marine.groundWeapon()) + 32;
 
-				airDamage = groundDamage;
-				airCooldown = groundCooldown;
-				airMaxRange = groundMaxRange;
-			} ENDUNIT
+			airDamage = groundDamage;
+			airCooldown = groundCooldown;
+			airMaxRange = groundMaxRange;
+			break;
 
-			BEGINUNIT(BWAPI::UnitTypes::Protoss_Reaver) {
-				groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Scarab);
-			} ENDUNIT
-
-#ifndef SSCAIT
+		case BWAPI::UnitTypes::Protoss_Reaver:
+			groundDamage = ed.lastPlayer->damage(BWAPI::WeaponTypes::Scarab);
+			break;
 		}
-#endif // !SSCAIT
 
 		if (ed.u && ed.u->isStimmed()) {
 			groundCooldown /= 2;

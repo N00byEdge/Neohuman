@@ -70,9 +70,8 @@ namespace Neolib {
 	}
 
 	void SoundDatabase::playRandom(const std::vector<std::string> &v) {
-#ifdef SSCAIT
-		return play_sound(v[randint(0, v.size() - 1)]);
-#endif
+		if constexpr(isOnTournamentServer())
+			play_sound(v[randint(0, v.size() - 1)]);
 	}
 
 	void SoundDatabase::loadSound(std::string soundname) {

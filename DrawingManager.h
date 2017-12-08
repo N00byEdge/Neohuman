@@ -8,68 +8,22 @@
 namespace Neolib {
 
 	struct DrawerSettings {
-#ifdef _DEBUG
-
 		bool enableTopInfo = true;
 		bool enableResourceOverlay = true;
 		bool enableBWEMOverlay = false;
 		bool enableComsatInfo = true;
 		bool enableListBuildingQueue = true;
-		bool enableSaturationInfo = true;
-		bool enableTimerInfo = true;
+		bool enableSaturationInfo = isDebugBuild();
+		bool enableTimerInfo = isDebugBuild();
 		bool enableEnemyOverlay = true;
 		bool enableDeathMatrix = false;
-		bool enableBaseOverlay = true;
+		bool enableBaseOverlay = isDebugBuild();
 		bool enableHealthBars = true;
-		bool enableFailedLocations = true;
+		bool enableFailedLocations = isDebugBuild();
 		bool enableNukeOverlay = true;
 		bool enableNukeSpots = true;
 		bool enableCombatSimOverlay = true;
 		bool enableSquadOverlay = true;
-
-#else
-
-#ifdef SSCAIT
-
-		bool enableTopInfo = true;
-		bool enableResourceOverlay = true;
-		bool enableBWEMOverlay = false;
-		bool enableComsatInfo = true;
-		bool enableListBuildingQueue = true;
-		bool enableSaturationInfo = false;
-		bool enableTimerInfo = false;
-		bool enableEnemyOverlay = false;
-		bool enableDeathMatrix = false;
-		bool enableBaseOverlay = false;
-		bool enableHealthBars = true;
-		bool enableFailedLocations = false;
-		bool enableNukeOverlay = false;
-		bool enableNukeSpots = true;
-		bool enableCombatSimOverlay = true;
-		bool enableSquadOverlay = true;
-
-#else
-
-		bool enableTopInfo = true;
-		bool enableResourceOverlay = true;
-		bool enableBWEMOverlay = false;
-		bool enableComsatInfo = true;
-		bool enableListBuildingQueue = true;
-		bool enableSaturationInfo = false;
-		bool enableTimerInfo = false;
-		bool enableEnemyOverlay = false;
-		bool enableDeathMatrix = false;
-		bool enableBaseOverlay = false;
-		bool enableHealthBars = true;
-		bool enableFailedLocations = false;
-		bool enableNukeOverlay = false;
-		bool enableNukeSpots = true;
-		bool enableCombatSimOverlay = true;
-		bool enableSquadOverlay = true;
-
-#endif
-
-#endif
 	};
 
 	class DrawingManager {

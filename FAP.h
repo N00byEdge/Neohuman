@@ -55,12 +55,6 @@ namespace Neolib {
 
 			mutable int attackCooldownRemaining = 0;
 
-#ifdef _DEBUG
-
-			mutable int damageTaken = 0;
-
-#endif
-
 			bool operator< (const FAPUnit &other) const;
 		};
 

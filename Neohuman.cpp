@@ -60,11 +60,11 @@ void Neohuman::onStart() {
 	playingRace = (*(Broodwar->self()->getUnits().begin()))->getType().getRace();
 	wasRandom = BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Random;
 
-#ifndef SSCAIT
-
-	Broodwar->enableFlag(Flag::UserInput);
-
-#endif
+	if constexpr (!isOnTournamentServer()) {
+		Broodwar->enableFlag(Flag::UserInput);
+		Broodwar->setFrameSkip(50);
+		Broodwar->setLocalSpeed(0);
+	}
 
 	// Uncomment the following line and the bot will know about everything through the fog of war (cheat).
 	// Broodwar->enableFlag(Flag::CompleteMapInformation);
@@ -78,22 +78,12 @@ void Neohuman::onStart() {
 
 	mapManager.init();
 	buildingPlacer.init();
-	//combatSimulator.init();
 
 	timer_onStart.stop();
 
-#ifdef _DEBUG
-
-	Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
-
-#endif
-
-	//combatSimulator.onStart();
-
-	/*
-	Broodwar->sendText("power overwhelming");
-	Broodwar->sendText("black sheep wall");
-	//*/
+	if constexpr(isDebugBuild()) {
+		Broodwar->sendText("onStart finished in %.1lf ms", timer_onStart.lastMeasuredTime);
+	}
 }
 
 void Neohuman::onEnd(bool didWin) {

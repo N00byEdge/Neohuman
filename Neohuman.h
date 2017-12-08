@@ -5,9 +5,21 @@
 #include "Timer.h"
 #include "SoundFile.h"
 
-#include "bwem.h"
+const auto isOnTournamentServer = []() {
+#ifdef SSCAIT
+	return true;
+#else
+	return false;
+#endif
+};
 
-// Remember not to use "Broodwar" in any global class constructor!
+const auto isDebugBuild = []() {
+#ifdef _DEBUG
+	return true;
+#else
+	return false;
+#endif
+};
 
 class Neohuman : public BWAPI::AIModule {
 	public:
