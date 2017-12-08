@@ -27,27 +27,27 @@ const std::vector <std::string> botAsciiArt = {
 const std::vector <int> columnXStart = { 0, 160, 280, 430, 510, 175 };
 const std::vector <int> columnYStart = { 0, 0, 0, 200, 16, 312 };
 
-#define SHIELDTEXT		(char)BWAPI::Text::Blue
-#define HEALTHTEXT		(char)BWAPI::Text::Green
-#define ENERGYTEXT		(char)BWAPI::Text::Purple
+constexpr char shieldTextColor           = BWAPI::Text::Blue;
+constexpr char healthTextColor           = BWAPI::Text::Green;
+constexpr char energyTextColor           = BWAPI::Text::Purple;
 
-#define BUILDINGTEXT	(char)BWAPI::Text::Green
-#define PLACINGTEXT		(char)BWAPI::Text::Cyan
+constexpr char buildingTextColor         = BWAPI::Text::Green;
+constexpr char placingTextColor          = BWAPI::Text::Cyan;
 
-#define SATURATIONCOLOR BWAPI::Colors::Blue
-#define WORKERTXTCOLOR	BWAPI::Text::White
+constexpr BWAPI::Color buildingColor     = BWAPI::Colors::Green;
+constexpr BWAPI::Color placingColor      = BWAPI::Colors::Cyan;
 
-#define BUILDINGCOLOR	BWAPI::Colors::Green
-#define PLACINGCOLOR	BWAPI::Colors::Cyan
+constexpr BWAPI::Color saturationColor   = BWAPI::Colors::Blue;
+constexpr BWAPI::Color workerTextColor   = BWAPI::Text::White;
 
-#define ENEMYCOLOR		BWAPI::Colors::Red
-#define INVALIDENEMYCLR BWAPI::Colors::Grey
+constexpr BWAPI::Color enemyColor        = BWAPI::Colors::Red;
+constexpr BWAPI::Color invalidEnemyColor = BWAPI::Colors::Grey;
 
-#define PROTOSSTEXT		BWAPI::Text::Teal
-#define TERRANTEXT		BWAPI::Text::Green
-#define ZERGTEXT		BWAPI::Text::Red
+constexpr BWAPI::Color protossTextColor  = BWAPI::Text::Teal;
+constexpr BWAPI::Color terranTextColor   = BWAPI::Text::Green;
+constexpr BWAPI::Color zergTextColor     = BWAPI::Text::Red;
 
-#define BOXSIZE			2
+constexpr int barBoxSize = 2;
 
 Neolib::DrawingManager drawingManager;
 
@@ -64,11 +64,7 @@ const inline static void drawBotName() {
 	constexpr int charHeight = 8;
 	constexpr int boxWidth = 111 * charWidth;
 	constexpr int boxHeight = 8 * charHeight;
-#ifdef SSCAIT
-	constexpr int screenWidth = 1920;
-#else
-	constexpr int screenWidth = 640;
-#endif
+	constexpr int screenWidth = isOnTournamentServer() ? 1920 : 640;
 
 	BWAPI::Broodwar->setTextSize(BWAPI::Text::Size::Small);
 	BWAPI::Broodwar->drawBoxScreen(screenWidth - boxWidth, 0, screenWidth, boxHeight, BWAPI::Colors::Black, true);
@@ -93,13 +89,13 @@ const inline static BWAPI::Color healthColor(int health, int maxHealth) {
 }
 
 const inline static void drawBar(BWAPI::Position pos, int fill, int max, int width, BWAPI::Color c) {
-	int nBoxes = width / BOXSIZE;
-	BWAPI::Broodwar->drawBoxMap(pos, pos + BWAPI::Position(nBoxes * BOXSIZE + 1, BOXSIZE + 1), BWAPI::Colors::Black, true);
+	int nBoxes = width / barBoxSize;
+	BWAPI::Broodwar->drawBoxMap(pos, pos + BWAPI::Position(nBoxes * barBoxSize + 1, barBoxSize + 1), BWAPI::Colors::Black, true);
 	if (!max)
 		return;
 	int drawBoxes = MIN((nBoxes * fill) / max, nBoxes);
 	for (int i = 0; i < drawBoxes; ++i)
-		BWAPI::Broodwar->drawBoxMap(pos + BWAPI::Position(i * BOXSIZE + 1, 1), pos + BWAPI::Position((i + 1) * BOXSIZE, BOXSIZE), c, true);
+		BWAPI::Broodwar->drawBoxMap(pos + BWAPI::Position(i * barBoxSize + 1, 1), pos + BWAPI::Position((i + 1) * barBoxSize, barBoxSize), c, true);
 }
 
 const inline static void drawBars(BWAPI::Position pos, BWAPI::UnitType type, int health, int shields, int energy, int loadedUnits, int resources, int initialResources, bool showEnergy) {
@@ -109,22 +105,22 @@ const inline static void drawBars(BWAPI::Position pos, BWAPI::UnitType type, int
 
 	if (type.maxShields() > 0) {
 		drawBar(barPos, shields, type.maxShields(), barWidth, BWAPI::Colors::Blue);
-		barPos.y += BOXSIZE;
+		barPos.y += barBoxSize;
 	}
 
 	if (type.maxHitPoints() > 0 && !type.isMineralField()) {
 		drawBar(barPos, health, type.maxHitPoints(), barWidth, healthColor(health, type.maxHitPoints()));
-		barPos.y += BOXSIZE;
+		barPos.y += barBoxSize;
 	}
 
 	if (type.maxEnergy() > 0 && showEnergy) {
 		drawBar(barPos, energy, type.maxEnergy(), barWidth, BWAPI::Colors::Purple);
-		barPos.y += BOXSIZE;
+		barPos.y += barBoxSize;
 	}
 
 	if (type.isResourceContainer()) {
 		drawBar(barPos, resources, initialResources, barWidth, BWAPI::Colors::Cyan);
-		barPos.y += BOXSIZE;
+		barPos.y += barBoxSize;
 	}
 }
 
@@ -156,7 +152,7 @@ namespace Neolib {
 
 		if (s.enableComsatInfo) {
 
-			std::string s = "Comsats (" + std::to_string(unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station).size()) + "): " + ENERGYTEXT;
+			std::string s = "Comsats (" + std::to_string(unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station).size()) + "): " + energyTextColor;
 			for (auto &c : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Comsat_Station))
 				s += std::to_string(c->getEnergy()) + " ";
 
@@ -169,9 +165,9 @@ namespace Neolib {
 			BWAPI::Broodwar->drawTextScreen(450, 16, "%d", resourceManager.getSpendableResources().minerals);
 			BWAPI::Broodwar->drawTextScreen(480, 16, "%d", resourceManager.getSpendableResources().gas);
 
-			BWAPI::Broodwar->drawTextScreen(columnXStart[4], getNextColumnY(nextColumnY[4]), "%c%d/%d, %d, %d", PROTOSSTEXT, supplyManager.usedSupply().protoss, supplyManager.availableSupply().protoss, supplyManager.wantedAdditionalSupply().protoss, supplyManager.wantedSupplyOverhead().protoss);
-			BWAPI::Broodwar->drawTextScreen(columnXStart[4], getNextColumnY(nextColumnY[4]), "%c%d/%d, %d, %d", TERRANTEXT, supplyManager.usedSupply().terran, supplyManager.availableSupply().terran, supplyManager.wantedAdditionalSupply().terran, supplyManager.wantedSupplyOverhead().terran);
-			BWAPI::Broodwar->drawTextScreen(columnXStart[4], getNextColumnY(nextColumnY[4]), "%c%d/%d, %d, %d", ZERGTEXT, supplyManager.usedSupply().zerg, supplyManager.availableSupply().zerg, supplyManager.wantedAdditionalSupply().zerg, supplyManager.wantedSupplyOverhead().zerg);
+			BWAPI::Broodwar->drawTextScreen(columnXStart[4], getNextColumnY(nextColumnY[4]), "%c%d/%d, %d, %d", protossTextColor, supplyManager.usedSupply().protoss, supplyManager.availableSupply().protoss, supplyManager.wantedAdditionalSupply().protoss, supplyManager.wantedSupplyOverhead().protoss);
+			BWAPI::Broodwar->drawTextScreen(columnXStart[4], getNextColumnY(nextColumnY[4]), "%c%d/%d, %d, %d", terranTextColor,  supplyManager.usedSupply().terran,  supplyManager.availableSupply().terran,  supplyManager.wantedAdditionalSupply().terran,  supplyManager.wantedSupplyOverhead().terran);
+			BWAPI::Broodwar->drawTextScreen(columnXStart[4], getNextColumnY(nextColumnY[4]), "%c%d/%d, %d, %d", zergTextColor,    supplyManager.usedSupply().zerg,    supplyManager.availableSupply().zerg,    supplyManager.wantedAdditionalSupply().zerg,    supplyManager.wantedSupplyOverhead().zerg);
 
 		}
 
@@ -187,8 +183,8 @@ namespace Neolib {
 			BWAPI::Broodwar->drawTextScreen(columnXStart[0], getNextColumnY(nextColumnY[0]), "%u buildings in queue", buildingQueue.buildingsQueued().size());
 
 			for (auto &o : buildingQueue.buildingsQueued()) {
-				BWAPI::Broodwar->drawTextScreen(columnXStart[0], getNextColumnY(nextColumnY[0]), "%c%s", o.buildingUnit ? BUILDINGTEXT : PLACINGTEXT, noRaceName(o.buildingType.c_str()));
-				drawBuildingBox(o.designatedLocation, o.buildingType, o.buildingUnit ? BUILDINGCOLOR : PLACINGCOLOR);
+				BWAPI::Broodwar->drawTextScreen(columnXStart[0], getNextColumnY(nextColumnY[0]), "%c%s", o.buildingUnit ? buildingTextColor : placingTextColor, noRaceName(o.buildingType.c_str()));
+				drawBuildingBox(o.designatedLocation, o.buildingType, o.buildingUnit ? buildingColor : placingColor);
 				BWAPI::Broodwar->drawTextMap(BWAPI::Position(o.designatedLocation) + BWAPI::Position(10, 10), "%s", noRaceName(o.buildingType.getName().c_str()));
 				if (o.builder) {
 					BWAPI::Broodwar->drawLineMap(o.builder->getPosition(), (BWAPI::Position) o.designatedLocation, BWAPI::Colors::Green);
@@ -220,27 +216,27 @@ namespace Neolib {
 		if (s.enableSaturationInfo) {
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Protoss_Nexus)) {
-				BWAPI::Broodwar->drawEllipseMap(u->getPosition(), SATRUATION_RADIUS + BWAPI::UnitTypes::Protoss_Nexus.tileSize().x * 32, SATRUATION_RADIUS + BWAPI::UnitTypes::Protoss_Nexus.tileSize().y * 32, SATURATIONCOLOR);
+				BWAPI::Broodwar->drawEllipseMap(u->getPosition(), SATRUATION_RADIUS + BWAPI::UnitTypes::Protoss_Nexus.tileSize().x * 32, SATRUATION_RADIUS + BWAPI::UnitTypes::Protoss_Nexus.tileSize().y * 32, saturationColor);
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsGatheringMinerals));
 				auto refineries = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::GetType == BWAPI::UnitTypes::Protoss_Assimilator));
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsMineralField));
-				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERTXTCOLOR, workers.size(), 2 * mineralFields.size());
+				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", workerTextColor, workers.size(), 2 * mineralFields.size());
 			}
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Terran_Command_Center)) {
-				BWAPI::Broodwar->drawEllipseMap(u->getPosition(), SATRUATION_RADIUS + BWAPI::UnitTypes::Terran_Command_Center.tileSize().x * 32, SATRUATION_RADIUS + BWAPI::UnitTypes::Terran_Command_Center.tileSize().y * 32, SATURATIONCOLOR);
+				BWAPI::Broodwar->drawEllipseMap(u->getPosition(), SATRUATION_RADIUS + BWAPI::UnitTypes::Terran_Command_Center.tileSize().x * 32, SATRUATION_RADIUS + BWAPI::UnitTypes::Terran_Command_Center.tileSize().y * 32, saturationColor);
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsGatheringMinerals));
 				auto refineries = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::GetType == BWAPI::UnitTypes::Terran_Refinery));
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsMineralField));
-				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERTXTCOLOR, workers.size(), 2 * mineralFields.size());
+				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", workerTextColor, workers.size(), 2 * mineralFields.size());
 			}
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Zerg_Hatchery)) {
-				BWAPI::Broodwar->drawEllipseMap(u->getPosition(), SATRUATION_RADIUS + BWAPI::UnitTypes::Zerg_Hatchery.tileSize().x * 32, SATRUATION_RADIUS + BWAPI::UnitTypes::Zerg_Hatchery.tileSize().y * 32, SATURATIONCOLOR);
+				BWAPI::Broodwar->drawEllipseMap(u->getPosition(), SATRUATION_RADIUS + BWAPI::UnitTypes::Zerg_Hatchery.tileSize().x * 32, SATRUATION_RADIUS + BWAPI::UnitTypes::Zerg_Hatchery.tileSize().y * 32, saturationColor);
 				auto workers = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsGatheringMinerals));
 				auto refineries = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::GetType == BWAPI::UnitTypes::Zerg_Extractor));
 				auto mineralFields = u->getUnitsInRadius(SATRUATION_RADIUS, (BWAPI::Filter::IsMineralField));
-				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", WORKERTXTCOLOR, workers.size(), 2 * mineralFields.size());
+				BWAPI::Broodwar->drawTextMap(u->getPosition() + BWAPI::Position(0, 30), "%cWorkers: %d/%d", workerTextColor, workers.size(), 2 * mineralFields.size());
 			}
 
 			for (auto &w : baseManager.getHomelessWorkers())
@@ -265,17 +261,17 @@ namespace Neolib {
 			//BWAPI::Broodwar->sendText("Sizes: %u, %u", unitManager.getKnownEnemies().size(), unitManager.getEnemyUnitsByType().size());
 
 			for (auto &u : unitManager.getVisibleEnemies()) {
-				drawUnitBox(u->lastPosition, u->lastType, ENEMYCOLOR);
+				drawUnitBox(u->lastPosition, u->lastType, enemyColor);
 				BWAPI::Broodwar->drawTextMap(u->lastPosition + BWAPI::Position(u->lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u->lastType.c_str()));
 			}
 
 			for (auto &u : unitManager.getNonVisibleEnemies()) {
-				drawUnitBox(u->lastPosition, u->lastType, ENEMYCOLOR);
+				drawUnitBox(u->lastPosition, u->lastType, enemyColor);
 				BWAPI::Broodwar->drawTextMap(u->lastPosition + BWAPI::Position(u->lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u->lastType.c_str()));
 			}
 
 			for (auto &u : unitManager.getInvalidatedEnemies()) {
-				drawUnitBox(u->lastPosition, u->lastType, INVALIDENEMYCLR);
+				drawUnitBox(u->lastPosition, u->lastType, invalidEnemyColor);
 				BWAPI::Broodwar->drawTextMap(u->lastPosition + BWAPI::Position(u->lastType.tileSize() / 2) + BWAPI::Position(10, 10), "%s", noRaceName(u->lastType.c_str()));
 			}
 
