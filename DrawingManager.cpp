@@ -429,7 +429,8 @@ namespace Neolib {
 			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Postsim units: %3u %3u Postsim scores: %5d %5d", res.postsim.unitCounts.first, res.postsim.unitCounts.second, res.postsim.scores.first, res.postsim.scores.second);
 		}
 
-		drawBotName();
+		if constexpr(isOnTournamentServer())
+			drawBotName();
 
 		// for (unsigned i = 0; i < _allBases.size(); ++ i) {
 		// 	Broodwar->drawBoxMap(Position(_allBases[i]->Location()), Position(Position(_allBases[i]->Location()) + Position(UnitTypes::Terran_Command_Center.tileSize())), Colors::Grey);
