@@ -54,9 +54,9 @@ namespace Neolib {
 			BWAPI::Unit findBuilder(BWAPI::UnitType builderType);
 			BWAPI::Unit findClosestBuilder(BWAPI::UnitType builderType, BWAPI::Position at);
 
-			enum struct AssignmentType : unsigned { Minerals = 3, Gas = 2 };
+			enum struct AssignmentType : unsigned { Minerals, Gas };
 
-			template <AssignmentType assignment, unsigned maxWorkers = (unsigned) assignment>
+			template <AssignmentType assignment>
 			void assignTo(BWAPI::Unit unit);
 
 			const std::set <Base> &getAllBases() const;

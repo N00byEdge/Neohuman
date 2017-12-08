@@ -463,8 +463,9 @@ namespace Neolib {
 		return findBuilder(builderType);
 	}
 
-	template <BaseManager::AssignmentType assignment, unsigned maxWorkers>
+	template <BaseManager::AssignmentType assignment>
 	void BaseManager::assignTo(BWAPI::Unit unit) {
+		unsigned maxWorkers = assignment == AssignmentType::Minerals ? 2 : 3;
 		// Clear worker for previous work
 		for (auto &b : baseManager.getAllBases()) {
 			for (auto &mf : b.mineralMiners)
