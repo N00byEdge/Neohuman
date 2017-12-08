@@ -5,6 +5,8 @@
 #include "FAP.h"
 
 #include "SquadManager.h"
+#include "BaseManager.h"
+#include "BuildingPlacer.h"
 
 std::set <std::shared_ptr<Neolib::EnemyData>> emptyEnemyDataSet;
 std::set <BWAPI::Unit> emptyUnitset;
@@ -762,6 +764,7 @@ namespace Neolib {
 				enemyUnits.insert({ unit->getID(), ed });
 				enemyUnitsByType[unit->getType()].insert(ed);
 				visibleEnemies.insert(ed);
+				squadManager.onEnemyRecognize(ed);
 			}
 
 			else {
@@ -772,6 +775,7 @@ namespace Neolib {
 					onUnitMorph(unit);
 
 				it->second->updateFromUnit();
+				squadManager.onEnemyRecognize(it->second);
 			}
 		} else if(isOwn(unit))
 			friendlyUnitsByType[unit->getType()].insert(unit);
@@ -782,6 +786,8 @@ namespace Neolib {
 		if (ptr != enemyUnits.end()) {
 			nonVisibleEnemies.erase(ptr->second);
 			invalidatedEnemies.erase(ptr->second);
+
+			squadManager.onEnemyRecognize(ptr->second);
 
 			visibleEnemies.insert(ptr->second);
 		}
@@ -797,7 +803,11 @@ namespace Neolib {
 	}
 
 	void UnitManager::onUnitCreate(BWAPI::Unit unit) {
-
+		if (isOwn(unit) && unit->getType().isResourceDepot()) {
+			auto builder = baseManager.findClosestBuilder(BWAPI::UnitTypes::Terran_SCV, unit->getPosition());
+			auto buildLoc = buildingPlacer.getBuildLocation(BWAPI::UnitTypes::Terran_Bunker, (BWAPI::TilePosition)unit->getPosition());
+			buildingQueue.doBuild(BWAPI::UnitTypes::Terran_Bunker, (BWAPI::TilePosition)unit->getPosition(), builder);
+		}
 	}
 
 	void UnitManager::onUnitDestroy(BWAPI::Unit unit) {
@@ -808,6 +818,7 @@ namespace Neolib {
 
 		if (isEnemy(unit)) {
 			auto ed = enemyUnits[unit->getID()];
+			squadManager.onEnemyLose(ed);
 			enemyUnitsByType[unit->getType()].erase(ed);
 			visibleEnemies.erase(ed);
 			deadEnemies.insert(ed);
@@ -841,8 +852,15 @@ namespace Neolib {
 		if (isOwn(unit)) {
 			auto it = enemyUnits.find(unit->getID());
 			if (it != enemyUnits.end()) {
+				squadManager.onEnemyLose(it->second);
 				visibleEnemies.erase(it->second);
 				enemyUnits.erase(it);
+			}
+			else {
+				friendlyUnitsByType[unit->getType()].erase(unit);
+				if (!friendlyUnitsByType[unit->getType()].size())
+					friendlyUnitsByType.erase(unit->getType());
+				onUnitDiscover(unit);
 			}
 		}
 		else {

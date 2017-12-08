@@ -8,6 +8,7 @@
 #include "MapManager.h"
 #include "BaseManager.h"
 #include "FAP.h"
+#include "SquadManager.h"
 
 #include "BWAPI.h"
 #include "bwem.h"
@@ -196,6 +197,26 @@ namespace Neolib {
 			}
 		}
 
+		if (s.enableSquadOverlay) {
+			if (s.enableTopInfo)
+				BWAPI::Broodwar->drawTextScreen(columnXStart[1], getNextColumnY(nextColumnY[1]), "%u Enemy squads", squadManager.getEnemySquads().size());
+
+			for (auto &fs : squadManager.getFriendlySquads()) {
+				BWAPI::Broodwar->drawCircleMap(fs->pos, fs->radius1, BWAPI::Colors::Green);
+				BWAPI::Broodwar->drawCircleMap(fs->pos, fs->radius2, BWAPI::Colors::Red);
+
+				for (auto &es : fs->engagedSquads)
+					BWAPI::Broodwar->drawLineMap(fs->pos, es->pos, BWAPI::Colors::Red);
+			}
+
+			for (auto &es : squadManager.getEnemySquads()) {
+				BWAPI::Broodwar->drawCircleMap(es->pos, es->radius1, BWAPI::Colors::Green);
+				BWAPI::Broodwar->drawCircleMap(es->pos, es->radius2, BWAPI::Colors::Red);
+
+				BWAPI::Broodwar->drawTextMap(es->pos, "%u enemy units", es->units.size());
+			}
+		}
+
 		if (s.enableSaturationInfo) {
 
 			for (auto &u : unitManager.getFriendlyUnitsByType(BWAPI::UnitTypes::Protoss_Nexus)) {
@@ -336,6 +357,28 @@ namespace Neolib {
 				else
 					BWAPI::Broodwar->drawTextMap(b.resourceDepot->getPosition() - offset, "%cRED ALERT!", BWAPI::Text::Red);
 				
+				FastAPproximation fap;
+				std::map <BWAPI::UnitType, int> unitCountsFriendly, unitCountsEnemy;
+				auto state = fap.getState();
+				
+				int yStart = 220, y = yStart;
+				for (auto &u : *state.first)
+					++unitCountsFriendly[u.unitType];
+				for (auto &u : *state.second)
+					++unitCountsEnemy[u.unitType];
+
+				for (auto &e : unitCountsFriendly) {
+					BWAPI::Broodwar->drawTextScreen(150, y, "%s, %d", e.first.c_str(), e.second);
+					y += 20;
+				}
+
+				y = yStart;
+
+				for (auto &e : unitCountsEnemy) {
+					BWAPI::Broodwar->drawTextScreen(250, y, "%s, %d", e.first.c_str(), e.second);
+					y += 20;
+				}
+
 				for (auto &m : b.mineralMiners) {
 					drawBuildingBox(m.first->getTilePosition(), BWAPI::UnitTypes::Resource_Mineral_Field, BWAPI::Colors::Blue);
 					BWAPI::Broodwar->drawTextMap(m.first->getPosition() - BWAPI::Position(10, 5), "%u/2", m.second.size());
@@ -389,6 +432,8 @@ namespace Neolib {
 			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Shrtsim units: %3u %3u Shrtsim scores: %5d %5d", res.shortsim.unitCounts.first, res.shortsim.unitCounts.second, res.shortsim.scores.first, res.shortsim.scores.second);
 			BWAPI::Broodwar->drawTextScreen(columnXStart[5], getNextColumnY(nextColumnY[5]), "Postsim units: %3u %3u Postsim scores: %5d %5d", res.postsim.unitCounts.first, res.postsim.unitCounts.second, res.postsim.scores.first, res.postsim.scores.second);
 		}
+
+		drawBotName();
 
 		// for (unsigned i = 0; i < _allBases.size(); ++ i) {
 		// 	Broodwar->drawBoxMap(Position(_allBases[i]->Location()), Position(Position(_allBases[i]->Location()) + Position(UnitTypes::Terran_Command_Center.tileSize())), Colors::Grey);

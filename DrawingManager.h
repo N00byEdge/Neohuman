@@ -25,6 +25,7 @@ namespace Neolib {
 		bool enableNukeOverlay = true;
 		bool enableNukeSpots = true;
 		bool enableCombatSimOverlay = true;
+		bool enableSquadOverlay = true;
 
 #else
 
@@ -45,6 +46,7 @@ namespace Neolib {
 		bool enableNukeOverlay = false;
 		bool enableNukeSpots = true;
 		bool enableCombatSimOverlay = true;
+		bool enableSquadOverlay = true;
 
 #else
 
@@ -63,6 +65,7 @@ namespace Neolib {
 		bool enableNukeOverlay = false;
 		bool enableNukeSpots = true;
 		bool enableCombatSimOverlay = true;
+		bool enableSquadOverlay = true;
 
 #endif
 
