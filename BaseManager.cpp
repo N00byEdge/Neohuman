@@ -510,6 +510,10 @@ namespace Neolib {
 					resourcesAt = mf.first->getResources();
 					continue;
 				}
+
+				else if (mostAttractiveMineral && mf.second.size() > mineralMinersAt)
+					continue;
+
 				else if (mostAttractiveMineral && distanceTo > dist)
 					continue;
 

@@ -2,6 +2,8 @@
 
 #include "ResourceManager.h"
 
+#include "bwem.h"
+
 #include <set>
 
 namespace Neolib {
