@@ -30,7 +30,6 @@ struct ModularNN {
 
 	template <ActivationFunction actFunc>
 	struct StandardLayer : public Layer {
-		virtual ~StandardLayer() = default;
 		StandardLayer(unsigned inputSize, unsigned outputSize);
 		StandardLayer(std::istream &);
 		virtual fv run(fv &input) override;
@@ -46,7 +45,6 @@ struct ModularNN {
 	struct LSTM : public Layer {
 		LSTM(unsigned inputSize, unsigned outputSize, unsigned mSize);
 		LSTM(std::istream &);
-		~LSTM() = default;
 		virtual fv run(fv &input) override;
 		virtual void write(std::ostream &) override;
 
@@ -58,15 +56,12 @@ struct ModularNN {
 
 		// Weight matrices
 		std::vector <float> Wmx, Wmh, Whx, Whm, Wix, Wim, Wox, Wom, Wfx, Wfm;
-		//float *const Wmx, *const Wmh, *const Whx, *const Whm, *const Wix, *const Wim, *const Wox, *const Wom, *const Wfx, *const Wfm;
 
 		// Biases
 		std::vector <float> bm, bhr, bi, bo, bf, bc, bh;
-		//float *const bm, *const bhr, *const bi, *const bo, *const bf, *const bc, *const bh;
 
 		// State
 		std::vector <float> hState, cState;
-		//float *const hState, *const cState;
 	};
 
 	// ModularNN static functions
