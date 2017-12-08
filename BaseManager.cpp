@@ -257,13 +257,13 @@ namespace Neolib {
 				wantedWorkers += b.additionalWantedWorkers(), numWorkers += b.numWorkers();
 
 			if (wantedWorkers.gas && (numWorkers.minerals > numWorkers.gas / 3 || !wantedWorkers.minerals)) {
-				assignTo<AssignmentType::Minerals>(*it);
+				assignTo<AssignmentType::Gas>(*it);
 				it = homelessWorkers.erase(it);
 				continue;
 			}
 
 			if (wantedWorkers.minerals) {
-				assignTo<AssignmentType::Gas>(*it);
+				assignTo<AssignmentType::Minerals>(*it);
 				it = homelessWorkers.erase(it);
 				continue;
 			}
