@@ -5,34 +5,38 @@
 
 #include "Neohuman.h"
 
-#define MIN(a,b) (((a) < (b) ? (a) : (b)))
-#define MAX(a,b) (((a) < (b) ? (b) : (a)))
+#define MIN(a, b) (((a) < (b) ? (a) : (b)))
+#define MAX(a, b) (((a) < (b) ? (b) : (a)))
 
-#define MINE(a,b) (a) = MIN((a), (b))
-#define MAXE(a,b) (a) = MAX((a), (b))
+#define MINE(a, b) (a) = MIN((a), (b))
+#define MAXE(a, b) (a) = MAX((a), (b))
 
-#define ABS(val) ((val > 0) ? (val) : (unsigned)(~(val)) + 1U)
-#define ABSL(val) ((val > 0) ? (val) : (unsigned long long)(~(val)) + 1ULL)
-
-#define SATRUATION_RADIUS 300
-#define WORKERAGGRORADIUS 100
+#define ABS(val)                                                               \
+  ((val > 0) ? (val) : (decltype(val))(~(val)) + (decltype(val))1)
 
 template <int scale>
-bool operator< (BWAPI::Point<int, scale> lhs, BWAPI::Point<int, scale> rhs);
+bool operator<(BWAPI::Point<int, scale> lhs, BWAPI::Point<int, scale> rhs);
 
 namespace Neolib {
-	// Random functions
-	int randint(int, int);
+// Random functions
+int randint(int, int);
 
-	template <typename T>
-	T &randele(const std::vector <T>&);
-
-	// Drawing text to screen helpers
-	const char *noRaceName(const char *name);
-
-	struct hash {
-		template <int scale>
-		size_t operator()(const BWAPI::Point<int, scale> &p) const;
-	};
-
+template <typename T>
+inline T randele(const std::vector<T> &v) {
+  return v[randint(0, v.size() - 1)];
 }
+
+template <typename Container, typename Key>
+bool isIn(const Container &c, const Key &k) {
+  return c.find(k) != c.end();
+}
+
+// Drawing text to screen helpers
+const char *noRaceName(const char *name);
+
+struct hash {
+  template <int scale>
+  size_t operator()(const BWAPI::Point<int, scale> &p) const;
+};
+
+} // namespace Neolib

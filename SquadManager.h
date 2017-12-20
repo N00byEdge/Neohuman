@@ -1,92 +1,98 @@
 #pragma once
 
 #include "BWAPI.h"
-#include "UnitManager.h"
 #include "FAP.h"
+#include "UnitManager.h"
 
 namespace Neolib {
 
-	struct Squad {
-		Squad();
-		const int id;
-		virtual bool isEnemy() = 0;
-		virtual bool isFriendly() = 0;
-		virtual void addUnit(BWAPI::Unit) = 0;
-		virtual void removeUnit(BWAPI::Unit) = 0;
-		virtual void updatePosition() = 0;
-		virtual unsigned long long numUnits() = 0;
-		BWAPI::Position pos;
-		int radius1;
-		int radius2;
-	};
+struct Squad {
+  Squad();
+  virtual ~Squad(){};
+  const int id;
+  virtual bool isEnemy() = 0;
+  virtual bool isFriendly() = 0;
+  virtual void addUnit(BWAPI::Unit) = 0;
+  virtual void removeUnit(BWAPI::Unit) = 0;
+  virtual void updatePosition() = 0;
+  virtual unsigned long long numUnits() = 0;
+  int squadDistance(BWAPI::Position pos);
+  BWAPI::Position pos;
+  int radius1;
+  int radius2;
+};
 
-	struct FriendlySquad;
+struct FriendlySquad;
 
-	struct EnemySquad : public Squad {
-		virtual bool isEnemy() override { return true; }
-		virtual bool isFriendly() override { return false; }
-		virtual void addUnit(BWAPI::Unit) override;
-		virtual void removeUnit(BWAPI::Unit) override;
-		virtual void updatePosition() override;
-		virtual unsigned long long numUnits() override { return units.size(); }
-		void squadWasRemoved(FriendlySquad *sq) { engagedSquads.erase(sq); }
-		std::set <std::shared_ptr<EnemyData>> units;
+struct EnemySquad : public Squad {
+  virtual ~EnemySquad();
+  virtual bool isEnemy() override { return true; }
+  virtual bool isFriendly() override { return false; }
+  virtual void addUnit(BWAPI::Unit) override;
+  virtual void removeUnit(BWAPI::Unit) override;
+  virtual void updatePosition() override;
+  virtual unsigned long long numUnits() override { return units.size(); }
+  void squadWasRemoved(FriendlySquad *sq) { engagedSquads.erase(sq); }
+  std::set<std::shared_ptr<EnemyData>> units;
 
-		std::set <FriendlySquad *> engagedSquads;
-	};
+  std::set<FriendlySquad *> engagedSquads;
 
-	struct FriendlySquad : public Squad {
-		virtual bool isEnemy() override { return false; }
-		virtual bool isFriendly() override { return true; }
-		virtual void addUnit(BWAPI::Unit) override;
-		virtual void removeUnit(BWAPI::Unit) override;
-		virtual void updatePosition() override;
-		virtual unsigned long long numUnits() override { return units.size(); }
-		void squadWasRemoved(EnemySquad *sq) { engagedSquads.erase(sq); }
-		std::set <BWAPI::Unit> units;
+  int holdImportance = 0;
+  int attackPriority = 0;
+};
 
-		SimResults simres;
+struct FriendlySquad : public Squad {
+  virtual bool isEnemy() override { return false; }
+  virtual bool isFriendly() override { return true; }
+  virtual void addUnit(BWAPI::Unit) override;
+  virtual void removeUnit(BWAPI::Unit) override;
+  virtual void updatePosition() override;
+  virtual unsigned long long numUnits() override { return units.size(); }
+  void squadWasRemoved(EnemySquad *sq) { engagedSquads.erase(sq); }
+  std::set<BWAPI::Unit> units;
 
-		std::set <EnemySquad *> engagedSquads;
-	};
+  SimResults simres;
 
-	class SquadManager {
-		public:
-			static bool shouldAttack(SimResults sr);
+  std::set<EnemySquad *> engagedSquads;
+};
 
-			void onFrame();
-			void onUnitDeath(BWAPI::Unit);
-			void onUnitCreate(BWAPI::Unit);
-			void onUnitRenegade(BWAPI::Unit);
+struct SquadManager {
+  static bool shouldAttack(SimResults sr);
 
-			void onEnemyRecognize(std::shared_ptr<EnemyData>);
-			void onEnemyLose(std::shared_ptr<EnemyData>);
+  void onFrame();
+  void onUnitDestroy(BWAPI::Unit);
+  void onUnitComplete(BWAPI::Unit);
+  void onUnitRenegade(BWAPI::Unit);
 
-			std::shared_ptr<Squad> getSquad(BWAPI::Unit);
-			std::shared_ptr<Squad> addToNewSquad(BWAPI::Unit);
-			void addUnitToSquad(BWAPI::Unit, std::shared_ptr<Squad> sq);
+  void onEnemyRecognize(std::shared_ptr<EnemyData>);
+  void onEnemyLose(std::shared_ptr<EnemyData>);
 
-			std::shared_ptr<Squad> addNewFriendlySquad();
-			std::shared_ptr<Squad> addNewEnemySquad();
+  Squad *getSquad(BWAPI::Unit);
+  std::shared_ptr<Squad> addToNewSquad(BWAPI::Unit);
+  void addUnitToSquad(BWAPI::Unit, std::shared_ptr<Squad> sq);
 
-			bool isInSquad(BWAPI::Unit);
-			void removeFromSquad(BWAPI::Unit);
+  std::shared_ptr<Squad> addNewFriendlySquad();
+  std::shared_ptr<Squad> addNewEnemySquad();
 
-			std::vector<std::shared_ptr<EnemySquad>> &getEnemySquads();
-			std::vector<std::shared_ptr<FriendlySquad>> &getFriendlySquads();
+  bool isInSquad(BWAPI::Unit);
+  void removeFromSquad(BWAPI::Unit);
 
-		private:
-			void removeSquad(FriendlySquad *);
-			void removeSquad(EnemySquad *);
-			void removeSquadReferences(Squad *);
+  std::vector<std::shared_ptr<EnemySquad>> &getEnemySquads();
+  std::vector<std::shared_ptr<FriendlySquad>> &getFriendlySquads();
 
-			std::set <BWAPI::Unit> unmanagedUnits;
-			std::set <std::shared_ptr<EnemyData>> unmanagedEnemyUnits;
-			std::map <BWAPI::Unit, std::shared_ptr<Squad>> squadLookup;
-			std::vector <std::shared_ptr<EnemySquad>> enemySquads;
-			std::vector <std::shared_ptr<FriendlySquad>> friendlySquads;
-	};
+  std::map<BWAPI::Unit, Squad *> squadLookup;
 
-}
+private:
+  void removeSquad(FriendlySquad *);
+  void removeSquad(EnemySquad *);
+  void removeSquadReferences(Squad *);
+
+  std::set<BWAPI::Unit> unmanagedUnits;
+  std::set<std::shared_ptr<EnemyData>> unmanagedEnemyUnits;
+  std::vector<std::shared_ptr<EnemySquad>> enemySquads;
+  std::vector<std::shared_ptr<FriendlySquad>> friendlySquads;
+};
+
+} // namespace Neolib
 
 extern Neolib::SquadManager squadManager;

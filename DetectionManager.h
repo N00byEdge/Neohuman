@@ -6,14 +6,14 @@
 
 namespace Neolib {
 
-	class DetectionManager {
-		public:
-			bool requestDetection(BWAPI::Position p);
-			int highestComsatEnergy();
-		private:
-			int scanLastUsed = -5;
-	};
+struct DetectionManager {
+  bool requestDetection(BWAPI::Position p);
+  int highestComsatEnergy();
 
-}
+private:
+  int scanLastUsed = -5;
+};
+
+} // namespace Neolib
 
 extern Neolib::DetectionManager detectionManager;

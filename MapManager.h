@@ -6,27 +6,31 @@
 
 namespace Neolib {
 
-	class MapManager {
-		public:
-			void init();
+struct MapManager {
+  void init();
 
-			void onFrame();
+  void onFrame();
 
-			int getGroundDistance(BWAPI::Position start, BWAPI::Position end);
+  void MapManager::pathTo(BWAPI::Unit u, BWAPI::Position target);
+  int getGroundDistance(BWAPI::Position start, BWAPI::Position end);
 
-			const std::vector <const BWEM::Base*> getAllBases() const;
-			const std::set    <const BWEM::Base*> getUnexploredBases() const;
+  const std::vector<const BWEM::Base *> &getAllBases() const;
+  const std::set<const BWEM::Base *> &getUnexploredBases() const;
 
-			const BWAPI::TilePosition getNextBasePosition() const;
+  BWAPI::TilePosition getNextBasePosition() const;
+  BWAPI::TilePosition getNextBaseToScout();
 
-			std::set<std::pair <BWAPI::TilePosition, BWAPI::TilePosition>> getNoBuildRects();
+  std::set<std::pair<BWAPI::TilePosition, BWAPI::TilePosition>>
+  getNoBuildRects();
 
-		private:
+  BWAPI::Position getStartPosition();
 
-			std::vector <const BWEM::Base*> allBases;
-			std::set    <const BWEM::Base*> unexploredBases;
-	};
+private:
+  std::queue<BWAPI::TilePosition> exploreBases;
+  std::vector<const BWEM::Base *> allBases;
+  std::set<const BWEM::Base *> unexploredBases;
+};
 
-}
+} // namespace Neolib
 
 extern Neolib::MapManager mapManager;

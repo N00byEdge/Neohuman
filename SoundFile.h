@@ -5,22 +5,21 @@
 #include <windows.h>
 
 namespace Neolib {
-	class SoundFile {
-		public:
-			SoundFile(const char *filename);
-			~SoundFile();
+struct SoundFile {
+  SoundFile(const char *filename);
+  ~SoundFile();
 
-			void play();
-			void play_async();
+  void play();
+  void play_async();
 
-		private:
+private:
 #ifdef _DEBUG
-			LPCWSTR buf = nullptr;
+  LPCWSTR buf = nullptr;
 #else
-			LPCSTR buf = nullptr;
+  LPCSTR buf = nullptr;
 #endif
-			HINSTANCE hi;
-	};
-}
+  HINSTANCE hi;
+};
+} // namespace Neolib
 
 #endif
