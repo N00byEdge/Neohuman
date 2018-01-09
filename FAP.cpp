@@ -40,16 +40,22 @@ void FastAPproximation::simulate(int nFrames) {
   }
 }
 
+const auto score = [](const FastAPproximation::FAPUnit &fu) {
+  if (fu.health && fu.maxHealth)
+    return ((fu.score * fu.health) / (fu.maxHealth * 2)) +
+           (fu.unitType == BWAPI::UnitTypes::Terran_Bunker) *
+               BWAPI::UnitTypes::Terran_Marine.destroyScore() * 4;
+  return 0;
+};
+
 std::pair<int, int> FastAPproximation::playerScores() const {
   std::pair<int, int> res;
 
-  for (auto &u : player1)
-    if (u.health && u.maxHealth)
-      res.first += (u.score * u.health) / (u.maxHealth * 2);
+  for (const auto &u : player1)
+    res.first += score(u);
 
-  for (auto &u : player2)
-    if (u.health && u.maxHealth)
-      res.second += (u.score * u.health) / (u.maxHealth * 2);
+  for (const auto &u : player2)
+    res.second += score(u);
 
   return res;
 }
@@ -57,13 +63,13 @@ std::pair<int, int> FastAPproximation::playerScores() const {
 std::pair<int, int> FastAPproximation::playerScoresUnits() const {
   std::pair<int, int> res;
 
-  for (auto &u : player1)
-    if (u.health && u.maxHealth && !u.unitType.isBuilding())
-      res.first += (u.score * u.health) / (u.maxHealth * 2);
+  for (const auto &u : player1)
+    if (!u.unitType.isBuilding())
+      res.first += score(u);
 
-  for (auto &u : player2)
-    if (u.health && u.maxHealth && !u.unitType.isBuilding())
-      res.second += (u.score * u.health) / (u.maxHealth * 2);
+  for (const auto &u : player2)
+    if (!u.unitType.isBuilding())
+      res.second += score(u);
 
   return res;
 }
@@ -71,13 +77,13 @@ std::pair<int, int> FastAPproximation::playerScoresUnits() const {
 std::pair<int, int> FastAPproximation::playerScoresBuildings() const {
   std::pair<int, int> res;
 
-  for (auto &u : player1)
-    if (u.health && u.maxHealth && u.unitType.isBuilding())
-      res.first += (u.score * u.health) / (u.maxHealth * 2);
+  for (const auto &u : player1)
+    if (u.unitType.isBuilding())
+      res.first += score(u);
 
-  for (auto &u : player2)
-    if (u.health && u.maxHealth && u.unitType.isBuilding())
-      res.second += (u.score * u.health) / (u.maxHealth * 2);
+  for (const auto &u : player2)
+    if (u.unitType.isBuilding())
+      res.second += score(u);
 
   return res;
 }
