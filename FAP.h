@@ -54,36 +54,76 @@ struct FastAPproximation {
     bool operator<(const FAPUnit &other) const;
   };
 
+  /**
+   * \brief Creates a new FasAPproximation. It will have no units or other state
+   */
   FastAPproximation();
 
+  /**
+   * \brief Adds the unit to the simulator for player 1
+   * \param fu The FAPUnit to add
+   */
   void addUnitPlayer1(FAPUnit fu);
+  /**
+   * \brief Adds the unit to the simulator for player 1, only if it is a combat unit
+   * \param fu The FAPUnit to add
+   */
   void addIfCombatUnitPlayer1(FAPUnit fu);
+  /**
+   * \brief Adds the unit to the simulator for player 2
+   * \param fu The FAPUnit to add
+   */
   void addUnitPlayer2(FAPUnit fu);
+  /**
+   * \brief Adds the unit to the simulator for player 2, only if it is a combat unit
+   * \param fu The FAPUnit to add
+   */
   void addIfCombatUnitPlayer2(FAPUnit fu);
 
+  /**
+   * \brief Starts the simulation. You can run this function multiple times. Feel free to run once, get the state and keep running.
+   * \param nFrames the number of frames to simulate. A negative number runs the sim until combat is over.
+   */
   void simulate(int nFrames = 96); // = 24*4, 4 seconds on fastest
 
+  /**
+   * \brief Default score calculation function
+   * \return Returns the score for alive units, for each player
+   */
   std::pair<int, int> playerScores() const;
+  /**
+   * \brief Default score calculation, only counts non-buildings.
+   * \return Returns the score for alive non-buildings, for each player
+   */
   std::pair<int, int> playerScoresUnits() const;
+  /**
+   * \brief Default score calculation, only counts buildings.
+   * \return Returns the score for alive buildings, for each player
+   */
   std::pair<int, int> playerScoresBuildings() const;
+  /**
+   * \brief Gets the internal state of the simulator. You can use this to get any info about the unit participating in the simulation or edit the state.
+   * \return Returns a pair of pointers, where each pointer points to a vector containing that player's units.
+   */
   std::pair<std::vector<FAPUnit> *, std::vector<FAPUnit> *> getState();
-  void clearState();
+  /**
+   * \brief Clears the simulation. All units are removed for both players. Equivalent to reconstructing.
+   */
+  void clear();
 
 private:
   std::vector<FAPUnit> player1, player2;
 
-  bool didSomething;
-  void dealDamage(const FastAPproximation::FAPUnit &fu, int damage,
-                  BWAPI::DamageType damageType) const;
-  int distButNotReally(const FastAPproximation::FAPUnit &u1,
-                       const FastAPproximation::FAPUnit &u2) const;
-  bool isSuicideUnit(BWAPI::UnitType ut);
+  bool didSomething = false;
+  static void dealDamage(const FAPUnit &fu, int damage, BWAPI::DamageType damageType);
+  static int distButNotReally(const FAPUnit &u1, const FAPUnit &u2);
+  static bool isSuicideUnit(BWAPI::UnitType ut);
   void unitsim(const FAPUnit &fu, std::vector<FAPUnit> &enemyUnits);
-  void medicsim(const FAPUnit &fu, std::vector<FAPUnit> &friendlyUnits);
+  static void medicsim(const FAPUnit &fu, std::vector<FAPUnit> &friendlyUnits);
   bool suicideSim(const FAPUnit &fu, std::vector<FAPUnit> &enemyUnits);
   void isimulate();
-  void unitDeath(const FAPUnit &fu, std::vector<FAPUnit> &itsFriendlies);
-  void convertToUnitType(const FAPUnit &fu, BWAPI::UnitType ut);
+  static void unitDeath(const FAPUnit &fu, std::vector<FAPUnit> &itsFriendlies);
+  static void convertToUnitType(const FAPUnit &fu, BWAPI::UnitType ut);
 };
 
 } // namespace Neolib
