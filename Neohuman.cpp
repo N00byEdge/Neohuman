@@ -26,6 +26,7 @@ using namespace Neolib;
 Neohuman *neoInstance;
 
 void Neohuman::onStart() {
+  try {
   soundDatabase.loadSounds();
   if(Broodwar->enemy()) {
     if(Broodwar->enemy()->getName() == "Alice" && randint(0, 19) == 0)
@@ -70,37 +71,43 @@ void Neohuman::onStart() {
 
   mapManager.init();
   buildingPlacer.init();
+  }
+  catch (...) { }
 }
 
 void Neohuman::onEnd(const bool didWin) {
-  if(!didWin)
-    Broodwar->sendText("Plagiarism! %s OP!", Broodwar->enemy()->getRace().getName().c_str());
-  // Called when the game ends
-  auto wins   = 0;
-  auto losses = 0;
-  std::ifstream rf("bwapi-data/read/" + Broodwar->enemy()->getName() + ".txt");
-  if(rf) {
-    rf >> wins >> losses;
-    rf.close();
-  }
-  else {
-    rf.open("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
-    if(rf) {
+  try {
+    if (!didWin)
+      Broodwar->sendText("Plagiarism! %s OP!", Broodwar->enemy()->getRace().getName().c_str());
+    // Called when the game ends
+    auto wins = 0;
+    auto losses = 0;
+    std::ifstream rf("bwapi-data/read/" + Broodwar->enemy()->getName() + ".txt");
+    if (rf) {
       rf >> wins >> losses;
       rf.close();
     }
-  }
+    else {
+      rf.open("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
+      if (rf) {
+        rf >> wins >> losses;
+        rf.close();
+      }
+    }
 
-  if(didWin)
-    ++wins;
-  else
-    ++losses;
+    if (didWin)
+      ++wins;
+    else
+      ++losses;
 
-  std::ofstream of("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
-  if(of)
-    of << wins << " " << losses << "\n";
+    std::ofstream of("bwapi-data/write/" + Broodwar->enemy()->getName() + ".txt");
+    if (of)
+      of << wins << " " << losses << "\n";
+  } catch(...) { }
 
-  soundDatabase.unload();
+  try {
+    soundDatabase.unload();
+  } catch(...) { }
 }
 
 void Neohuman::onFrame() {
