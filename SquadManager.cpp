@@ -465,10 +465,12 @@ void SquadManager::onFrame() {
                 continue;
               u->attack(target);
             }
-            else if (auto const close = unitManager.getClosestEnemy(u, true); close && close->lastPosition.getDistance(u->getPosition())) {
               //if (u->getOrder() == BWAPI::Orders::Move && u->getOrderTargetPosition().getDistance(target) < 20)
                 //continue;
-              u->move(target);
+            else if (auto const close = unitManager.getClosestEnemy(u, true); close && close->u->isVisible() && close->u->getDistance(u) < BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
+              if (u->getOrder() == BWAPI::Orders::AttackUnit && u->getOrderTarget() == close->u)
+                continue;
+              u->attack(u);
             } else {
               //if (u->getOrder() == BWAPI::Orders::Move && u->getOrderTargetPosition().getDistance(target) < 20)
                 //continue;
