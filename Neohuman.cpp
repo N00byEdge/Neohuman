@@ -201,7 +201,7 @@ void Neohuman::onFrame() {
 
       case 7:
         for(auto &race: playableRaces) {
-          if(resourceManager.canAfford((race.getResourceDepot()))) {
+          if(resourceManager.canAfford(ResourceCount(race.getResourceDepot()) * 0.6f)) {
             auto pos = mapManager.getNextBasePosition();
             if(pos.isValid())
               buildingQueue.doBuild(race.getResourceDepot(), pos);
