@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include <random>
+#include <chrono>
 
 #include "Neohuman.h"
 
@@ -35,3 +36,5 @@ template <int scale>
 size_t Neolib::hash::operator()(const BWAPI::Point<int, scale> &p) const {
   return std::hash<int>()(p.x << 16 | p.y);
 }
+
+auto p = BWAPI::Positions::Invalid;

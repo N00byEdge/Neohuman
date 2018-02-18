@@ -5,6 +5,7 @@
 #include "BuildingPlacer.h"
 #include "DrawingManager.h"
 #include "UnitManager.h"
+#include "MapManager.h"
 
 Neolib::BuildingQueue buildingQueue;
 
@@ -19,7 +20,7 @@ void BuildingQueue::onFrame() {
         (!it->builder || !it->builder->exists())) {
       it->builder = baseManager.findClosestBuilder(
           it->buildingType.whatBuilds().first,
-          (BWAPI::Position)it->designatedLocation);
+          static_cast<BWAPI::Position>(it->designatedLocation));
       if (it->builder) {
         if (it->buildingUnit)
           it->builder->rightClick(it->buildingUnit);
@@ -30,36 +31,38 @@ void BuildingQueue::onFrame() {
       }
     }
 
-    if (it->builder) {
+    if (it->builder && BWAPI::Broodwar->getFrameCount() % 5 == 0) {
       auto order = it->builder->getOrder();
 
       auto closeEnemy = unitManager.getClosestEnemy(
           it->builder, !BWAPI::Filter::IsWorker, true);
-      if (closeEnemy &&
-          closeEnemy->lastPosition.getDistance(it->builder->getPosition()) <
-              200 &&
-          closeEnemy) {
+      if (closeEnemy
+          && closeEnemy->lastPosition.getDistance(it->builder->getPosition()) < 200
+          && closeEnemy) {
         baseManager.returnUnit(it->builder);
         goto skipdo;
       }
 
       if (order == BWAPI::Orders::ConstructingBuilding)
         goto skipdo;
-      else if (order == BWAPI::Orders::PlaceBuilding)
+      if (order == BWAPI::Orders::PlaceBuilding)
         goto skipdo;
-      else if (!BWAPI::Broodwar->isExplored(it->designatedLocation) &&
-               order == BWAPI::Orders::Move &&
-               (BWAPI::TilePosition)it->builder->getOrderTargetPosition() ==
-                   it->designatedLocation)
+      if (!BWAPI::Broodwar->isExplored(it->designatedLocation) &&
+          order == BWAPI::Orders::Move &&
+          static_cast<BWAPI::TilePosition>(it->builder->getOrderTargetPosition()) ==
+          it->designatedLocation)
+        goto skipdo;
+      if (!it->designatedLocation.isValid())
         goto skipdo;
 
       baseManager.takeUnit(it->builder);
 
       if (it->buildingUnit &&
-          it->buildingType.getRace() == BWAPI::Races::Terran)
+        it->buildingType.getRace() == BWAPI::Races::Terran)
         it->builder->rightClick(it->buildingUnit);
-      else if (!BWAPI::Broodwar->isExplored(it->designatedLocation))
-        it->builder->move((BWAPI::Position)it->designatedLocation);
+      else if (!BWAPI::Broodwar->isExplored(it->designatedLocation)
+          || mapManager.getGroundDistance(it->builder->getPosition(), static_cast<BWAPI::Position>(it->designatedLocation)) > 300)
+        mapManager.pathTo(it->builder, static_cast<BWAPI::Position>(it->designatedLocation));
       else if (!it->buildingUnit)
         it->builder->build(it->buildingType, it->designatedLocation);
     }

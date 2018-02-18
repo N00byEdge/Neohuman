@@ -14,12 +14,11 @@ struct DrawerSettings {
   bool enableComsatInfo = true;
   bool enableListBuildingQueue = true;
   bool enableSaturationInfo = false;
-  bool enableTimerInfo = isDebugBuild();
   bool enableEnemyOverlay = true;
   bool enableDeathMatrix = false;
   bool enableBaseOverlay = false;
   bool enableHealthBars = true;
-  bool enableFailedLocations = isDebugBuild();
+  bool enableFailedLocations = IsDebugBuild();
   bool enableNukeOverlay = true;
   bool enableNukeSpots = true;
   bool enableCombatSimOverlay = false;
@@ -35,7 +34,6 @@ struct DrawingManager {
 
 private:
   DrawerSettings s;
-  static int getNextColumnY(int &columnY);
 };
 
 } // namespace Neolib

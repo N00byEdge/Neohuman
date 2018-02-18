@@ -10,17 +10,17 @@ namespace Neolib {
 struct EnemyData {
   EnemyData();
   EnemyData(BWAPI::Unit);
-  EnemyData(BWAPI::UnitType);
+  explicit EnemyData(BWAPI::UnitType);
 
   BWAPI::Unit u = nullptr;
   mutable BWAPI::Player lastPlayer = nullptr;
   mutable BWAPI::UnitType lastType;
   mutable BWAPI::Position lastPosition;
-  mutable int lastShields;
-  mutable int lastHealth;
+  mutable int lastShields = -1;
+  mutable int lastHealth = -1;
   mutable int frameLastSeen = 0;
   mutable int frameLastDetected = 0;
-  mutable int unitID;
+  mutable int unitID = -1;
   mutable bool positionInvalidated = true;
   mutable bool isCompleted = false;
 
@@ -52,13 +52,10 @@ struct SimResults {
 };
 
 struct UnitManager {
-  const std::map<BWAPI::UnitType, std::set<std::shared_ptr<EnemyData>>> &
-  getEnemyUnitsByType() const;
-  const std::set<std::shared_ptr<EnemyData>> &
-  getEnemyUnitsByType(BWAPI::UnitType ut) const;
+  const std::map<BWAPI::UnitType, std::set<std::shared_ptr<EnemyData>>> &getEnemyUnitsByType() const;
+  const std::set<std::shared_ptr<EnemyData>> &getEnemyUnitsByType(BWAPI::UnitType ut) const;
 
-  const std::map<BWAPI::UnitType, std::set<BWAPI::Unit>> &
-  getFriendlyUnitsByType() const;
+  const std::map<BWAPI::UnitType, std::set<BWAPI::Unit>> &getFriendlyUnitsByType() const;
   const std::set<BWAPI::Unit> &getFriendlyUnitsByType(BWAPI::UnitType ut) const;
 
   const std::set<std::shared_ptr<EnemyData>> &getNonVisibleEnemies() const;
@@ -67,25 +64,19 @@ struct UnitManager {
   const std::set<std::shared_ptr<EnemyData>> &getDeadEnemies() const;
 
   std::shared_ptr<EnemyData>
-  getClosestEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &filter = nullptr,
-                  bool onlyWithWeapons = false) const;
+  getClosestEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &filter = nullptr, bool onlyWithWeapons = false) const;
   std::shared_ptr<EnemyData>
   getClosestEnemy(BWAPI::Unit from, bool onlyWithWeapons = false) const;
 
   std::shared_ptr<EnemyData>
-  getClosestVisibleEnemy(BWAPI::Unit from,
-                         const BWAPI::UnitFilter &filter = nullptr,
-                         bool onlyWithWeapons = false) const;
+  getClosestVisibleEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &filter = nullptr, bool onlyWithWeapons = false) const;
   std::shared_ptr<EnemyData>
   getClosestVisibleEnemy(BWAPI::Unit from, bool onlyWithWeapons = false) const;
 
   std::shared_ptr<EnemyData>
-  getClosestNonVisibleEnemy(BWAPI::Unit from,
-                            const BWAPI::UnitFilter &filter = nullptr,
-                            bool onlyWithWeapons = false) const;
+  getClosestNonVisibleEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &filter = nullptr, bool onlyWithWeapons = false) const;
   std::shared_ptr<EnemyData>
-  getClosestNonVisibleEnemy(BWAPI::Unit from,
-                            bool onlyWithWeapons = false) const;
+  getClosestNonVisibleEnemy(BWAPI::Unit from, bool onlyWithWeapons = false) const;
 
   std::shared_ptr<EnemyData> getEnemyData(BWAPI::Unit ptr);
 
@@ -99,14 +90,9 @@ struct UnitManager {
   static bool isOwn(BWAPI::Unit u);
   static bool isNeutral(BWAPI::Unit u);
 
-  int countUnit(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits,
-                const BWAPI::UnitFilter &filter = nullptr,
-                bool countQueued = true) const;
-  int countFriendly(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits,
-                    bool onlyWithWeapons = false,
-                    bool countQueued = true) const;
-  int countEnemy(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits,
-                 bool onlyWithWeapons = false) const;
+  static int countUnit(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, const BWAPI::UnitFilter &filter = nullptr, bool countQueued = true);
+  int countFriendly(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false, bool countQueued = true) const;
+  int countEnemy(BWAPI::UnitType t = BWAPI::UnitTypes::AllUnits, bool onlyWithWeapons = false) const;
 
   bool isAllowedToLockdown(BWAPI::Unit target, BWAPI::Unit own) const;
   void reserveLockdown(BWAPI::Unit target, BWAPI::Unit own);
@@ -121,12 +107,15 @@ struct UnitManager {
   static int unitDeath(BWAPI::UnitType ut);
   static int deathPerHealth(BWAPI::UnitType ut, int health);
   static int deathPerHealth(BWAPI::Unit unit);
-  static void addToDeathMatrix(BWAPI::Position pos, BWAPI::UnitType ut,
-                               BWAPI::Player p);
+  //static void addToDeathMatrix(BWAPI::Position pos, BWAPI::UnitType ut, BWAPI::Player p);
   static bool reallyHasWeapon(const BWAPI::UnitType &unitType);
 
-  SimResults getSimResults();
+  SimResults getSimResults() const;
   unsigned getLaunchedNukeCount() const;
+
+  int getLastAttackFrame(BWAPI::Unit u);
+  //void attacked(BWAPI::Unit u);
+  static int getMinStop(BWAPI::UnitType ut);
 
   void onFrame();
   void onNukeDetect(BWAPI::Position target);
@@ -152,6 +141,9 @@ private:
       enemyUnitsByType;
   std::map<BWAPI::UnitType, std::set<BWAPI::Unit>> friendlyUnitsByType;
 
+  std::map<BWAPI::Unit, int> lastAttackFrame;
+  std::map<BWAPI::Unit, bool> lastAttacking;
+
   std::map<BWAPI::Unit, std::pair<BWAPI::Unit, int>> lockdownDB;
 
   std::map<BWAPI::UnitType, int> multikillDetector;
@@ -164,8 +156,7 @@ private:
 } // namespace Neolib
 
 extern Neolib::UnitManager unitManager;
-extern int deathMatrixGround[(256 * 4) * (256 * 4)],
-    deathMatrixAir[(256 * 4) * (256 * 4)];
+extern std::array<int, Neolib::Pow<2>(256 * 4)> DeathMatrixGround, DeathMatrixAir;
 
 #define deathMatrixSideLen (256 * 4)
 #define deathMatrixSize (deathMatrixSideLen * deathMatrixSideLen)

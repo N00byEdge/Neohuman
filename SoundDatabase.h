@@ -9,13 +9,16 @@
 namespace Neolib {
 
 struct SoundDatabase {
-  void play_sound(std::string sound, bool async = true);
+  void play_sound(std::string sound);
 
   void loadSounds();
 
   void playRandomSadSound();
   void playRandomHappySound();
   void playRandomKillSound();
+  void playRandomFunnySound();
+
+  void unload();
 
 #ifdef WIN32
 

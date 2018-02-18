@@ -15,8 +15,8 @@ ResourceCount::ResourceCount(int minerals, int gas)
     : minerals(minerals), gas(gas) {}
 
 ResourceCount::ResourceCount(BWAPI::UnitType ut)
-    : minerals(ut == BWAPI::UnitTypes::Zerg_Zergling ? 50 : ut.mineralPrice()),
-      gas(ut.gasPrice()) {
+    : minerals(ut.isTwoUnitsInOneEgg() ? ut.mineralPrice() * 2 : ut.mineralPrice()),
+      gas(ut.isTwoUnitsInOneEgg() ? ut.gasPrice() * 2 : ut.gasPrice()) {
   if (resourceManager.resourcesReservedForSupply().minerals &&
           ut == BWAPI::UnitTypes::Terran_Supply_Depot ||
       ut == BWAPI::UnitTypes::Protoss_Pylon ||
@@ -52,23 +52,22 @@ ResourceCount &ResourceCount::operator-=(const ResourceCount &other) {
 }
 
 ResourceCount ResourceCount::operator*(const float factor) const {
-  return ResourceCount((int)(factor * minerals), (int)(factor * gas));
+  return ResourceCount(static_cast<int>(factor * minerals), static_cast<int>(factor * gas));
 }
 
 ResourceCount &ResourceCount::operator*=(const float factor) {
-  minerals = (int)(factor * minerals);
-  gas = (int)(factor * gas);
+  minerals = static_cast<int>(factor * minerals);
+  gas = static_cast<int>(factor * gas);
   return *this;
 }
 
 ResourceCount ResourceCount::operator/(const float divisor) const {
-  return ResourceCount((int)((float)minerals / divisor),
-                       (int)((float)gas / divisor));
+  return ResourceCount(static_cast<int>(minerals / divisor), static_cast<int>(gas / divisor));
 }
 
 ResourceCount &ResourceCount::operator/=(const float divisor) {
-  minerals = (int)((float)minerals / divisor);
-  gas = (int)((float)gas / divisor);
+  minerals = static_cast<int>(minerals / divisor);
+  gas = static_cast<int>(gas / divisor);
   return *this;
 }
 
@@ -96,12 +95,19 @@ ResourceCount ResourceManager::resourcesReservedForSupply() const {
   ResourceCount rc;
   rc.minerals +=
       100 *
-      MAX((int)ceil(supplyManager.wantedAdditionalSupply().terran / 16), 0);
+      MAX((int)ceil(supplyManager.wantedAdditionalSupply().terran /
+                    BWAPI::Races::Terran.getSupplyProvider().supplyProvided()),
+          0);
   rc.minerals +=
       100 *
-      MAX((int)ceil(supplyManager.wantedAdditionalSupply().protoss / 16), 0);
+      MAX((int)ceil(supplyManager.wantedAdditionalSupply().protoss /
+                    BWAPI::Races::Protoss.getSupplyProvider().supplyProvided()),
+          0);
   rc.minerals +=
-      100 * MAX((int)ceil(supplyManager.wantedAdditionalSupply().zerg / 16), 0);
+      100 *
+      MAX((int)ceil(supplyManager.wantedAdditionalSupply().zerg /
+                    BWAPI::Races::Zerg.getSupplyProvider().supplyProvided()),
+          0);
   return rc;
 }
 

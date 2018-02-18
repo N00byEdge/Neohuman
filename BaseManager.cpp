@@ -551,7 +551,7 @@ void BaseManager::assignTo(BWAPI::Unit unit) {
   }
 
   std::remove_reference_t<decltype(*Base::mineralMiners.begin())>
-      *bestResourceContainer;
+      *bestResourceContainer = nullptr;
   Base const *bestBase = nullptr;
   unsigned bestResources;
   unsigned bestDistance;

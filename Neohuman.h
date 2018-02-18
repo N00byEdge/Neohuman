@@ -2,10 +2,11 @@
 
 #include <BWAPI.h>
 
-#include "SoundFile.h"
-#include "Timer.h"
+#include <string>
 
-const auto isOnTournamentServer = []() {
+#include "SoundFile.h"
+
+const auto IsOnTournamentServer = []() {
 #ifdef SSCAIT
   return true;
 #else
@@ -13,7 +14,7 @@ const auto isOnTournamentServer = []() {
 #endif
 };
 
-const auto isDebugBuild = []() {
+const auto IsDebugBuild = []() {
 #ifdef _DEBUG
   return true;
 #else
@@ -21,42 +22,39 @@ const auto isDebugBuild = []() {
 #endif
 };
 
-const auto botError = [](std::string &message) {
-  if constexpr (!isOnTournamentServer()) {
+const auto BotError = [](std::string &message) {
+  if constexpr (!IsOnTournamentServer()) {
     throw std::runtime_error(message);
   } else {
     BWAPI::Broodwar->sendText(message.c_str());
   }
 };
 
-const auto playableRaces = std::vector<BWAPI::Race>{
-    BWAPI::Races::Protoss, BWAPI::Races::Terran, BWAPI::Races::Zerg};
+const auto playableRaces = std::vector<BWAPI::Race> {
+    BWAPI::Races::Protoss, BWAPI::Races::Terran, BWAPI::Races::Zerg };
 
 struct Neohuman : public BWAPI::AIModule {
-  virtual void onStart();
-  virtual void onEnd(bool isWinner);
-  virtual void onFrame();
-  virtual void onSendText(std::string text);
-  virtual void onReceiveText(BWAPI::Player player, std::string text);
-  virtual void onPlayerLeft(BWAPI::Player player);
-  virtual void onNukeDetect(BWAPI::Position target);
-  virtual void onUnitDiscover(BWAPI::Unit unit);
-  virtual void onUnitEvade(BWAPI::Unit unit);
-  virtual void onUnitShow(BWAPI::Unit unit);
-  virtual void onUnitHide(BWAPI::Unit unit);
-  virtual void onUnitCreate(BWAPI::Unit unit);
-  virtual void onUnitDestroy(BWAPI::Unit unit);
-  virtual void onUnitMorph(BWAPI::Unit unit);
-  virtual void onUnitRenegade(BWAPI::Unit unit);
-  virtual void onSaveGame(std::string gameName);
-  virtual void onUnitComplete(BWAPI::Unit unit);
+	void onStart() override;
+	void onEnd(bool isWinner) override;
+	void onFrame() override;
+	void onSendText(std::string text) override;
+	void onReceiveText(BWAPI::Player player, std::string text) override;
+	void onPlayerLeft(BWAPI::Player player) override;
+	void onNukeDetect(BWAPI::Position target) override;
+	void onUnitDiscover(BWAPI::Unit unit) override;
+	void onUnitEvade(BWAPI::Unit unit) override;
+	void onUnitShow(BWAPI::Unit unit) override;
+	void onUnitHide(BWAPI::Unit unit) override;
+	void onUnitCreate(BWAPI::Unit unit) override;
+	void onUnitDestroy(BWAPI::Unit unit) override;
+	void onUnitMorph(BWAPI::Unit unit) override;
+	void onUnitRenegade(BWAPI::Unit unit) override;
+	void onSaveGame(std::string gameName) override;
+	void onUnitComplete(BWAPI::Unit unit) override;
 
-  // Things
-  bool wasRandom;
-  BWAPI::Race playingRace;
-
-  Neolib::Timer timer_drawinfo, timer_managequeue, timer_buildbuildings,
-      timer_unitlogic, timer_marinelogic, timer_total;
+	// Things
+	bool wasRandom;
+	BWAPI::Race playingRace;
 };
 
 extern Neohuman *neoInstance;

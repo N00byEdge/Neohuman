@@ -81,6 +81,7 @@ void MapManager::onFrame() {
 void MapManager::pathTo(BWAPI::Unit u, BWAPI::Position target) {
   bool moved = false;
   const auto move = [&](BWAPI::Position p) {
+    if (u->getDistance(p) < 100) return;
     if (moved)
       u->move(p, true);
     else

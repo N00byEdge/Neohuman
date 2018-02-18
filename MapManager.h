@@ -11,7 +11,7 @@ struct MapManager {
 
   void onFrame();
 
-  void MapManager::pathTo(BWAPI::Unit u, BWAPI::Position target);
+  void pathTo(BWAPI::Unit u, BWAPI::Position target);
   int getGroundDistance(BWAPI::Position start, BWAPI::Position end);
 
   const std::vector<const BWEM::Base *> &getAllBases() const;

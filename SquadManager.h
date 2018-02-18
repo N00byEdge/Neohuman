@@ -26,12 +26,12 @@ struct FriendlySquad;
 
 struct EnemySquad : public Squad {
   virtual ~EnemySquad();
-  virtual bool isEnemy() override { return true; }
-  virtual bool isFriendly() override { return false; }
-  virtual void addUnit(BWAPI::Unit) override;
-  virtual void removeUnit(BWAPI::Unit) override;
-  virtual void updatePosition() override;
-  virtual unsigned long long numUnits() override { return units.size(); }
+  bool isEnemy() override { return true; }
+  bool isFriendly() override { return false; }
+  void addUnit(BWAPI::Unit) override;
+  void removeUnit(BWAPI::Unit) override;
+  void updatePosition() override;
+  unsigned long long numUnits() override { return units.size(); }
   void squadWasRemoved(FriendlySquad *sq) { engagedSquads.erase(sq); }
   std::set<std::shared_ptr<EnemyData>> units;
 
@@ -42,12 +42,13 @@ struct EnemySquad : public Squad {
 };
 
 struct FriendlySquad : public Squad {
-  virtual bool isEnemy() override { return false; }
-  virtual bool isFriendly() override { return true; }
-  virtual void addUnit(BWAPI::Unit) override;
-  virtual void removeUnit(BWAPI::Unit) override;
-  virtual void updatePosition() override;
-  virtual unsigned long long numUnits() override { return units.size(); }
+  virtual ~FriendlySquad();
+  bool isEnemy() override { return false; }
+  bool isFriendly() override { return true; }
+  void addUnit(BWAPI::Unit) override;
+  void removeUnit(BWAPI::Unit) override;
+  void updatePosition() override;
+  unsigned long long numUnits() override { return units.size(); }
   void squadWasRemoved(EnemySquad *sq) { engagedSquads.erase(sq); }
   std::set<BWAPI::Unit> units;
 

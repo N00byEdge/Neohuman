@@ -1,29 +1,28 @@
 #include "UnitManager.h"
 
 #include "BuildingQueue.h"
-#include "FAP.h"
 #include "SoundDatabase.h"
-
 #include "BaseManager.h"
-#include "BuildingPlacer.h"
 #include "SquadManager.h"
+#include "Util.h"
+
+#include <array>
 
 std::set<std::shared_ptr<Neolib::EnemyData>> emptyEnemyDataSet;
 std::set<BWAPI::Unit> emptyUnitset;
 
 #define PROTOSSSHEILDREGEN 7
-#define ZERGREGEN 8
+#define ZERGREGEN 4
 
 Neolib::UnitManager unitManager;
 
-int deathMatrixGround[(256 * 4) * (256 * 4)],
-    deathMatrixAir[(256 * 4) * (256 * 4)];
+std::array<int, Neolib::Pow<2>(256 * 4)> DeathMatrixGround, DeathMatrixAir;
 
 namespace Neolib {
 
-EnemyData::EnemyData() {}
+EnemyData::EnemyData() = default;
 
-EnemyData::EnemyData(BWAPI::Unit unit) : u(unit) {
+  EnemyData::EnemyData(BWAPI::Unit unit) : u(unit) {
   if (unit)
     initFromUnit();
 }
@@ -89,49 +88,45 @@ std::size_t EnemyData::hash::operator()(const EnemyData &ed) const {
   return std::hash<BWAPI::Unit>()(ed.u);
 }
 
-// const std::unordered_set <EnemyData> &UnitManager::getKnownEnemies() const {
-// 	return knownEnemies;
-// }
-
-int UnitManager::countUnit(BWAPI::UnitType t, const BWAPI::UnitFilter &filter,
-                           bool countQueued) const {
-  if (!BWAPI::Broodwar->getAllUnits().size())
+int UnitManager::countUnit(BWAPI::UnitType const t, const BWAPI::UnitFilter &filter, bool const countQueued) {
+  if (BWAPI::Broodwar->getAllUnits().empty())
     return 0;
 
-  int c = 0;
+  auto count = 0;
 
   for (auto u : BWAPI::Broodwar->getAllUnits())
     if (t == u->getType() && (filter)(u))
-      c++;
+      ++count;
 
   if (countQueued)
     for (auto &o : buildingQueue.buildingsQueued())
       if (o.buildingType == t)
-        c++;
+        ++count;
 
-  return c;
+  return count;
 }
 
-int UnitManager::countFriendly(BWAPI::UnitType t, bool onlyWithWeapons,
-                               bool countQueued) const {
-  int sum = 0;
+int UnitManager::countFriendly(BWAPI::UnitType const t, bool const onlyWithWeapons, bool const countQueued) const {
+  auto sum = 0;
 
   if (t == BWAPI::UnitTypes::AllUnits) {
-    if (onlyWithWeapons)
+    if (onlyWithWeapons) {
+      for (auto &[type, units] : friendlyUnitsByType)
+        if (reallyHasWeapon(type))
+          sum += static_cast<int>(units.size());
+    }
+    else {
       for (auto &ut : friendlyUnitsByType)
-        if (reallyHasWeapon(ut.first))
-          sum += (int)ut.second.size();
-        else
-          for (auto &ut : friendlyUnitsByType)
-            sum += (int)ut.second.size();
+        sum += static_cast<int>(ut.second.size());
+    }
   }
 
   else if (friendlyUnitsByType.count(t))
-    sum = (int)friendlyUnitsByType.at(t).size();
+    sum = static_cast<int>(friendlyUnitsByType.at(t).size());
 
   if (countQueued) {
     if (t == BWAPI::UnitTypes::AllUnits)
-      sum += (int)buildingQueue.buildingsQueued().size();
+      sum += static_cast<int>(buildingQueue.buildingsQueued().size());
     else
       for (auto &bo : buildingQueue.buildingsQueued())
         if (bo.buildingType == t)
@@ -141,32 +136,33 @@ int UnitManager::countFriendly(BWAPI::UnitType t, bool onlyWithWeapons,
   return sum;
 }
 
-int UnitManager::countEnemy(BWAPI::UnitType t, bool onlyWithWeapons) const {
-  int sum = 0;
+int UnitManager::countEnemy(BWAPI::UnitType const t, bool onlyWithWeapons) const {
+  auto sum = 0;
 
   if (t == BWAPI::UnitTypes::AllUnits) {
-    if (onlyWithWeapons)
+    if (onlyWithWeapons) {
+      for (auto &[type, units] : enemyUnitsByType)
+        if (reallyHasWeapon(type))
+          sum += static_cast<int>(units.size());
+    }
+    else {
       for (auto &ut : enemyUnitsByType)
-        if (ut.first.groundWeapon() || ut.first.airWeapon())
-          sum += (int)ut.second.size();
-        else
-          for (auto &ut : enemyUnitsByType)
-            sum += (int)ut.second.size();
+        sum += static_cast<int>(ut.second.size());
+    }
   }
 
   else
-    sum = (int)enemyUnitsByType.at(t).size();
+    sum = static_cast<int>(enemyUnitsByType.at(t).size());
 
   return sum;
 }
 
-bool UnitManager::isAllowedToLockdown(BWAPI::Unit target,
-                                      BWAPI::Unit own) const {
-  auto it = lockdownDB.find(target);
+bool UnitManager::isAllowedToLockdown(BWAPI::Unit const target, BWAPI::Unit const own) const {
+  auto const it = lockdownDB.find(target);
   return it == lockdownDB.end() || it->second.first == own;
 }
 
-void UnitManager::reserveLockdown(BWAPI::Unit target, BWAPI::Unit own) {
+void UnitManager::reserveLockdown(BWAPI::Unit const target, BWAPI::Unit own) {
   lockdownDB[target] = {own, BWAPI::Broodwar->getFrameCount()};
 }
 
@@ -206,8 +202,8 @@ UnitManager::getEnemyUnitsByType() const {
 }
 
 const std::set<std::shared_ptr<EnemyData>> &
-UnitManager::getEnemyUnitsByType(BWAPI::UnitType ut) const {
-  auto res = enemyUnitsByType.find(ut);
+UnitManager::getEnemyUnitsByType(BWAPI::UnitType const ut) const {
+  auto const res = enemyUnitsByType.find(ut);
   if (res != enemyUnitsByType.end()) {
     return res->second;
   }
@@ -220,8 +216,8 @@ UnitManager::getFriendlyUnitsByType() const {
 }
 
 const std::set<BWAPI::Unit> &
-UnitManager::getFriendlyUnitsByType(BWAPI::UnitType ut) const {
-  auto res = friendlyUnitsByType.find(ut);
+UnitManager::getFriendlyUnitsByType(BWAPI::UnitType const ut) const {
+  auto const res = friendlyUnitsByType.find(ut);
   if (res != friendlyUnitsByType.end()) {
     return res->second;
   }
@@ -255,103 +251,31 @@ UnitManager::getClosestEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &f,
   int dist;
 
   if (onlyWithWeapons) {
-    for (auto &u : unitManager.visibleEnemies)
-      if (reallyHasWeapon(u->lastType)) {
-        if (!(f)(u->u) ||
-            u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
-          continue;
-        if (!closest) {
-          closest = u;
-          dist = from->getPosition().getApproxDistance(u->lastPosition);
-          continue;
-        }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
-        if (thisDist < dist) {
-          closest = u;
-          dist = thisDist;
-        }
-      }
-    for (auto &u : unitManager.nonVisibleEnemies)
-      if (reallyHasWeapon(u->lastType)) {
-        if (!(f)(u->u) ||
-            u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
-          continue;
-        if (!closest) {
-          closest = u;
-          dist = from->getPosition().getApproxDistance(u->lastPosition);
-          continue;
-        }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
-        if (thisDist < dist) {
-          closest = u;
-          dist = thisDist;
-        }
-      }
-  } else {
-    for (auto &u : unitManager.visibleEnemies) {
-      if (!(f)(u->u) ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
-        continue;
-      if (!closest) {
-        closest = u;
-        dist = from->getPosition().getApproxDistance(u->lastPosition);
-        continue;
-      }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
-      if (thisDist < dist) {
-        closest = u;
-        dist = thisDist;
-      }
-    }
-    for (auto &u : unitManager.nonVisibleEnemies) {
-      if (!(f)(u->u) ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
-        continue;
-      if (!closest) {
-        closest = u;
-        dist = from->getPosition().getApproxDistance(u->lastPosition);
-        continue;
-      }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
-      if (thisDist < dist) {
-        closest = u;
-        dist = thisDist;
-      }
-    }
-  }
-
-  return closest;
-}
-
-std::shared_ptr<EnemyData>
-UnitManager::getClosestEnemy(BWAPI::Unit from, bool onlyWithWeapons) const {
-  std::shared_ptr<EnemyData> closest = nullptr;
-  int dist;
-
-  if (onlyWithWeapons) {
     for (auto &u : visibleEnemies)
-      if (reallyHasWeapon(u->lastType) &&
-          u->frameLastSeen + 1000 >= BWAPI::Broodwar->getFrameCount()) {
+      if (reallyHasWeapon(u->lastType)) {
+        if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+          continue;
         if (!closest) {
           closest = u;
           dist = from->getPosition().getApproxDistance(u->lastPosition);
           continue;
         }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
         if (thisDist < dist) {
           closest = u;
           dist = thisDist;
         }
       }
     for (auto &u : nonVisibleEnemies)
-      if (reallyHasWeapon(u->lastType) &&
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount()) {
+      if (reallyHasWeapon(u->lastType)) {
+        if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+          continue;
         if (!closest) {
           closest = u;
           dist = from->getPosition().getApproxDistance(u->lastPosition);
           continue;
         }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
         if (thisDist < dist) {
           closest = u;
           dist = thisDist;
@@ -359,73 +283,28 @@ UnitManager::getClosestEnemy(BWAPI::Unit from, bool onlyWithWeapons) const {
       }
   } else {
     for (auto &u : visibleEnemies) {
-      if (u->positionInvalidated ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+      if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
         continue;
       if (!closest) {
         closest = u;
         dist = from->getPosition().getApproxDistance(u->lastPosition);
         continue;
       }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
       if (thisDist < dist) {
         closest = u;
         dist = thisDist;
       }
     }
-    for (auto &u : nonVisibleEnemies) {
-      if (u->positionInvalidated ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+    for (auto &u : unitManager.nonVisibleEnemies) {
+      if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
         continue;
       if (!closest) {
         closest = u;
         dist = from->getPosition().getApproxDistance(u->lastPosition);
         continue;
       }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
-      if (thisDist < dist) {
-        closest = u;
-        dist = thisDist;
-      }
-    }
-  }
-
-  return closest;
-}
-
-std::shared_ptr<EnemyData> UnitManager::getClosestVisibleEnemy(
-    BWAPI::Unit from, const BWAPI::UnitFilter &f, bool onlyWithWeapons) const {
-  std::shared_ptr<EnemyData> closest = nullptr;
-  int dist;
-
-  if (onlyWithWeapons) {
-    for (auto &u : unitManager.visibleEnemies)
-      if (reallyHasWeapon(u->lastType)) {
-        if (!(f)(u->u) ||
-            u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
-          continue;
-        if (!closest) {
-          closest = u;
-          dist = from->getPosition().getApproxDistance(u->lastPosition);
-          continue;
-        }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
-        if (thisDist < dist) {
-          closest = u;
-          dist = thisDist;
-        }
-      }
-  } else {
-    for (auto &u : unitManager.visibleEnemies) {
-      if (!(f)(u->u) ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
-        continue;
-      if (!closest) {
-        closest = u;
-        dist = from->getPosition().getApproxDistance(u->lastPosition);
-        continue;
-      }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
       if (thisDist < dist) {
         closest = u;
         dist = thisDist;
@@ -437,8 +316,113 @@ std::shared_ptr<EnemyData> UnitManager::getClosestVisibleEnemy(
 }
 
 std::shared_ptr<EnemyData>
-UnitManager::getClosestVisibleEnemy(BWAPI::Unit from,
-                                    bool onlyWithWeapons) const {
+UnitManager::getClosestEnemy(BWAPI::Unit const from, bool const onlyWithWeapons) const {
+  std::shared_ptr<EnemyData> closest = nullptr;
+  int dist;
+
+  if (onlyWithWeapons) {
+    for (auto &u : visibleEnemies)
+      if (reallyHasWeapon(u->lastType) && u->frameLastSeen + 1000 >= BWAPI::Broodwar->getFrameCount()) {
+        if (!closest) {
+          closest = u;
+          dist = from->getPosition().getApproxDistance(u->lastPosition);
+          continue;
+        }
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        if (thisDist < dist) {
+          closest = u;
+          dist = thisDist;
+        }
+      }
+    for (auto &u : nonVisibleEnemies)
+      if (reallyHasWeapon(u->lastType) && u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount()) {
+        if (!closest) {
+          closest = u;
+          dist = from->getPosition().getApproxDistance(u->lastPosition);
+          continue;
+        }
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        if (thisDist < dist) {
+          closest = u;
+          dist = thisDist;
+        }
+      }
+  } else {
+    for (auto &u : visibleEnemies) {
+      if (u->positionInvalidated || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+        continue;
+      if (!closest) {
+        closest = u;
+        dist = from->getPosition().getApproxDistance(u->lastPosition);
+        continue;
+      }
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      if (thisDist < dist) {
+        closest = u;
+        dist = thisDist;
+      }
+    }
+    for (auto &u : nonVisibleEnemies) {
+      if (u->positionInvalidated || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+        continue;
+      if (!closest) {
+        closest = u;
+        dist = from->getPosition().getApproxDistance(u->lastPosition);
+        continue;
+      }
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      if (thisDist < dist) {
+        closest = u;
+        dist = thisDist;
+      }
+    }
+  }
+
+  return closest;
+}
+
+std::shared_ptr<EnemyData> UnitManager::getClosestVisibleEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &f, bool onlyWithWeapons) const {
+  std::shared_ptr<EnemyData> closest = nullptr;
+  int dist;
+
+  if (onlyWithWeapons) {
+    for (auto &u : visibleEnemies)
+      if (reallyHasWeapon(u->lastType)) {
+        if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+          continue;
+        if (!closest) {
+          closest = u;
+          dist = from->getPosition().getApproxDistance(u->lastPosition);
+          continue;
+        }
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        if (thisDist < dist) {
+          closest = u;
+          dist = thisDist;
+        }
+      }
+  } else {
+    for (auto &u : visibleEnemies) {
+      if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+        continue;
+      if (!closest) {
+        closest = u;
+        dist = from->getPosition().getApproxDistance(u->lastPosition);
+        continue;
+      }
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      if (thisDist < dist) {
+        closest = u;
+        dist = thisDist;
+      }
+    }
+  }
+
+  return closest;
+}
+
+std::shared_ptr<EnemyData>
+UnitManager::getClosestVisibleEnemy(BWAPI::Unit const from, bool const onlyWithWeapons) const {
   std::shared_ptr<EnemyData> closest = nullptr;
   int dist;
 
@@ -451,7 +435,7 @@ UnitManager::getClosestVisibleEnemy(BWAPI::Unit from,
           dist = from->getPosition().getApproxDistance(u->lastPosition);
           continue;
         }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
         if (thisDist < dist) {
           closest = u;
           dist = thisDist;
@@ -459,15 +443,14 @@ UnitManager::getClosestVisibleEnemy(BWAPI::Unit from,
       }
   } else {
     for (auto &u : visibleEnemies) {
-      if (u->positionInvalidated ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+      if (u->positionInvalidated || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
         continue;
       if (!closest) {
         closest = u;
         dist = from->getPosition().getApproxDistance(u->lastPosition);
         continue;
       }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
       if (thisDist < dist) {
         closest = u;
         dist = thisDist;
@@ -478,39 +461,36 @@ UnitManager::getClosestVisibleEnemy(BWAPI::Unit from,
   return closest;
 }
 
-std::shared_ptr<EnemyData> UnitManager::getClosestNonVisibleEnemy(
-    BWAPI::Unit from, const BWAPI::UnitFilter &f, bool onlyWithWeapons) const {
+std::shared_ptr<EnemyData> UnitManager::getClosestNonVisibleEnemy(BWAPI::Unit from, const BWAPI::UnitFilter &f, bool onlyWithWeapons) const {
   std::shared_ptr<EnemyData> closest = nullptr;
   int dist;
 
   if (onlyWithWeapons) {
-    for (auto &u : unitManager.nonVisibleEnemies)
+    for (auto &u : nonVisibleEnemies)
       if (reallyHasWeapon(u->lastType)) {
-        if (!(f)(u->u) ||
-            u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+        if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
           continue;
         if (!closest) {
           closest = u;
           dist = from->getPosition().getApproxDistance(u->lastPosition);
           continue;
         }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
         if (thisDist < dist) {
           closest = u;
           dist = thisDist;
         }
       }
   } else {
-    for (auto &u : unitManager.nonVisibleEnemies) {
-      if (!(f)(u->u) ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+    for (auto &u : nonVisibleEnemies) {
+      if (!(f)(u->u) || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
         continue;
       if (!closest) {
         closest = u;
         dist = from->getPosition().getApproxDistance(u->lastPosition);
         continue;
       }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
       if (thisDist < dist) {
         closest = u;
         dist = thisDist;
@@ -522,21 +502,19 @@ std::shared_ptr<EnemyData> UnitManager::getClosestNonVisibleEnemy(
 }
 
 std::shared_ptr<EnemyData>
-UnitManager::getClosestNonVisibleEnemy(BWAPI::Unit from,
-                                       bool onlyWithWeapons) const {
+UnitManager::getClosestNonVisibleEnemy(BWAPI::Unit const from, bool const onlyWithWeapons) const {
   std::shared_ptr<EnemyData> closest = nullptr;
   int dist;
 
   if (onlyWithWeapons) {
     for (auto &u : nonVisibleEnemies)
-      if (reallyHasWeapon(u->lastType) &&
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount()) {
+      if (reallyHasWeapon(u->lastType) && u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount()) {
         if (!closest) {
           closest = u;
           dist = from->getPosition().getApproxDistance(u->lastPosition);
           continue;
         }
-        int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+        auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
         if (thisDist < dist) {
           closest = u;
           dist = thisDist;
@@ -544,15 +522,14 @@ UnitManager::getClosestNonVisibleEnemy(BWAPI::Unit from,
       }
   } else {
     for (auto &u : nonVisibleEnemies) {
-      if (u->positionInvalidated ||
-          u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
+      if (u->positionInvalidated || u->frameLastSeen + 1000 <= BWAPI::Broodwar->getFrameCount())
         continue;
       if (!closest) {
         closest = u;
         dist = from->getPosition().getApproxDistance(u->lastPosition);
         continue;
       }
-      int thisDist = from->getPosition().getApproxDistance(u->lastPosition);
+      auto const thisDist = from->getPosition().getApproxDistance(u->lastPosition);
       if (thisDist < dist) {
         closest = u;
         dist = thisDist;
@@ -563,20 +540,20 @@ UnitManager::getClosestNonVisibleEnemy(BWAPI::Unit from,
   return closest;
 }
 
-std::shared_ptr<EnemyData> UnitManager::getEnemyData(BWAPI::Unit ptr) {
-  auto it = enemyUnits.find(ptr->getID());
+std::shared_ptr<EnemyData> UnitManager::getEnemyData(BWAPI::Unit const ptr) {
+  auto const it = enemyUnits.find(ptr->getID());
   if (it == enemyUnits.end())
     return nullptr;
   else
     return it->second;
 }
 
-std::shared_ptr<EnemyData> UnitManager::getBestTarget(BWAPI::Unit from) {
+std::shared_ptr<EnemyData> UnitManager::getBestTarget(BWAPI::Unit const from) {
   int bestVal;
   std::shared_ptr<EnemyData> ret;
 
   for (auto &u : visibleEnemies) {
-    int val = targetPriority(from, u.get());
+    auto const val = targetPriority(from, u.get());
     if (!ret || val > bestVal) {
       bestVal = val;
       ret = u;
@@ -584,7 +561,7 @@ std::shared_ptr<EnemyData> UnitManager::getBestTarget(BWAPI::Unit from) {
   }
 
   for (auto &u : nonVisibleEnemies) {
-    int val = targetPriority(from, u.get());
+    auto const val = targetPriority(from, u.get());
     if (!ret || val > bestVal) {
       bestVal = val;
       ret = u;
@@ -594,7 +571,7 @@ std::shared_ptr<EnemyData> UnitManager::getBestTarget(BWAPI::Unit from) {
   return ret;
 }
 
-int UnitManager::getNukeScore(BWAPI::Position pos, BWAPI::Unit from) const {
+int UnitManager::getNukeScore(BWAPI::Position const pos, BWAPI::Unit from) const {
   int sum = 0;
 
   for (auto u : visibleEnemies)
@@ -738,19 +715,18 @@ inline int UnitManager::deathPerHealth(BWAPI::Unit unit) {
   return deathPerHealth(unit->getType(), unit->getHitPoints());
 }
 
-inline void UnitManager::addToDeathMatrix(BWAPI::Position pos,
-                                          BWAPI::UnitType ut, BWAPI::Player p) {
+/*inline void UnitManager::addToDeathMatrix(BWAPI::Position pos, BWAPI::UnitType ut, BWAPI::Player p) {
   const int mapH = BWAPI::Broodwar->mapHeight() * 4,
-            mapW = BWAPI::Broodwar->mapWidth() * 4;
+            mapW = BWAPI::Broodwar->mapWidth()  * 4;
   if (ut.groundWeapon()) {
-    const int range = p->weaponMaxRange(ut.groundWeapon()) / 8;
-    const int death = unitDeathGround(ut);
-    const int mx = pos.x + range > mapW ? mapW : pos.x + range;
-    for (int dx = pos.x - range < 0 ? -pos.x : -range; dx <= mx; ++dx) {
-      const int yw = (int)ceil(sqrt(range * range - dx * dx));
-      const int minY = MAX(pos.y - yw, 0), maxY = MIN(pos.y + yw, mapH);
-      for (int y = minY; y <= maxY; ++y)
-        deathMatrixGround[y * deathMatrixSideLen + pos.x + dx] += death;
+    const auto range = p->weaponMaxRange(ut.groundWeapon()) / 8;
+    const auto death = unitDeathGround(ut);
+    const auto mx = pos.x + range > mapW ? mapW : pos.x + range;
+    for (auto dx = pos.x - range < 0 ? -pos.x : -range; dx <= mx; ++dx) {
+      const auto yw = static_cast<int>(ceil(sqrt(range * range - dx * dx)));
+      const auto minY = MAX(pos.y - yw, 0), maxY = MIN(pos.y + yw, mapH);
+      for (auto y = minY; y <= maxY; ++y)
+        DeathMatrixGround[y * deathMatrixSideLen + pos.x + dx] += death;
     }
   }
 
@@ -762,14 +738,33 @@ inline void UnitManager::addToDeathMatrix(BWAPI::Position pos,
       const int yw = (int)ceil(sqrt(range * range - dx * dx));
       const int minY = MAX(pos.y - yw, 0), maxY = MIN(pos.y + yw, mapH);
       for (int y = minY; y <= maxY; ++y)
-        deathMatrixAir[y * deathMatrixSideLen + pos.x + dx] += death;
+        DeathMatrixAir[y * deathMatrixSideLen + pos.x + dx] += death;
     }
   }
-}
+}*/
 
-SimResults UnitManager::getSimResults() { return sr; }
+SimResults UnitManager::getSimResults() const { return sr; }
 
 unsigned UnitManager::getLaunchedNukeCount() const { return launchedNukeCount; }
+
+int UnitManager::getLastAttackFrame(BWAPI::Unit u) {
+  return lastAttackFrame[u];
+}
+
+// void UnitManager::attacked(BWAPI::Unit u) {
+//	lastAttackFrame[u] = BWAPI::Broodwar->getFrameCount();
+//}
+
+int UnitManager::getMinStop(BWAPI::UnitType ut) {
+  switch (ut) {
+  case BWAPI::UnitTypes::Protoss_Dragoon:
+    return 5;
+  case BWAPI::UnitTypes::Zerg_Devourer:
+    return 7;
+  default:
+    return 0;
+  }
+}
 
 void UnitManager::onFrame() {
   // Update visible enemies
@@ -795,6 +790,14 @@ void UnitManager::onFrame() {
 
   doMultikillDetector();
   doCombatSim();
+
+  for (auto u : BWAPI::Broodwar->getAllUnits()) {
+    if (!lastAttacking[u] && u->isStartingAttack()) {
+      lastAttackFrame[u] = BWAPI::Broodwar->getFrameCount();
+    }
+
+    lastAttacking[u] = u->isStartingAttack();
+  }
 }
 
 void UnitManager::onNukeDetect(BWAPI::Position target) {
@@ -859,7 +862,10 @@ void UnitManager::onUnitHide(BWAPI::Unit unit) {
   }
 }
 
-void UnitManager::onUnitCreate(BWAPI::Unit unit) {}
+void UnitManager::onUnitCreate(BWAPI::Unit unit) {
+  if (unit->getType() == BWAPI::UnitTypes::Terran_Ghost)
+    soundDatabase.playRandomFunnySound();
+}
 
 void UnitManager::onUnitDestroy(BWAPI::Unit unit) {
   if (isEnemy(unit) && unit->getType().isResourceDepot())
@@ -907,7 +913,12 @@ void UnitManager::onUnitMorph(BWAPI::Unit unit) {
 void UnitManager::onUnitEvade(BWAPI::Unit unit) {}
 
 void UnitManager::onUnitRenegade(BWAPI::Unit unit) {
-  if (isOwn(unit)) {
+  if (isEnemy(unit)) {
+    friendlyUnitsByType[unit->getType()].erase(unit);
+    if (!friendlyUnitsByType[unit->getType()].size())
+      friendlyUnitsByType.erase(unit->getType());
+    onUnitDiscover(unit);
+  } else {
     auto it = enemyUnits.find(unit->getID());
     if (it != enemyUnits.end()) {
       squadManager.onEnemyLose(it->second);
@@ -919,11 +930,6 @@ void UnitManager::onUnitRenegade(BWAPI::Unit unit) {
         friendlyUnitsByType.erase(unit->getType());
       onUnitDiscover(unit);
     }
-  } else {
-    friendlyUnitsByType[unit->getType()].erase(unit);
-    if (!friendlyUnitsByType[unit->getType()].size())
-      friendlyUnitsByType.erase(unit->getType());
-    onUnitDiscover(unit);
   }
 }
 
