@@ -424,8 +424,8 @@ void SquadManager::onFrame() {
     });
 
     auto const doAttack = [shouldAttack, medicEnergy, &skiporder](FriendlySquad *fs, BWAPI::Position target) {
-      if (BWAPI::Broodwar->getFrameCount() % 10 != 0)
-        return;
+      //if (BWAPI::Broodwar->getFrameCount() % 10 != 0)
+        //return;
 
       auto const fleeFrom = [](BWAPI::Unit u, BWAPI::Position p) {
         u->move(u->getPosition() + u->getPosition() - p);
@@ -465,15 +465,13 @@ void SquadManager::onFrame() {
                 continue;
               u->attack(target);
             }
-              //if (u->getOrder() == BWAPI::Orders::Move && u->getOrderTargetPosition().getDistance(target) < 20)
-                //continue;
             else if (auto const close = unitManager.getClosestEnemy(u, true); close && close->u->isVisible() && close->u->getDistance(u) < BWAPI::Broodwar->self()->weaponMaxRange(u->getType().groundWeapon())) {
               if (u->getOrder() == BWAPI::Orders::AttackUnit && u->getOrderTarget() == close->u)
                 continue;
               u->attack(u);
             } else {
-              //if (u->getOrder() == BWAPI::Orders::Move && u->getOrderTargetPosition().getDistance(target) < 20)
-                //continue;
+              if (u->getOrder() == BWAPI::Orders::Move && u->getOrderTargetPosition().getDistance(target) < 20)
+                continue;
               u->move(target);
             }
           }
