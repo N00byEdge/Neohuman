@@ -243,12 +243,13 @@ void Neohuman::onFrame() {
         }
 
         if(b.race == Races::Terran) {
+          auto const maxNumComsats = (BWAPI::Broodwar->enemy()->getRace() == BWAPI::Races::Terran ? 2 : 3);
           if(b.resourceDepot->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Nuclear_Silo)
-              && unitManager.countFriendly(UnitTypes::Terran_Comsat_Station) >= (BWAPI::Broodwar->enemy()->getRace() == BWAPI::Races::Terran ? 2 : 3))
+              && unitManager.countFriendly(UnitTypes::Terran_Comsat_Station) >= maxNumComsats)
             b.resourceDepot->buildAddon(UnitTypes::Terran_Nuclear_Silo);
 
           if(b.resourceDepot->isIdle() && resourceManager.canAfford(UnitTypes::Terran_Comsat_Station)
-              && (!unitManager.countFriendly(UnitTypes::Terran_Covert_Ops) || unitManager.countFriendly(UnitTypes::Terran_Comsat_Station) < 3))
+              && (!unitManager.countFriendly(UnitTypes::Terran_Covert_Ops) || unitManager.countFriendly(UnitTypes::Terran_Comsat_Station) < maxNumComsats))
             b.resourceDepot->buildAddon(UnitTypes::Terran_Comsat_Station);
         }
 
