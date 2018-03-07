@@ -398,6 +398,7 @@ FastAPproximation::FAPUnit::FAPUnit(EnemyData ed)
       airDamageType(ed.lastType.airWeapon().damageType()),
 
       unitType(ed.lastType), player(ed.lastPlayer),
+      unitSize(ed.lastType.size()),
       isOrganic(ed.lastType.isOrganic()), score(ed.lastType.destroyScore()) {
 
   static auto nextId = 0;
